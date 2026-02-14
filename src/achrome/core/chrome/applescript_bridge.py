@@ -249,22 +249,24 @@ on open_url(bundleId, commandArgs)
         end if
         set URL of active tab of oneWindow to targetUrl
         if activateValue is "1" then set index of oneWindow to 1
-        return my tab_to_json(oneWindow, active tab of oneWindow)
+        return my tab_index_to_json(oneWindow, active tab index of oneWindow)
       else if modeValue is "window" then
         set oneWindow to first window whose id is (targetValue as integer)
         set oneTab to make new tab at end of tabs of oneWindow with properties {URL:targetUrl}
-        if activateValue is "1" then set active tab index of oneWindow to index of oneTab
-        return my tab_to_json(oneWindow, oneTab)
+        set newTabIndex to count of tabs of oneWindow
+        if activateValue is "1" then set active tab index of oneWindow to newTabIndex
+        return my tab_index_to_json(oneWindow, newTabIndex)
       else
         if (count of windows) is 0 then
           set oneWindow to make new window
           set URL of active tab of oneWindow to targetUrl
-          return my tab_to_json(oneWindow, active tab of oneWindow)
+          return my tab_index_to_json(oneWindow, active tab index of oneWindow)
         end if
         set oneWindow to front window
         set oneTab to make new tab at end of tabs of oneWindow with properties {URL:targetUrl}
-        if activateValue is "1" then set active tab index of oneWindow to index of oneTab
-        return my tab_to_json(oneWindow, oneTab)
+        set newTabIndex to count of tabs of oneWindow
+        if activateValue is "1" then set active tab index of oneWindow to newTabIndex
+        return my tab_index_to_json(oneWindow, newTabIndex)
       end if
     end tell
   end using terms from
@@ -376,6 +378,15 @@ on tab_to_json(oneWindow, oneTab)
     return my json_obj({my json_kv("id", my json_string((id of oneTab) as text)), my json_kv("window_id", my json_string((id of oneWindow) as text)), my json_kv("index", my json_num(index of oneTab)), my json_kv("title", my json_string(title of oneTab as text)), my json_kv("url", my json_string(URL of oneTab as text)), my json_kv("loading", my json_bool(loading of oneTab as boolean)), my json_kv("window_name", my json_string(name of oneWindow as text)), my json_kv("is_active", my json_bool(isActive))})
   end using terms from
 end tab_to_json
+
+on tab_index_to_json(oneWindow, tabIndexValue)
+  using terms from application "Google Chrome"
+    set oneTab to tab tabIndexValue of oneWindow
+    set activeTabId to ((id of (active tab of oneWindow)) as text)
+    set isActive to (((id of oneTab) as text) is activeTabId)
+    return my json_obj({my json_kv("id", my json_string((id of oneTab) as text)), my json_kv("window_id", my json_string((id of oneWindow) as text)), my json_kv("index", my json_num(tabIndexValue)), my json_kv("title", my json_string(title of oneTab as text)), my json_kv("url", my json_string(URL of oneTab as text)), my json_kv("loading", my json_bool(loading of oneTab as boolean)), my json_kv("window_name", my json_string(name of oneWindow as text)), my json_kv("is_active", my json_bool(isActive))})
+  end using terms from
+end tab_index_to_json
 
 on find_tab(bundleId, tabSpec)
   set AppleScript's text item delimiters to ":"
