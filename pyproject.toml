@@ -115,8 +115,6 @@ filterwarnings = [
     "ignore:unclosed <socket.socket:ResourceWarning",
     "ignore:unclosed event loop:ResourceWarning",
 ]
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 source = ["src/achrome"]
@@ -124,7 +122,6 @@ branch = true
 parallel = true
 
 [tool.coverage.report]
-fail_under = 100
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",

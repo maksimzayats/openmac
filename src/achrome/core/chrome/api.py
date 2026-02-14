@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 
-from achrome.core.applescript.executor import AppleScriptExecutor
-from achrome.core.chrome.models import Tab
+from achrome.core.apple_script.executor import AppleScriptExecutor
 
 
 @dataclass(kw_only=True, slots=True)
 class ChromeAPI:
-    apple_script_executor: AppleScriptExecutor
+    """High-level API for controlling Chrome via AppleScript."""
 
-    def list_tabs(self) -> list[Tab]:
-        pass
+    apple_script_executor: AppleScriptExecutor
