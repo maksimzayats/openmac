@@ -198,7 +198,13 @@ on source_tab(bundleId, commandArgs)
   set targetInfo to my resolve_target_tab(bundleId, commandArgs)
   using terms from application "Google Chrome"
     tell application id bundleId
-      set src to source of item 2 of targetInfo
+      set oneTab to item 2 of targetInfo
+      try
+        tell oneTab to set src to source as text
+      on error
+        set src to execute oneTab javascript "document.documentElement.outerHTML"
+        if src is missing value then set src to ""
+      end try
       return my json_string(src as text)
     end tell
   end using terms from

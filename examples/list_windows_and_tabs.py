@@ -1,4 +1,4 @@
-from achrome import ChromeAPI
+from achrome import ChromeAPI, TabTarget
 from achrome.core.apple_script import AppleScriptExecutor
 
 
@@ -23,6 +23,7 @@ def main() -> None:
     for tab in tabs:
         marker = "*" if tab.is_active else " "
         print(f"{marker} {tab.composite_id} {tab.title} -> {tab.url}")
+        print(chrome.source(tab=TabTarget(window_id=tab.window_id, tab_id=tab.id)))
 
 
 if __name__ == "__main__":
