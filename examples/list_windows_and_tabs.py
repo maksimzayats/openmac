@@ -23,7 +23,7 @@ def main() -> None:
     for tab in tabs:
         marker = "*" if tab.is_active else " "
         print(f"{marker} {tab.composite_id} {tab.title} -> {tab.url}")
-        print(chrome.source(tab=TabTarget(window_id=tab.window_id, tab_id=tab.id)))
+        print(chrome.snapshot(tab=TabTarget(window_id=tab.window_id, tab_id=tab.id)).refs.get("e180"))
 
 
 if __name__ == "__main__":

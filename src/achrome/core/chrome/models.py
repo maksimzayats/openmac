@@ -108,6 +108,24 @@ class ChromeBookmarks:
 
 
 @dataclass(frozen=True, slots=True)
+class ChromeSnapshotRef:
+    """Element reference metadata from a snapshot."""
+
+    selector: str
+    role: str
+    name: str | None = None
+    nth: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ChromeSnapshot:
+    """Snapshot tree and deterministic element references."""
+
+    tree: str
+    refs: dict[str, ChromeSnapshotRef] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
 class TabTarget:
     """Tab selector supporting composite ids."""
 

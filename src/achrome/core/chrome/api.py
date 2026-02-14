@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass, field
 from typing import cast
 
@@ -13,6 +14,8 @@ from achrome.core.chrome.models import (
     ChromeBookmarkFolder,
     ChromeBookmarkItem,
     ChromeBookmarks,
+    ChromeSnapshot,
+    ChromeSnapshotRef,
     ChromeTab,
     ChromeWindow,
     JsonValue,
@@ -20,6 +23,7 @@ from achrome.core.chrome.models import (
     WindowBounds,
     WindowTarget,
 )
+from achrome.core.chrome.snapshot import build_snapshot_javascript
 
 CHROME_BUNDLE_IDENTIFIER_ENV = "CHROME_BUNDLE_IDENTIFIER"
 DEFAULT_CHROME_BUNDLE_IDENTIFIER = "com.google.Chrome"
@@ -129,6 +133,47 @@ class ChromeAPI:
             raise AppleScriptDecodeError(raw_output=raw_result) from exc
         return self._coerce_json_value(decoded)
 
+    def snapshot(  # noqa: PLR0913
+        self,
+        *,
+        tab: TabTarget | str | None = None,
+        interactive: bool = False,
+        cursor: bool = False,
+        max_depth: int | None = None,
+        compact: bool = False,
+        selector: str | None = None,
+    ) -> ChromeSnapshot:
+        """Generate an agent-browser-style snapshot for the target tab."""
+        if max_depth is not None and max_depth < 0:
+            msg = "max_depth must be >= 0."
+            raise ValueError(msg)
+
+        resolved_selector: str | None = None
+        if selector is not None:
+            resolved_selector = selector.strip()
+            if not resolved_selector:
+                msg = "selector must be a non-empty string."
+                raise ValueError(msg)
+
+        resolved_tab: TabTarget | None = None
+        if tab is not None:
+            resolved_tab = self._tab_target(target=tab)
+
+        javascript = build_snapshot_javascript(
+            interactive=interactive,
+            cursor=cursor,
+            max_depth=max_depth,
+            compact=compact,
+            selector=resolved_selector,
+        )
+        try:
+            payload = self.execute_javascript_json(javascript, tab=resolved_tab)
+        except AppleScriptDecodeError as exc:
+            msg = "Invalid JSON payload returned from snapshot JavaScript."
+            raise ChromeError(msg) from exc
+
+        return self._parse_snapshot(payload)
+
     def open_url(  # noqa: PLR0913
         self,
         url: str,
@@ -203,6 +248,52 @@ class ChromeAPI:
                 payload.get("other_bookmarks"),
                 "other_bookmarks",
             ),
+        )
+
+    def _parse_snapshot(self, value: JsonValue) -> ChromeSnapshot:
+        payload = _as_dict(value=value, context="snapshot")
+        _ensure_object_keys(payload, context="snapshot", required={"tree", "refs"}, optional=set())
+        raw_refs = _as_dict(value=payload.get("refs"), context="snapshot.refs")
+
+        refs: dict[str, ChromeSnapshotRef] = {}
+        for ref_id, ref_value in raw_refs.items():
+            if _SNAPSHOT_REF_ID_RE.fullmatch(ref_id) is None:
+                msg = f"Expected snapshot ref id in 'eN' format, got {ref_id!r}."
+                raise ChromeError(msg)
+            refs[ref_id] = self._parse_snapshot_ref(ref_value, context=f"snapshot.refs.{ref_id}")
+
+        return ChromeSnapshot(
+            tree=_as_str(value=payload.get("tree"), field_name="snapshot.tree"),
+            refs=refs,
+        )
+
+    def _parse_snapshot_ref(self, value: JsonValue, *, context: str) -> ChromeSnapshotRef:
+        payload = _as_dict(value=value, context=context)
+        _ensure_object_keys(
+            payload,
+            context=context,
+            required={"selector", "role"},
+            optional={"name", "nth"},
+        )
+
+        raw_name = payload.get("name")
+        name: str | None = None
+        if raw_name is not None:
+            name = _as_str(value=raw_name, field_name=f"{context}.name")
+
+        raw_nth = payload.get("nth")
+        nth: int | None = None
+        if raw_nth is not None:
+            nth = _as_int(value=raw_nth, field_name=f"{context}.nth")
+            if nth < 0:
+                msg = f"Expected non-negative integer for field '{context}.nth'."
+                raise ChromeError(msg)
+
+        return ChromeSnapshotRef(
+            selector=_as_str(value=payload.get("selector"), field_name=f"{context}.selector"),
+            role=_as_str(value=payload.get("role"), field_name=f"{context}.role"),
+            name=name,
+            nth=nth,
         )
 
     def _run(self, command: str, *args: str) -> JsonValue:
@@ -378,3 +469,27 @@ def _as_bool(*, value: JsonValue | None, field_name: str) -> bool:
 
 def _bool_arg(*, value: bool) -> str:
     return "1" if value else "0"
+
+
+_SNAPSHOT_REF_ID_RE = re.compile(r"^e[1-9]\d*$")
+
+
+def _ensure_object_keys(
+    payload: dict[str, JsonValue],
+    *,
+    context: str,
+    required: set[str],
+    optional: set[str],
+) -> None:
+    allowed = required | optional
+    missing = required - payload.keys()
+    if missing:
+        missing_fields = ", ".join(sorted(missing))
+        msg = f"Missing required field(s) for {context}: {missing_fields}."
+        raise ChromeError(msg)
+
+    unexpected = payload.keys() - allowed
+    if unexpected:
+        unexpected_fields = ", ".join(sorted(unexpected))
+        msg = f"Unexpected field(s) for {context}: {unexpected_fields}."
+        raise ChromeError(msg)
