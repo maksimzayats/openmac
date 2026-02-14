@@ -99,7 +99,5 @@ the current public API.
 ## Agent behavior
 
 - Do not add new lint ignores without justification.
-- Keep public API backward compatible unless explicitly requested.
 - Preserve existing formatting and file organization.
-- Avoid adding new dependencies unless required for functionality.
 - Update or add tests whenever behavior changes.
