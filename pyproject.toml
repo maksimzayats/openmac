@@ -68,6 +68,9 @@ style = "pep440"
 [tool.uv]
 cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true, tags = true } }]
 
+[tool.uv.sources]
+diwire = { git = "https://github.com/maksimzayats/diwire" }
+
 [tool.mypy]
 python_version = "3.10"
 strict = true

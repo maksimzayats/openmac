@@ -1,5 +1,6 @@
 import subprocess
 from dataclasses import dataclass
+from typing import Protocol
 
 
 @dataclass(kw_only=True, slots=True)
@@ -32,3 +33,10 @@ class AppleScriptExecutor:
 
 class AppleScriptError(RuntimeError):
     """Raised when AppleScript execution fails (non-zero exit code)."""
+
+
+class AppleScriptExecutorLike(Protocol):
+    """Protocol for AppleScript executor implementations."""
+
+    def run_applescript(self, script: str, args: list[str] | None = None) -> str:
+        """Run AppleScript and return stdout."""

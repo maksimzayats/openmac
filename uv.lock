@@ -39,7 +39,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "diwire", specifier = ">=1.0.0" },
+    { name = "diwire", git = "https://github.com/maksimzayats/diwire" },
     { name = "fastapi", specifier = ">=0.129.0" },
     { name = "typer", specifier = ">=0.23.1" },
     { name = "uvicorn", specifier = ">=0.40.0" },
@@ -293,12 +293,8 @@ wheels = [
 
 [[package]]
 name = "diwire"
-version = "1.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/db/d1/49be11e32fce0b3f04460c0441e1d37eda3881b5812fd65ad33eeb645d28/diwire-1.0.0.tar.gz", hash = "sha256:2514af3bca831c48a721c017624ba8341daf651443b66e8ac2926928b594d639", size = 366115, upload-time = "2026-02-13T17:50:11.988Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/1a/6375f64a4c1530fd5bddb0e4a68d3fd4834d67073bd5d1a97c6ffaecb1b0/diwire-1.0.0-py3-none-any.whl", hash = "sha256:c662541da9b485c6176a6f814360dea349182b97807888fce18cd31e679ce057", size = 85791, upload-time = "2026-02-13T17:50:11.084Z" },
-]
+version = "1.0.0.post1.dev0+8f8542e"
+source = { git = "https://github.com/maksimzayats/diwire#8f8542ef79b165bfb6191170b9f74e99b3f42281" }
 
 [[package]]
 name = "docutils"
