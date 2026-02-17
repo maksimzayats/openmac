@@ -1,4 +1,4 @@
-.PHONY: format lint test docs examples-readme benchmark benchmark-json benchmark-report benchmark-report-all benchmark-json-resolve benchmark-report-resolve
+.PHONY: format lint test docs
 
 format:
 	uv run ruff format .
@@ -14,4 +14,4 @@ test:
 
 docs:
 	rm -rf docs/_build
-	uv run sphinx-build -b html docs docs/_build/html
+	uv run --group docs sphinx-build -W -b html docs docs/_build/html
