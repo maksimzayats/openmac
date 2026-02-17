@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 @dataclass(slots=True, kw_only=True)
 class Tab:
     id: str
-    window_id: str
+    window_id: int
     name: str
     url: str
     loading: bool
@@ -69,7 +69,7 @@ class TabsManager(BaseManager[Tab]):
         if not self._items and self._window_id is None:
             raise ValueError("TabsManager requires either _items or _window_id to be provided.")
 
-        if self._window_id:
+        if self._window_id is not None:
             self._default_filters = {"window_id": self._window_id}
 
     @property
@@ -92,7 +92,7 @@ class TabsManager(BaseManager[Tab]):
         return [
             Tab(
                 id="tab-1",
-                window_id=self._window_id or "window-1",
+                window_id=self._window_id,
                 name="Tab 1",
                 url="https://example.com",
                 loading=False,
@@ -100,7 +100,7 @@ class TabsManager(BaseManager[Tab]):
             ),
             Tab(
                 id="tab-2",
-                window_id=self._window_id or "window-1",
+                window_id=self._window_id,
                 name="Tab 2",
                 url="https://example.org",
                 loading=True,
@@ -108,7 +108,7 @@ class TabsManager(BaseManager[Tab]):
             ),
             Tab(
                 id="tab-3",
-                window_id=self._window_id or "window-2",
+                window_id=self._window_id,
                 name="Tab 3",
                 url="https://example.net",
                 loading=False,

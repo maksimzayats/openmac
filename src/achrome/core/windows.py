@@ -20,8 +20,8 @@ class Window:
 
 
 class WindowsFilterCriteria(TypedDict):
-    id: NotRequired[str]
-    id__in: NotRequired[list[str]]
+    id: NotRequired[int]
+    id__in: NotRequired[list[int]]
     name: NotRequired[str]
     name__in: NotRequired[list[str]]
     name__contains: NotRequired[str]

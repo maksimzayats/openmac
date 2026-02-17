@@ -4,19 +4,31 @@ from typing import Any, cast
 
 import pytest
 
-from achrome.core._internal.chome_api import ChromeAPI
+from achrome.core._internal.apple_script import AppleScriptRunner
 from achrome.core._internal.context import Context
 from achrome.core.exceptions import AChromeError, DoesNotExistError, MultipleObjectsReturnedError
 from achrome.core.tabs import Tab, TabsManager
 from achrome.core.windows import Window, WindowsManager
 
+WINDOWS_JSON = '[{"id": 1, "name": "Window 1"}, {"id": 2, "name": "Window 2"}]'
 
-def _context() -> Context:
-    return Context(chrome_api=ChromeAPI())
+
+class _SpyAppleScriptRunner:
+    def __init__(self, response: str = WINDOWS_JSON) -> None:
+        self._response = response
+
+    def run(self, script: str) -> str:
+        _ = script
+        return self._response
+
+
+def _context(runner: AppleScriptRunner | None = None) -> Context:
+    context_runner = runner or cast("AppleScriptRunner", _SpyAppleScriptRunner())
+    return Context(runner=context_runner)
 
 
 def test_tabs_manager_get_returns_unique_tab_by_id() -> None:
-    tabs_manager = TabsManager(_context=_context(), _window_id="window-1")
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
     tab = tabs_manager.get(id="tab-1")
 
@@ -25,7 +37,7 @@ def test_tabs_manager_get_returns_unique_tab_by_id() -> None:
 
 
 def test_tabs_manager_get_raises_does_not_exist_for_missing_tab() -> None:
-    tabs_manager = TabsManager(_context=_context(), _window_id="window-1")
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
     with pytest.raises(DoesNotExistError) as exc_info:
         tabs_manager.get(id="missing")
@@ -34,7 +46,7 @@ def test_tabs_manager_get_raises_does_not_exist_for_missing_tab() -> None:
 
 
 def test_tabs_manager_get_raises_multiple_objects_returned_for_non_unique_criteria() -> None:
-    tabs_manager = TabsManager(_context=_context(), _window_id="window-1")
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
     with pytest.raises(MultipleObjectsReturnedError) as exc_info:
         tabs_manager.get(loading=False)
@@ -46,7 +58,7 @@ def test_tabs_manager_get_raises_multiple_objects_returned_for_non_unique_criter
 
 
 def test_tabs_manager_get_supports_contains_operator() -> None:
-    tabs_manager = TabsManager(_context=_context(), _window_id="window-1")
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
     tab = tabs_manager.get(name__contains="Tab 2")
 
@@ -54,7 +66,7 @@ def test_tabs_manager_get_supports_contains_operator() -> None:
 
 
 def test_tabs_manager_get_supports_in_operator() -> None:
-    tabs_manager = TabsManager(_context=_context(), _window_id="window-1")
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
     tab = tabs_manager.get(id__in=["tab-2", "tab-99"])
 
@@ -62,19 +74,52 @@ def test_tabs_manager_get_supports_in_operator() -> None:
 
 
 def test_tabs_manager_get_propagates_value_error_for_unsupported_operator() -> None:
-    tabs_manager = TabsManager(_context=_context(), _window_id="window-1")
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
     with pytest.raises(ValueError, match="Unsupported operator: unknown"):
         cast("Any", tabs_manager).get(name__unknown="Tab")
 
 
+def test_tabs_manager_active_returns_active_tab() -> None:
+    context = _context()
+    active_tab = Tab(
+        id="tab-42",
+        window_id=1,
+        name="Active Tab",
+        url="https://example.com/active",
+        loading=False,
+        is_active=True,
+        _context=context,
+    )
+    tabs_manager = TabsManager(_context=context, _items=[active_tab])
+
+    assert tabs_manager.active is active_tab
+
+
+def test_tabs_manager_items_raises_runtime_error_without_window_id() -> None:
+    context = _context()
+    tab = Tab(
+        id="tab-1",
+        window_id=1,
+        name="Tab 1",
+        url="https://example.com",
+        loading=False,
+        _context=context,
+    )
+    tabs_manager = TabsManager(_context=context, _items=[tab])
+    tabs_manager._items = None
+
+    with pytest.raises(RuntimeError, match=r"Cannot load tabs without a window id\."):
+        _ = tabs_manager.items
+
+
 def test_windows_manager_get_returns_unique_window_by_id() -> None:
     windows_manager = WindowsManager(_context=_context())
 
-    window = windows_manager.get(id="window-1")
+    window = windows_manager.get(id=1)
 
     assert isinstance(window, Window)
-    assert window.id == "window-1"
+    assert window.id == 1
 
 
 def test_windows_manager_get_without_criteria_raises_multiple_objects_returned() -> None:
