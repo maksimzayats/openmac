@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, NamedTuple, TypedDict
 from pydantic import TypeAdapter
 
 from achrome.core._internal.manager import BaseManager
+from achrome.core._internal.models import ChromeModel
 from achrome.core.tabs import Tab, TabsManager
 
 if TYPE_CHECKING:
@@ -20,7 +21,7 @@ class Bounds(NamedTuple):
 
 
 @dataclass(slots=True)
-class Window:
+class Window(ChromeModel):
     id: int
     name: str
     bounds: Bounds
@@ -253,6 +254,7 @@ class WindowsManager(BaseManager[Window]):
 
         for window in windows:
             window.tabs = TabsManager(_context=self._context, _window_id=window.id)
+            window.set_context(self._context)
 
         return windows
 

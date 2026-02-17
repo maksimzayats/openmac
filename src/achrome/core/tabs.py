@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypedDict
 
 from pydantic import TypeAdapter
 
-from achrome.core._internal.context import Context
 from achrome.core._internal.manager import BaseManager
+from achrome.core._internal.models import ChromeModel
 
 if TYPE_CHECKING:
     from typing_extensions import NotRequired, Unpack
 
 
 @dataclass(slots=True, kw_only=True)
-class Tab:
+class Tab(ChromeModel):
     id: str
     window_id: int
     title: str
@@ -21,16 +21,9 @@ class Tab:
     loading: bool
     is_active: bool
 
-    _context: Context = field(init=False)
-
     @property
     def source(self) -> str:
         return "<html>...</html>"  # Placeholder for the actual page source
-
-    def execute(self, javascript: str) -> str:
-        # Placeholder for executing JavaScript in the tab and returning the result
-        _ = javascript, self  # Use the JavaScript code to execute in the tab
-        return "result of executing JavaScript"
 
     def close(self) -> None: ...
 
@@ -45,6 +38,11 @@ class Tab:
     def enter_presentation_mode(self) -> None: ...
 
     def exit_presentation_mode(self) -> None: ...
+
+    def execute(self, javascript: str) -> str:
+        # Placeholder for executing JavaScript in the tab and returning the result
+        _ = javascript, self  # Use the JavaScript code to execute in the tab
+        return "result of executing JavaScript"
 
 
 class TabsFilterCriteria(TypedDict):
@@ -162,7 +160,7 @@ class TabsManager(BaseManager[Tab]):
         tabs = TypeAdapter(list[Tab]).validate_json(result)
 
         for tab in tabs:
-            tab._context = self._context  # noqa: SLF001
+            tab.set_context(self._context)
 
         return tabs
 
