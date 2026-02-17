@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 import runpy
 from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock, patch
@@ -19,15 +21,59 @@ if TYPE_CHECKING:
 WINDOWS_JSON = '[{"id": 1, "name": "Window 1"}, {"id": 2, "name": "Window 2"}]'
 
 
+def _tabs_json(window_id: int) -> str:
+    return json.dumps(
+        [
+            {
+                "id": "tab-1",
+                "window_id": window_id,
+                "name": "Tab 1",
+                "url": "https://example.com",
+                "loading": False,
+                "is_active": True,
+            },
+            {
+                "id": "tab-2",
+                "window_id": window_id,
+                "name": "Tab 2",
+                "url": "https://example.com/2",
+                "loading": False,
+                "is_active": False,
+            },
+            {
+                "id": "tab-3",
+                "window_id": window_id,
+                "name": "Tab 3",
+                "url": "https://example.com/3",
+                "loading": True,
+                "is_active": False,
+            },
+        ],
+    )
+
+
+def _response_for_script(script: str) -> str:
+    if "set targetWindowId to " not in script:
+        return WINDOWS_JSON
+
+    match = re.search(r"set targetWindowId to (\d+)", script)
+    if match is None:
+        return "[]"
+
+    return _tabs_json(int(match.group(1)))
+
+
 class _SpyAppleScriptRunner:
-    def __init__(self, response: str = WINDOWS_JSON) -> None:
+    def __init__(self, response: str | None = None) -> None:
         self.run_calls = 0
         self._response = response
 
     def run(self, script: str) -> str:
-        _ = script
         self.run_calls += 1
-        return self._response
+        if self._response is not None:
+            return self._response
+
+        return _response_for_script(script)
 
 
 def test_chrome_windows_construct_managers_with_shared_context() -> None:
@@ -64,7 +110,7 @@ def test_chrome_tabs_aggregation_uses_required_context() -> None:
     assert tabs_manager._context is chrome.windows._context
     assert len(tabs_manager.items) == 6
     assert {tab.window_id for tab in tabs_manager.items} == {1, 2}
-    assert runner.run_calls == 1
+    assert runner.run_calls == 3
 
 
 def test_filter_preserves_context_and_manager_specific_fields() -> None:
@@ -94,8 +140,8 @@ def test_tab_source_and_execute_are_placeholder_values() -> None:
         name="Tab 1",
         url="https://example.com",
         loading=False,
-        _context=Mock(),
     )
+    tab._context = Mock()
 
     assert tab.source == "<html>...</html>"
     assert tab.execute("return document.title;") == "result of executing JavaScript"
@@ -122,7 +168,11 @@ def test_windows_loading_uses_runner_from_context() -> None:
 
 
 def test_chrome_module_main_runs_from_entrypoint(capsys: pytest.CaptureFixture[str]) -> None:
-    with patch.object(AppleScriptRunner, "run", return_value=WINDOWS_JSON):
+    with patch.object(
+        AppleScriptRunner,
+        "run",
+        side_effect=lambda *_args, **_kwargs: _response_for_script(str(_args[-1])),
+    ):
         runpy.run_path(achrome.core.chrome.__file__, run_name="__main__")
 
     captured_stdout = capsys.readouterr().out

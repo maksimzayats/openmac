@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 from typing import Any, cast
 
 import pytest
@@ -13,13 +15,57 @@ from achrome.core.windows import Window, WindowsManager
 WINDOWS_JSON = '[{"id": 1, "name": "Window 1"}, {"id": 2, "name": "Window 2"}]'
 
 
+def _tabs_json(window_id: int) -> str:
+    return json.dumps(
+        [
+            {
+                "id": "tab-1",
+                "window_id": window_id,
+                "name": "Tab 1",
+                "url": "https://example.com",
+                "loading": False,
+                "is_active": True,
+            },
+            {
+                "id": "tab-2",
+                "window_id": window_id,
+                "name": "Tab 2",
+                "url": "https://example.com/2",
+                "loading": False,
+                "is_active": False,
+            },
+            {
+                "id": "tab-3",
+                "window_id": window_id,
+                "name": "Tab 3",
+                "url": "https://example.com/3",
+                "loading": True,
+                "is_active": False,
+            },
+        ],
+    )
+
+
+def _response_for_script(script: str) -> str:
+    if "set targetWindowId to " not in script:
+        return WINDOWS_JSON
+
+    match = re.search(r"set targetWindowId to (\d+)", script)
+    if match is None:
+        return "[]"
+
+    return _tabs_json(int(match.group(1)))
+
+
 class _SpyAppleScriptRunner:
-    def __init__(self, response: str = WINDOWS_JSON) -> None:
+    def __init__(self, response: str | None = None) -> None:
         self._response = response
 
     def run(self, script: str) -> str:
-        _ = script
-        return self._response
+        if self._response is not None:
+            return self._response
+
+        return _response_for_script(script)
 
 
 def _context(runner: AppleScriptRunner | None = None) -> Context:
@@ -89,8 +135,8 @@ def test_tabs_manager_active_returns_active_tab() -> None:
         url="https://example.com/active",
         loading=False,
         is_active=True,
-        _context=context,
     )
+    active_tab._context = context
     tabs_manager = TabsManager(_context=context, _items=[active_tab])
 
     assert tabs_manager.active is active_tab
@@ -104,8 +150,8 @@ def test_tabs_manager_items_raises_runtime_error_without_window_id() -> None:
         name="Tab 1",
         url="https://example.com",
         loading=False,
-        _context=context,
     )
+    tab._context = context
     tabs_manager = TabsManager(_context=context, _items=[tab])
     tabs_manager._items = None
 
