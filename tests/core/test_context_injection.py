@@ -3,13 +3,10 @@ from __future__ import annotations
 import base64
 import json
 import re
-import runpy
 from typing import TYPE_CHECKING, cast
-from unittest.mock import patch
 
 import pytest
 
-import achrome.core.chrome
 from achrome.core._internal.apple_script import AppleScriptRunner
 from achrome.core._internal.context import Context
 from achrome.core.chrome import Chrome
@@ -20,86 +17,105 @@ if TYPE_CHECKING:
     from typing import Any
 
 
-WINDOWS_JSON = json.dumps(
-    [
-        {
-            "id": 1,
-            "name": "Window 1",
-            "bounds": [0, 0, 1280, 720],
-            "index": 1,
-            "closeable": True,
-            "minimizable": True,
-            "minimized": False,
-            "resizable": True,
-            "visible": True,
-            "zoomable": True,
-            "zoomed": False,
-            "mode": "normal",
-            "active_tab_index": 1,
-            "presenting": False,
-            "active_tab_id": 101,
-        },
-        {
-            "id": 2,
-            "name": "Window 2",
-            "bounds": [100, 80, 1024, 768],
-            "index": 2,
-            "closeable": True,
-            "minimizable": True,
-            "minimized": True,
-            "resizable": True,
-            "visible": False,
-            "zoomable": True,
-            "zoomed": True,
-            "mode": "incognito",
-            "active_tab_index": 2,
-            "presenting": True,
-            "active_tab_id": 202,
-        },
-    ],
-)
-
-
-def _tabs_json(window_id: int) -> str:
-    return json.dumps(
-        [
-            {
-                "id": (window_id * 100) + 1,
-                "window_id": window_id,
-                "title": "Tab 1",
-                "url": "https://example.com",
-                "loading": False,
-                "is_active": True,
-            },
-            {
-                "id": (window_id * 100) + 2,
-                "window_id": window_id,
-                "title": "Tab 2",
-                "url": "https://example.com/2",
-                "loading": False,
-                "is_active": False,
-            },
-            {
-                "id": (window_id * 100) + 3,
-                "window_id": window_id,
-                "title": "Tab 3",
-                "url": "https://example.com/3",
-                "loading": True,
-                "is_active": False,
-            },
-        ],
-    )
+WINDOW_IDS_JSON = json.dumps([1, 2])
+WINDOW_INFO_BY_ID: dict[int, dict[str, object]] = {
+    1: {
+        "name": "Window 1",
+        "bounds": [0, 0, 1280, 720],
+        "index": 1,
+        "closeable": True,
+        "minimizable": True,
+        "minimized": False,
+        "resizable": True,
+        "visible": True,
+        "zoomable": True,
+        "zoomed": False,
+        "mode": "normal",
+        "active_tab_index": 1,
+        "presenting": False,
+        "active_tab_id": 101,
+    },
+    2: {
+        "name": "Window 2",
+        "bounds": [100, 80, 1024, 768],
+        "index": 2,
+        "closeable": True,
+        "minimizable": True,
+        "minimized": True,
+        "resizable": True,
+        "visible": False,
+        "zoomable": True,
+        "zoomed": True,
+        "mode": "incognito",
+        "active_tab_index": 2,
+        "presenting": True,
+        "active_tab_id": 202,
+    },
+}
+TAB_IDS_BY_WINDOW_ID: dict[int, list[int]] = {
+    1: [101, 102, 103],
+    2: [201, 202, 203],
+}
+TAB_INFO_BY_WINDOW_AND_ID: dict[tuple[int, int], dict[str, object]] = {
+    (1, 101): {"title": "Tab 1", "url": "https://example.com", "loading": False, "is_active": True},
+    (1, 102): {
+        "title": "Tab 2",
+        "url": "https://example.com/2",
+        "loading": False,
+        "is_active": False,
+    },
+    (1, 103): {
+        "title": "Tab 3",
+        "url": "https://example.com/3",
+        "loading": True,
+        "is_active": False,
+    },
+    (2, 201): {
+        "title": "Tab 1",
+        "url": "https://example.com",
+        "loading": False,
+        "is_active": False,
+    },
+    (2, 202): {
+        "title": "Tab 2",
+        "url": "https://example.com/2",
+        "loading": False,
+        "is_active": True,
+    },
+    (2, 203): {
+        "title": "Tab 3",
+        "url": "https://example.com/3",
+        "loading": True,
+        "is_active": False,
+    },
+}
 
 
 def _response_for_script(script: str) -> str:
-    if "set targetWindowId to " not in script:
-        return WINDOWS_JSON
+    response = "[]"
 
-    match = re.search(r"set targetWindowId to (\d+)", script)
-    if match is None:
-        return "[]"
+    if "set windowIds to current application's NSMutableArray's array()" in script:
+        response = WINDOW_IDS_JSON
+    elif "set windowRec to current application's NSMutableDictionary's dictionary()" in script:
+        match = re.search(r"set targetWindowId to (\d+)", script)
+        if match is not None:
+            window_id = int(match.group(1))
+            payload = WINDOW_INFO_BY_ID.get(window_id)
+            response = json.dumps(payload) if payload is not None else "__ACHROME_NOT_FOUND__"
+    elif "set tabIds to current application's NSMutableArray's array()" in script:
+        match = re.search(r"set targetWindowId to (\d+)", script)
+        if match is not None:
+            window_id = int(match.group(1))
+            response = json.dumps(TAB_IDS_BY_WINDOW_ID.get(window_id, []))
+    elif "set targetTabId to " in script:
+        window_match = re.search(r"set targetWindowId to (\d+)", script)
+        tab_match = re.search(r"set targetTabId to (\d+)", script)
+        if window_match is not None and tab_match is not None:
+            key = (int(window_match.group(1)), int(tab_match.group(1)))
+            payload = TAB_INFO_BY_WINDOW_AND_ID.get(key)
+            response = json.dumps(payload) if payload is not None else "__ACHROME_NOT_FOUND__"
 
-    return _tabs_json(int(match.group(1)))
+    return response
 
 
 class _SpyAppleScriptRunner:
@@ -139,6 +155,7 @@ def test_window_tabs_use_same_context_instance() -> None:
 
     assert windows
     assert all(window.tabs._context is windows_manager._context for window in windows)
+    assert all(window.tabs._window_id == window.id for window in windows)
 
 
 def test_chrome_tabs_aggregation_uses_required_context() -> None:
@@ -179,10 +196,6 @@ def test_tab_source_uses_execute_and_returns_runner_value() -> None:
     tab = Tab(
         id=101,
         window_id=1,
-        title="Tab 1",
-        url="https://example.com",
-        loading=False,
-        is_active=True,
     )
     tab._context = Context(runner=cast("AppleScriptRunner", runner))
     source_javascript_base64 = base64.b64encode(
@@ -204,6 +217,14 @@ def test_tabs_manager_raises_without_window_id() -> None:
         TabsManager(_context=Context(runner=cast("AppleScriptRunner", _SpyAppleScriptRunner())))
 
 
+def test_global_tabs_manager_allows_empty_items_and_filtering() -> None:
+    context = Context(runner=cast("AppleScriptRunner", _SpyAppleScriptRunner()))
+    tabs_manager = TabsManager(_context=context, _items=[])
+
+    assert tabs_manager.items == []
+    assert tabs_manager.filter(title="anything").items == []
+
+
 def test_windows_loading_uses_runner_from_context() -> None:
     runner = _SpyAppleScriptRunner()
     chrome = Chrome()
@@ -212,32 +233,12 @@ def test_windows_loading_uses_runner_from_context() -> None:
     windows = chrome.windows.items
 
     assert [window.id for window in windows] == [1, 2]
-    assert [window.name for window in windows] == ["Window 1", "Window 2"]
-    assert windows[0].bounds == Bounds(0, 0, 1280, 720)
-    assert windows[0].index == 1
-    assert windows[0].closeable is True
-    assert windows[0].minimizable is True
-    assert windows[0].minimized is False
-    assert windows[0].resizable is True
-    assert windows[0].visible is True
-    assert windows[0].zoomable is True
-    assert windows[0].zoomed is False
-    assert windows[0].mode == "normal"
-    assert windows[0].active_tab_index == 1
-    assert windows[0].presenting is False
-    assert windows[0].active_tab_id == 101
     assert runner.run_calls == 1
 
+    assert windows[0].name == "Window 1"
+    assert runner.run_calls == 2
+    assert windows[0].name == "Window 1"
+    assert runner.run_calls == 3
 
-def test_chrome_module_main_runs_from_entrypoint(capsys: pytest.CaptureFixture[str]) -> None:
-    with patch.object(
-        AppleScriptRunner,
-        "run",
-        side_effect=lambda *_args, **_kwargs: _response_for_script(str(_args[-1])),
-    ):
-        runpy.run_path(achrome.core.chrome.__file__, run_name="__main__")
-
-    captured_stdout = capsys.readouterr().out
-
-    assert "Window: Window 1 (id=1)" in captured_stdout
-    assert '"id": 101' in captured_stdout
+    assert windows[0].bounds == Bounds(0, 0, 1280, 720)
+    assert runner.run_calls == 4

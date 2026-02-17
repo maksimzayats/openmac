@@ -12,86 +12,106 @@ from achrome.core.exceptions import AChromeError, DoesNotExistError, MultipleObj
 from achrome.core.tabs import Tab, TabsManager
 from achrome.core.windows import Bounds, Window, WindowsManager
 
-WINDOWS_JSON = json.dumps(
-    [
-        {
-            "id": 1,
-            "name": "Window 1",
-            "bounds": [0, 0, 1280, 720],
-            "index": 1,
-            "closeable": True,
-            "minimizable": True,
-            "minimized": False,
-            "resizable": True,
-            "visible": True,
-            "zoomable": True,
-            "zoomed": False,
-            "mode": "normal",
-            "active_tab_index": 1,
-            "presenting": False,
-            "active_tab_id": 101,
-        },
-        {
-            "id": 2,
-            "name": "Window 2",
-            "bounds": [100, 80, 1024, 768],
-            "index": 2,
-            "closeable": True,
-            "minimizable": True,
-            "minimized": True,
-            "resizable": True,
-            "visible": False,
-            "zoomable": True,
-            "zoomed": True,
-            "mode": "incognito",
-            "active_tab_index": 2,
-            "presenting": True,
-            "active_tab_id": 202,
-        },
-    ],
-)
+WINDOW_IDS_JSON = json.dumps([1, 2])
+WINDOW_INFO_BY_ID: dict[int, dict[str, object]] = {
+    1: {
+        "name": "Window 1",
+        "bounds": [0, 0, 1280, 720],
+        "index": 1,
+        "closeable": True,
+        "minimizable": True,
+        "minimized": False,
+        "resizable": True,
+        "visible": True,
+        "zoomable": True,
+        "zoomed": False,
+        "mode": "normal",
+        "active_tab_index": 1,
+        "presenting": False,
+        "active_tab_id": 101,
+    },
+    2: {
+        "name": "Window 2",
+        "bounds": [100, 80, 1024, 768],
+        "index": 2,
+        "closeable": True,
+        "minimizable": True,
+        "minimized": True,
+        "resizable": True,
+        "visible": False,
+        "zoomable": True,
+        "zoomed": True,
+        "mode": "incognito",
+        "active_tab_index": 2,
+        "presenting": True,
+        "active_tab_id": 202,
+    },
+}
 
-
-def _tabs_json(window_id: int) -> str:
-    return json.dumps(
-        [
-            {
-                "id": (window_id * 100) + 1,
-                "window_id": window_id,
-                "title": "Tab 1",
-                "url": "https://example.com",
-                "loading": False,
-                "is_active": True,
-            },
-            {
-                "id": (window_id * 100) + 2,
-                "window_id": window_id,
-                "title": "Tab 2",
-                "url": "https://example.com/2",
-                "loading": False,
-                "is_active": False,
-            },
-            {
-                "id": (window_id * 100) + 3,
-                "window_id": window_id,
-                "title": "Tab 3",
-                "url": "https://example.com/3",
-                "loading": True,
-                "is_active": False,
-            },
-        ],
-    )
+TAB_IDS_BY_WINDOW_ID: dict[int, list[int]] = {
+    1: [101, 102, 103],
+    2: [201, 202, 203],
+}
+TAB_INFO_BY_WINDOW_AND_ID: dict[tuple[int, int], dict[str, object]] = {
+    (1, 101): {"title": "Tab 1", "url": "https://example.com", "loading": False, "is_active": True},
+    (1, 102): {
+        "title": "Tab 2",
+        "url": "https://example.com/2",
+        "loading": False,
+        "is_active": False,
+    },
+    (1, 103): {
+        "title": "Tab 3",
+        "url": "https://example.com/3",
+        "loading": True,
+        "is_active": False,
+    },
+    (2, 201): {
+        "title": "Tab 1",
+        "url": "https://example.com",
+        "loading": False,
+        "is_active": False,
+    },
+    (2, 202): {
+        "title": "Tab 2",
+        "url": "https://example.com/2",
+        "loading": False,
+        "is_active": True,
+    },
+    (2, 203): {
+        "title": "Tab 3",
+        "url": "https://example.com/3",
+        "loading": True,
+        "is_active": False,
+    },
+}
 
 
 def _response_for_script(script: str) -> str:
-    if "set targetWindowId to " not in script:
-        return WINDOWS_JSON
+    response = "[]"
 
-    match = re.search(r"set targetWindowId to (\d+)", script)
-    if match is None:
-        return "[]"
+    if "set windowIds to current application's NSMutableArray's array()" in script:
+        response = WINDOW_IDS_JSON
+    elif "set windowRec to current application's NSMutableDictionary's dictionary()" in script:
+        match = re.search(r"set targetWindowId to (\d+)", script)
+        if match is not None:
+            window_id = int(match.group(1))
+            payload = WINDOW_INFO_BY_ID.get(window_id)
+            response = json.dumps(payload) if payload is not None else "__ACHROME_NOT_FOUND__"
+    elif "set tabIds to current application's NSMutableArray's array()" in script:
+        match = re.search(r"set targetWindowId to (\d+)", script)
+        if match is not None:
+            window_id = int(match.group(1))
+            response = json.dumps(TAB_IDS_BY_WINDOW_ID.get(window_id, []))
+    elif "set targetTabId to " in script:
+        window_match = re.search(r"set targetWindowId to (\d+)", script)
+        tab_match = re.search(r"set targetTabId to (\d+)", script)
+        if window_match is not None and tab_match is not None:
+            key = (int(window_match.group(1)), int(tab_match.group(1)))
+            payload = TAB_INFO_BY_WINDOW_AND_ID.get(key)
+            response = json.dumps(payload) if payload is not None else "__ACHROME_NOT_FOUND__"
 
-    return _tabs_json(int(match.group(1)))
+    return response
 
 
 class _SpyAppleScriptRunner:
@@ -172,14 +192,13 @@ def test_tabs_manager_get_propagates_value_error_for_unsupported_operator() -> N
 
 
 def test_tabs_manager_active_returns_active_tab() -> None:
-    context = _context()
+    runner = _SpyAppleScriptRunner(
+        json.dumps({"title": "", "url": "", "loading": False, "is_active": True}),
+    )
+    context = _context(runner=cast("AppleScriptRunner", runner))
     active_tab = Tab(
         id=142,
         window_id=1,
-        title="Active Tab",
-        url="https://example.com/active",
-        loading=False,
-        is_active=True,
     )
     active_tab._context = context
     tabs_manager = TabsManager(_context=context, _items=[active_tab])
@@ -192,10 +211,6 @@ def test_tabs_manager_items_raises_runtime_error_without_window_id() -> None:
     tab = Tab(
         id=101,
         window_id=1,
-        title="Tab 1",
-        url="https://example.com",
-        loading=False,
-        is_active=False,
     )
     tab._context = context
     tabs_manager = TabsManager(_context=context, _items=[tab])
@@ -222,37 +237,6 @@ def test_windows_manager_get_supports_bounds_filters() -> None:
 
     assert window_by_bounds.id == 2
     assert window_by_member.id == 1
-
-
-def test_windows_manager_accepts_pre_sanitized_bounds_from_loader() -> None:
-    windows_payload = json.dumps(
-        [
-            {
-                "id": 1,
-                "name": "Window 1",
-                "bounds": [0, 0, 0, 0],
-                "index": 1,
-                "closeable": True,
-                "minimizable": True,
-                "minimized": False,
-                "resizable": True,
-                "visible": True,
-                "zoomable": True,
-                "zoomed": False,
-                "mode": "normal",
-                "active_tab_index": 1,
-                "presenting": False,
-                "active_tab_id": 101,
-            },
-        ],
-    )
-    windows_manager = WindowsManager(
-        _context=_context(runner=cast("AppleScriptRunner", _SpyAppleScriptRunner(windows_payload))),
-    )
-
-    window = windows_manager.get(id=1)
-
-    assert window.bounds == Bounds(0, 0, 0, 0)
 
 
 def test_window_active_tab_uses_active_tab_id_lookup() -> None:

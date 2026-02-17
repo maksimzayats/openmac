@@ -12,6 +12,7 @@ from achrome.core._internal.models import ChromeModel
 from achrome.core._internal.tab_commands import (
     NOT_FOUND_SENTINEL,
     build_execute_script,
+    build_tab_info_script,
     build_void_tab_command_script,
 )
 from achrome.core.exceptions import DoesNotExistError
@@ -20,14 +21,40 @@ if TYPE_CHECKING:
     from typing_extensions import NotRequired, Unpack
 
 
-@dataclass(slots=True, kw_only=True)
-class Tab(ChromeModel):
-    id: int
-    window_id: int
+@dataclass(slots=True, frozen=True)
+class _TabInfo:
     title: str
     url: str
     loading: bool
     is_active: bool
+
+
+@dataclass(slots=True, kw_only=True)
+class Tab(ChromeModel):
+    id: int
+    window_id: int
+
+    def _load_info(self) -> _TabInfo:
+        script = build_tab_info_script(self.window_id, self.id)
+        result = self._context.runner.run(script)
+        self._raise_if_not_found(result, action="read")
+        return TypeAdapter(_TabInfo).validate_json(result)
+
+    @property
+    def title(self) -> str:
+        return self._load_info().title
+
+    @property
+    def url(self) -> str:
+        return self._load_info().url
+
+    @property
+    def loading(self) -> bool:
+        return self._load_info().loading
+
+    @property
+    def is_active(self) -> bool:
+        return self._load_info().is_active
 
     @property
     def source(self) -> str:
@@ -129,13 +156,22 @@ class TabsFilterCriteria(TypedDict):
     is_active: NotRequired[bool]
 
 
+class _GlobalTabOpenResult(TypedDict):
+    id: int
+    window_id: int
+
+
+class _WindowTabOpenResult(TypedDict):
+    id: int
+
+
 @dataclass(kw_only=True)
 class TabsManager(BaseManager[Tab]):
     _window_id: int | None = None
     """A window id to which the tabs belong."""
 
     def __post_init__(self) -> None:
-        if not self._items and self._window_id is None:
+        if self._items is None and self._window_id is None:
             raise ValueError("TabsManager requires either _items or _window_id to be provided.")
 
         if self._window_id is not None:
@@ -161,17 +197,6 @@ class TabsManager(BaseManager[Tab]):
                 use framework "Foundation"
                 use scripting additions
 
-                on nsBool(v)
-                    return current application's NSNumber's numberWithBool:(v = true)
-                end nsBool
-
-                on textOrEmpty(v)
-                    if v is missing value then
-                        return ""
-                    end if
-                    return v as text
-                end textOrEmpty
-
                 set urlBase64 to "{url_b64}"
                 set urlData to current application's NSData's alloc()'s ¬
                     initWithBase64EncodedString:urlBase64 options:0
@@ -190,10 +215,6 @@ class TabsManager(BaseManager[Tab]):
                     set tabRec to current application's NSMutableDictionary's dictionary()
                     tabRec's setObject:((id of t) as integer) forKey:"id"
                     tabRec's setObject:((id of targetWindow) as integer) forKey:"window_id"
-                    tabRec's setObject:(my textOrEmpty(title of t)) forKey:"title"
-                    tabRec's setObject:(my textOrEmpty(URL of t)) forKey:"url"
-                    tabRec's setObject:(my nsBool(loading of t)) forKey:"loading"
-                    tabRec's setObject:(my nsBool(true)) forKey:"is_active"
 
                     set {{jsonData, jsonError}} to current application's NSJSONSerialization's ¬
                         dataWithJSONObject:tabRec options:0 |error|:(reference)
@@ -215,17 +236,6 @@ class TabsManager(BaseManager[Tab]):
                 use AppleScript version "2.8"
                 use framework "Foundation"
                 use scripting additions
-
-                on nsBool(v)
-                    return current application's NSNumber's numberWithBool:(v = true)
-                end nsBool
-
-                on textOrEmpty(v)
-                    if v is missing value then
-                        return ""
-                    end if
-                    return v as text
-                end textOrEmpty
 
                 set targetWindowId to {self._window_id}
                 set urlBase64 to "{url_b64}"
@@ -257,11 +267,6 @@ class TabsManager(BaseManager[Tab]):
 
                     set tabRec to current application's NSMutableDictionary's dictionary()
                     tabRec's setObject:((id of newTab) as integer) forKey:"id"
-                    tabRec's setObject:targetWindowId forKey:"window_id"
-                    tabRec's setObject:(my textOrEmpty(title of newTab)) forKey:"title"
-                    tabRec's setObject:(my textOrEmpty(URL of newTab)) forKey:"url"
-                    tabRec's setObject:(my nsBool(loading of newTab)) forKey:"loading"
-                    tabRec's setObject:(my nsBool(true)) forKey:"is_active"
 
                     set {{jsonData, jsonError}} to current application's NSJSONSerialization's ¬
                         dataWithJSONObject:tabRec options:0 |error|:(reference)
@@ -282,7 +287,16 @@ class TabsManager(BaseManager[Tab]):
         if result == NOT_FOUND_SENTINEL:
             raise DoesNotExistError(f"Cannot open tab in window id={self._window_id}: not found.")
 
-        tab = TypeAdapter(Tab).validate_json(result)
+        if self._window_id is None:
+            open_result_global = TypeAdapter(_GlobalTabOpenResult).validate_json(result)
+            tab = Tab(
+                id=open_result_global["id"],
+                window_id=open_result_global["window_id"],
+            )
+        else:
+            window_id = self._window_id
+            open_result_window = TypeAdapter(_WindowTabOpenResult).validate_json(result)
+            tab = Tab(id=open_result_window["id"], window_id=window_id)
         tab.set_context(self._context)
         return tab
 
@@ -290,25 +304,26 @@ class TabsManager(BaseManager[Tab]):
         if self._window_id is None:
             raise RuntimeError("Cannot load tabs without a window id.")
 
+        window_id = self._window_id
         script = dedent(
             f"""
             use AppleScript version "2.8"
             use framework "Foundation"
             use scripting additions
 
-            on nsBool(v)
-                return current application's NSNumber's numberWithBool:(v = true)
-            end nsBool
-
-            on textOrEmpty(v)
+            on integerOrZero(v)
                 if v is missing value then
-                    return ""
+                    return 0
                 end if
-                return v as text
-            end textOrEmpty
+                try
+                    return v as integer
+                on error
+                    return 0
+                end try
+            end integerOrZero
 
             set targetWindowId to {self._window_id}
-            set tabData to current application's NSMutableArray's array()
+            set tabIds to current application's NSMutableArray's array()
 
             tell application "Google Chrome"
                 set targetWindow to missing value
@@ -324,26 +339,20 @@ class TabsManager(BaseManager[Tab]):
                     return "[]"
                 end if
 
-                set activeTabIndex to active tab index of targetWindow
                 set tabCount to (count of tabs of targetWindow)
 
                 repeat with tabIndex from 1 to tabCount
                     set t to tab tabIndex of targetWindow
-                    set tabRec to current application's NSMutableDictionary's dictionary()
-
-                    tabRec's setObject:((id of t) as integer) forKey:"id"
-                    tabRec's setObject:targetWindowId forKey:"window_id"
-                    tabRec's setObject:(my textOrEmpty(title of t)) forKey:"title"
-                    tabRec's setObject:(my textOrEmpty(URL of t)) forKey:"url"
-                    tabRec's setObject:(my nsBool(loading of t)) forKey:"loading"
-                    tabRec's setObject:(my nsBool(tabIndex is activeTabIndex)) forKey:"is_active"
-
-                    tabData's addObject:tabRec
+                    set rawId to missing value
+                    try
+                        set rawId to id of t
+                    end try
+                    tabIds's addObject:(my integerOrZero(rawId))
                 end repeat
             end tell
 
             set {{jsonData, jsonError}} to current application's NSJSONSerialization's ¬
-                dataWithJSONObject:tabData options:0 |error|:(reference)
+                dataWithJSONObject:tabIds options:0 |error|:(reference)
 
             if jsonData is missing value then
                 return "JSON serialization failed: " & ((jsonError's localizedDescription()) as text)
@@ -357,7 +366,8 @@ class TabsManager(BaseManager[Tab]):
         ).strip()
 
         result = self._context.runner.run(script)
-        tabs = TypeAdapter(list[Tab]).validate_json(result)
+        tab_ids = TypeAdapter(list[int]).validate_json(result)
+        tabs = [Tab(id=tab_id, window_id=window_id) for tab_id in tab_ids]
 
         for tab in tabs:
             tab.set_context(self._context)

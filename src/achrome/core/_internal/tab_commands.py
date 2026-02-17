@@ -105,3 +105,71 @@ def build_execute_script(window_id: int, tab_id: int, javascript: str) -> str:
         """,
     ).strip()
     return script.replace("__ACHROME_FIND_SCRIPT__", find_script)
+
+
+def build_tab_info_script(window_id: int, tab_id: int) -> str:
+    """Build an AppleScript that returns fresh tab info as JSON.
+
+    Returns:
+        str: JSON object with `title`, `url`, `loading`, `is_active`, or NOT_FOUND_SENTINEL.
+
+    """
+    find_script = _indent_lines(build_find_window_and_tab_index_script(window_id, tab_id))
+    script = dedent(
+        """
+        use AppleScript version "2.8"
+        use framework "Foundation"
+        use scripting additions
+
+        on boolOrFalse(v)
+            if v is missing value then
+                return false
+            end if
+            try
+                return (v is true)
+            on error
+                return false
+            end try
+        end boolOrFalse
+
+        on nsBool(v)
+            return current application's NSNumber's numberWithBool:(my boolOrFalse(v))
+        end nsBool
+
+        on textOrEmpty(v)
+            if v is missing value then
+                return ""
+            end if
+            try
+                return v as text
+            on error
+                return ""
+            end try
+        end textOrEmpty
+
+        tell application "Google Chrome"
+        __ACHROME_FIND_SCRIPT__
+            set activeTabIndex to active tab index of targetWindow
+            set t to tab tabIndex of targetWindow
+
+            set tabRec to current application's NSMutableDictionary's dictionary()
+            tabRec's setObject:(my textOrEmpty(title of t)) forKey:"title"
+            tabRec's setObject:(my textOrEmpty(URL of t)) forKey:"url"
+            tabRec's setObject:(my nsBool(loading of t)) forKey:"loading"
+            tabRec's setObject:(my nsBool(tabIndex is activeTabIndex)) forKey:"is_active"
+
+            set {jsonData, jsonError} to current application's NSJSONSerialization's ¬
+                dataWithJSONObject:tabRec options:0 |error|:(reference)
+
+            if jsonData is missing value then
+                return "JSON serialization failed: " & ((jsonError's localizedDescription()) as text)
+            end if
+
+            set jsonString to (current application's NSString's alloc()'s ¬
+                initWithData:jsonData encoding:(current application's NSUTF8StringEncoding)) as text
+
+            return jsonString
+        end tell
+        """,
+    ).strip()
+    return script.replace("__ACHROME_FIND_SCRIPT__", find_script)

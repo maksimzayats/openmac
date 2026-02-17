@@ -10,57 +10,65 @@ from achrome.core._internal.apple_script import AppleScriptRunner
 from achrome.core._internal.context import Context
 from achrome.core._internal.tab_commands import NOT_FOUND_SENTINEL
 from achrome.core.exceptions import DoesNotExistError
-from achrome.core.tabs import TabsManager
 from achrome.core.windows import Bounds, Window, WindowsManager
 
-WINDOWS_JSON = json.dumps(
-    [
-        {
-            "id": 1,
-            "name": "Window 1",
-            "bounds": [0, 0, 1280, 720],
-            "index": 1,
-            "closeable": True,
-            "minimizable": True,
-            "minimized": False,
-            "resizable": True,
-            "visible": True,
-            "zoomable": True,
-            "zoomed": False,
-            "mode": "normal",
-            "active_tab_index": 1,
-            "presenting": False,
-            "active_tab_id": 101,
-        },
-        {
-            "id": 2,
-            "name": "Window 2",
-            "bounds": [100, 80, 1024, 768],
-            "index": 2,
-            "closeable": True,
-            "minimizable": True,
-            "minimized": True,
-            "resizable": True,
-            "visible": False,
-            "zoomable": True,
-            "zoomed": True,
-            "mode": "incognito",
-            "active_tab_index": 2,
-            "presenting": True,
-            "active_tab_id": 202,
-        },
-    ],
-)
+WINDOW_IDS_JSON = json.dumps([1, 2])
+WINDOW_INFO_BY_ID: dict[int, dict[str, object]] = {
+    1: {
+        "name": "Window 1",
+        "bounds": [0, 0, 1280, 720],
+        "index": 1,
+        "closeable": True,
+        "minimizable": True,
+        "minimized": False,
+        "resizable": True,
+        "visible": True,
+        "zoomable": True,
+        "zoomed": False,
+        "mode": "normal",
+        "active_tab_index": 1,
+        "presenting": False,
+        "active_tab_id": 101,
+    },
+    2: {
+        "name": "Window 2",
+        "bounds": [100, 80, 1024, 768],
+        "index": 2,
+        "closeable": True,
+        "minimizable": True,
+        "minimized": True,
+        "resizable": True,
+        "visible": False,
+        "zoomable": True,
+        "zoomed": True,
+        "mode": "incognito",
+        "active_tab_index": 2,
+        "presenting": True,
+        "active_tab_id": 202,
+    },
+}
 
 
 class _SpyAppleScriptRunner:
-    def __init__(self, response: str = "ok") -> None:
+    def __init__(self, response: str | None = None) -> None:
         self.response = response
         self.scripts: list[str] = []
 
     def run(self, script: str) -> str:
         self.scripts.append(script)
-        return self.response
+        if self.response is not None:
+            return self.response
+
+        if "set windowIds to current application's NSMutableArray's array()" in script:
+            return WINDOW_IDS_JSON
+
+        if "set windowRec to current application's NSMutableDictionary's dictionary()" in script:
+            for window_id, payload in WINDOW_INFO_BY_ID.items():
+                if f"set targetWindowId to {window_id}" in script:
+                    return json.dumps(payload)
+            return NOT_FOUND_SENTINEL
+
+        return "ok"
 
 
 def _make_context(response: str) -> tuple[Context, _SpyAppleScriptRunner]:
@@ -70,25 +78,8 @@ def _make_context(response: str) -> tuple[Context, _SpyAppleScriptRunner]:
 
 def _make_window(*, response: str = "ok") -> tuple[Window, _SpyAppleScriptRunner]:
     context, runner = _make_context(response)
-    window = Window(
-        id=7,
-        name="Window 7",
-        bounds=Bounds(0, 0, 1280, 720),
-        index=1,
-        closeable=True,
-        minimizable=True,
-        minimized=False,
-        resizable=True,
-        visible=True,
-        zoomable=True,
-        zoomed=False,
-        mode="normal",
-        active_tab_index=1,
-        presenting=False,
-        active_tab_id=42,
-    )
+    window = Window(id=7)
     window.set_context(context)
-    window.tabs = TabsManager(_context=context, _window_id=window.id)
     return window, runner
 
 
@@ -204,7 +195,8 @@ def test_window_activate_tab_raises_does_not_exist_on_not_found() -> None:
 
 
 def test_windows_manager_front_returns_window_with_index_one() -> None:
-    context, _runner = _make_context(WINDOWS_JSON)
+    runner = _SpyAppleScriptRunner()
+    context = Context(runner=cast("AppleScriptRunner", runner))
     windows_manager = WindowsManager(_context=context)
 
     front_window = windows_manager.front
@@ -213,78 +205,30 @@ def test_windows_manager_front_returns_window_with_index_one() -> None:
 
 
 def test_windows_manager_create_incognito_returns_window_with_context_and_tabs() -> None:
-    payload = json.dumps(
-        {
-            "id": 55,
-            "name": "New Incognito Window",
-            "bounds": [10, 20, 1200, 800],
-            "index": 1,
-            "closeable": True,
-            "minimizable": True,
-            "minimized": False,
-            "resizable": True,
-            "visible": True,
-            "zoomable": True,
-            "zoomed": False,
-            "mode": "incognito",
-            "active_tab_index": 1,
-            "presenting": False,
-            "active_tab_id": 5501,
-        },
-    )
-    context, runner = _make_context(payload)
+    context, runner = _make_context("55")
     windows_manager = WindowsManager(_context=context)
 
     window = windows_manager.create(mode="incognito")
 
     script = runner.scripts[-1]
     assert window.id == 55
-    assert window.name == "New Incognito Window"
-    assert window.bounds == Bounds(10, 20, 1200, 800)
-    assert window.index == 1
-    assert window.closeable is True
-    assert window.minimizable is True
-    assert window.minimized is False
-    assert window.resizable is True
-    assert window.visible is True
-    assert window.zoomable is True
-    assert window.zoomed is False
-    assert window.mode == "incognito"
-    assert window.active_tab_index == 1
-    assert window.presenting is False
-    assert window.active_tab_id == 5501
     assert window._context is context
     assert window.tabs._window_id == window.id
+    assert window.tabs._context is context
     assert "make new window" in script
     assert 'with properties {mode:"incognito"}' in script
 
 
 def test_windows_manager_create_normal_uses_default_window_mode() -> None:
-    payload = json.dumps(
-        {
-            "id": 56,
-            "name": "New Window",
-            "bounds": [0, 0, 1024, 768],
-            "index": 1,
-            "closeable": True,
-            "minimizable": True,
-            "minimized": False,
-            "resizable": True,
-            "visible": True,
-            "zoomable": True,
-            "zoomed": False,
-            "mode": "normal",
-            "active_tab_index": 1,
-            "presenting": False,
-            "active_tab_id": 5601,
-        },
-    )
-    context, runner = _make_context(payload)
+    context, runner = _make_context("56")
     windows_manager = WindowsManager(_context=context)
 
     window = windows_manager.create()
 
     script = runner.scripts[-1]
-    assert window.mode == "normal"
+    assert window.id == 56
+    assert window._context is context
+    assert window.tabs._window_id == window.id
+    assert window.tabs._context is context
     assert "set targetWindow to make new window" in script
     assert 'with properties {mode:"incognito"}' not in script

@@ -33,20 +33,12 @@ def test_global_open_creates_new_window_and_returns_tab_with_context() -> None:
         {
             "id": 501,
             "window_id": 21,
-            "title": "Created Tab",
-            "url": "https://example.com",
-            "loading": False,
-            "is_active": True,
         },
     )
     context, runner = _make_context(payload)
     existing_tab = Tab(
         id=1,
         window_id=2,
-        title="Existing Tab",
-        url="https://existing.example.com",
-        loading=False,
-        is_active=False,
     )
     existing_tab.set_context(context)
     tabs_manager = TabsManager(_context=context, _items=[existing_tab])
@@ -57,10 +49,6 @@ def test_global_open_creates_new_window_and_returns_tab_with_context() -> None:
     expected_b64 = base64.b64encode(b"https://example.com").decode("ascii")
     assert tab.id == 501
     assert tab.window_id == 21
-    assert tab.title == "Created Tab"
-    assert tab.url == "https://example.com"
-    assert tab.loading is False
-    assert tab.is_active is True
     assert tab._context is context
     assert 'tell application "Google Chrome"' in script
     assert "make new window" in script
@@ -73,11 +61,6 @@ def test_window_bound_open_creates_new_tab_in_target_window() -> None:
     payload = json.dumps(
         {
             "id": 777,
-            "window_id": 7,
-            "title": "Window Tab",
-            "url": "https://example.com",
-            "loading": True,
-            "is_active": True,
         },
     )
     context, runner = _make_context(payload)

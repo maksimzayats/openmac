@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-
 from achrome.core._internal.apple_script import AppleScriptRunner
 from achrome.core._internal.context import Context
 from achrome.core.tabs import Tab, TabsManager
@@ -29,7 +27,7 @@ def main() -> None:
     chrome = Chrome()
     window = chrome.windows.create()
     tab = window.tabs.open("https://github.com")
-    print(tab.loading)
+    print(tab)
 
 
 if __name__ == "__main__":

@@ -27,10 +27,6 @@ def _make_tab(*, response: str = "ok") -> tuple[Tab, _SpyAppleScriptRunner]:
     tab = Tab(
         id=42,
         window_id=7,
-        title="Tab 42",
-        url="https://example.com",
-        loading=False,
-        is_active=True,
     )
     tab._context = Context(runner=cast("AppleScriptRunner", runner))
     return tab, runner

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from textwrap import dedent
 from typing import TYPE_CHECKING, Literal, NamedTuple, TypedDict
 
@@ -9,7 +9,10 @@ from pydantic import TypeAdapter
 from achrome.core._internal.manager import BaseManager
 from achrome.core._internal.models import ChromeModel
 from achrome.core._internal.tab_commands import NOT_FOUND_SENTINEL, build_void_tab_command_script
-from achrome.core._internal.window_commands import build_void_window_command_script
+from achrome.core._internal.window_commands import (
+    build_void_window_command_script,
+    build_window_info_script,
+)
 from achrome.core.exceptions import DoesNotExistError
 from achrome.core.tabs import Tab, TabsManager
 
@@ -24,9 +27,8 @@ class Bounds(NamedTuple):
     height: int
 
 
-@dataclass(slots=True)
-class Window(ChromeModel):
-    id: int
+@dataclass(slots=True, frozen=True)
+class _WindowInfo:
     name: str
     bounds: Bounds
     index: int
@@ -42,11 +44,81 @@ class Window(ChromeModel):
     presenting: bool
     active_tab_id: int
 
-    tabs: TabsManager = field(init=False)
+
+@dataclass(slots=True)  # noqa: PLR0904 - required public API surface
+class Window(ChromeModel):
+    id: int
 
     @property
     def active_tab(self) -> Tab:
         return self.tabs.get(id=self.active_tab_id)
+
+    @property
+    def tabs(self) -> TabsManager:
+        return TabsManager(_context=self._context, _window_id=self.id)
+
+    def _load_info(self) -> _WindowInfo:
+        script = build_window_info_script(self.id)
+        result = self._context.runner.run(script)
+        if result == NOT_FOUND_SENTINEL:
+            raise DoesNotExistError(f"Cannot read window id={self.id}: not found.")
+        return TypeAdapter(_WindowInfo).validate_json(result)
+
+    @property
+    def name(self) -> str:
+        return self._load_info().name
+
+    @property
+    def bounds(self) -> Bounds:
+        return self._load_info().bounds
+
+    @property
+    def index(self) -> int:
+        return self._load_info().index
+
+    @property
+    def closeable(self) -> bool:
+        return self._load_info().closeable
+
+    @property
+    def minimizable(self) -> bool:
+        return self._load_info().minimizable
+
+    @property
+    def minimized(self) -> bool:
+        return self._load_info().minimized
+
+    @property
+    def resizable(self) -> bool:
+        return self._load_info().resizable
+
+    @property
+    def visible(self) -> bool:
+        return self._load_info().visible
+
+    @property
+    def zoomable(self) -> bool:
+        return self._load_info().zoomable
+
+    @property
+    def zoomed(self) -> bool:
+        return self._load_info().zoomed
+
+    @property
+    def mode(self) -> str:
+        return self._load_info().mode
+
+    @property
+    def active_tab_index(self) -> int:
+        return self._load_info().active_tab_index
+
+    @property
+    def presenting(self) -> bool:
+        return self._load_info().presenting
+
+    @property
+    def active_tab_id(self) -> int:
+        return self._load_info().active_tab_id
 
     def close(self) -> None:
         self._run_window_command("close", "close targetWindow")
@@ -174,177 +246,18 @@ class WindowsManager(BaseManager[Window]):
         script = dedent(
             f"""
             use AppleScript version "2.8"
-            use framework "Foundation"
             use scripting additions
-
-            on integerOrZero(v)
-                if v is missing value then
-                    return 0
-                end if
-                try
-                    return v as integer
-                on error
-                    return 0
-                end try
-            end integerOrZero
-
-            on boolOrFalse(v)
-                if v is missing value then
-                    return false
-                end if
-                try
-                    return (v is true)
-                on error
-                    return false
-                end try
-            end boolOrFalse
-
-            on nsBool(v)
-                return current application's NSNumber's numberWithBool:(my boolOrFalse(v))
-            end nsBool
-
-            on textOrEmpty(v)
-                if v is missing value then
-                    return ""
-                end if
-                try
-                    return v as text
-                on error
-                    return ""
-                end try
-            end textOrEmpty
-
-            on boundsOrZero(rawBounds)
-                if rawBounds is missing value then
-                    return {{0, 0, 0, 0}}
-                end if
-                try
-                    if (count of rawBounds) is not 4 then
-                        return {{0, 0, 0, 0}}
-                    end if
-                    return {{¬
-                        my integerOrZero(item 1 of rawBounds), ¬
-                        my integerOrZero(item 2 of rawBounds), ¬
-                        my integerOrZero(item 3 of rawBounds), ¬
-                        my integerOrZero(item 4 of rawBounds)}}
-                on error
-                    return {{0, 0, 0, 0}}
-                end try
-            end boundsOrZero
 
             tell application "Google Chrome"
                 {create_window_command}
-
-                set windowRec to current application's NSMutableDictionary's dictionary()
-                set rawId to missing value
-                set rawBounds to missing value
-                set rawName to missing value
-                set rawMode to missing value
-                set rawIndex to missing value
-                set rawCloseable to missing value
-                set rawMinimizable to missing value
-                set rawMinimized to missing value
-                set rawResizable to missing value
-                set rawVisible to missing value
-                set rawZoomable to missing value
-                set rawZoomed to missing value
-                set rawActiveTabIndex to missing value
-                set rawPresenting to missing value
-                set rawActiveTabId to missing value
-
-                try
-                    set rawId to id of targetWindow
-                end try
-                windowRec's setObject:(my integerOrZero(rawId)) forKey:"id"
-
-                try
-                    set rawName to name of targetWindow
-                end try
-                windowRec's setObject:(my textOrEmpty(rawName)) forKey:"name"
-
-                try
-                    set rawBounds to bounds of targetWindow
-                end try
-                windowRec's setObject:(my boundsOrZero(rawBounds)) forKey:"bounds"
-
-                try
-                    set rawIndex to index of targetWindow
-                end try
-                windowRec's setObject:(my integerOrZero(rawIndex)) forKey:"index"
-
-                try
-                    set rawCloseable to closeable of targetWindow
-                end try
-                windowRec's setObject:(my nsBool(rawCloseable)) forKey:"closeable"
-
-                try
-                    set rawMinimizable to minimizable of targetWindow
-                end try
-                windowRec's setObject:(my nsBool(rawMinimizable)) forKey:"minimizable"
-
-                try
-                    set rawMinimized to minimized of targetWindow
-                end try
-                windowRec's setObject:(my nsBool(rawMinimized)) forKey:"minimized"
-
-                try
-                    set rawResizable to resizable of targetWindow
-                end try
-                windowRec's setObject:(my nsBool(rawResizable)) forKey:"resizable"
-
-                try
-                    set rawVisible to visible of targetWindow
-                end try
-                windowRec's setObject:(my nsBool(rawVisible)) forKey:"visible"
-
-                try
-                    set rawZoomable to zoomable of targetWindow
-                end try
-                windowRec's setObject:(my nsBool(rawZoomable)) forKey:"zoomable"
-
-                try
-                    set rawZoomed to zoomed of targetWindow
-                end try
-                windowRec's setObject:(my nsBool(rawZoomed)) forKey:"zoomed"
-
-                try
-                    set rawMode to mode of targetWindow
-                end try
-                windowRec's setObject:(my textOrEmpty(rawMode)) forKey:"mode"
-
-                try
-                    set rawActiveTabIndex to active tab index of targetWindow
-                end try
-                windowRec's setObject:(my integerOrZero(rawActiveTabIndex)) forKey:"active_tab_index"
-
-                try
-                    set rawPresenting to presenting of targetWindow
-                end try
-                windowRec's setObject:(my nsBool(rawPresenting)) forKey:"presenting"
-
-                try
-                    set rawActiveTabId to id of active tab of targetWindow
-                end try
-                windowRec's setObject:(my integerOrZero(rawActiveTabId)) forKey:"active_tab_id"
-
-                set {{jsonData, jsonError}} to current application's NSJSONSerialization's ¬
-                    dataWithJSONObject:windowRec options:0 |error|:(reference)
-
-                if jsonData is missing value then
-                    return "JSON serialization failed: " & ((jsonError's localizedDescription()) as text)
-                end if
-
-                set jsonString to (current application's NSString's alloc()'s ¬
-                    initWithData:jsonData encoding:(current application's NSUTF8StringEncoding)) as text
-
-                return jsonString
+                return ((id of targetWindow) as integer) as text
             end tell
             """,
         ).strip()
 
         result = self._context.runner.run(script)
-        window = TypeAdapter(Window).validate_json(result)
-        window.tabs = TabsManager(_context=self._context, _window_id=window.id)
+        window_id = TypeAdapter(int).validate_json(result)
+        window = Window(id=window_id)
         window.set_context(self._context)
         return window
 
@@ -366,152 +279,20 @@ class WindowsManager(BaseManager[Window]):
                 end try
             end integerOrZero
 
-            on boolOrFalse(v)
-                if v is missing value then
-                    return false
-                end if
-                try
-                    return (v is true)
-                on error
-                    return false
-                end try
-            end boolOrFalse
-
-            on nsBool(v)
-                return current application's NSNumber's numberWithBool:(my boolOrFalse(v))
-            end nsBool
-
-            on textOrEmpty(v)
-                if v is missing value then
-                    return ""
-                end if
-                try
-                    return v as text
-                on error
-                    return ""
-                end try
-            end textOrEmpty
-
-            on boundsOrZero(rawBounds)
-                if rawBounds is missing value then
-                    return {0, 0, 0, 0}
-                end if
-                try
-                    if (count of rawBounds) is not 4 then
-                        return {0, 0, 0, 0}
-                    end if
-                    return {¬
-                        my integerOrZero(item 1 of rawBounds), ¬
-                        my integerOrZero(item 2 of rawBounds), ¬
-                        my integerOrZero(item 3 of rawBounds), ¬
-                        my integerOrZero(item 4 of rawBounds)}
-                on error
-                    return {0, 0, 0, 0}
-                end try
-            end boundsOrZero
-
-            set windowData to current application's NSMutableArray's array()
+            set windowIds to current application's NSMutableArray's array()
 
             tell application "Google Chrome"
                 repeat with w in windows
-                    set windowRec to current application's NSMutableDictionary's dictionary()
                     set rawId to missing value
-                    set rawBounds to missing value
-                    set rawName to missing value
-                    set rawMode to missing value
-                    set rawIndex to missing value
-                    set rawCloseable to missing value
-                    set rawMinimizable to missing value
-                    set rawMinimized to missing value
-                    set rawResizable to missing value
-                    set rawVisible to missing value
-                    set rawZoomable to missing value
-                    set rawZoomed to missing value
-                    set rawActiveTabIndex to missing value
-                    set rawPresenting to missing value
-                    set rawActiveTabId to missing value
-
                     try
                         set rawId to id of w
                     end try
-                    windowRec's setObject:(my integerOrZero(rawId)) forKey:"id"
-
-                    try
-                        set rawName to name of w
-                    end try
-                    windowRec's setObject:(my textOrEmpty(rawName)) forKey:"name"
-
-                    try
-                        set rawBounds to bounds of w
-                    end try
-                    windowRec's setObject:(my boundsOrZero(rawBounds)) forKey:"bounds"
-
-                    try
-                        set rawIndex to index of w
-                    end try
-                    windowRec's setObject:(my integerOrZero(rawIndex)) forKey:"index"
-
-                    try
-                        set rawCloseable to closeable of w
-                    end try
-                    windowRec's setObject:(my nsBool(rawCloseable)) forKey:"closeable"
-
-                    try
-                        set rawMinimizable to minimizable of w
-                    end try
-                    windowRec's setObject:(my nsBool(rawMinimizable)) forKey:"minimizable"
-
-                    try
-                        set rawMinimized to minimized of w
-                    end try
-                    windowRec's setObject:(my nsBool(rawMinimized)) forKey:"minimized"
-
-                    try
-                        set rawResizable to resizable of w
-                    end try
-                    windowRec's setObject:(my nsBool(rawResizable)) forKey:"resizable"
-
-                    try
-                        set rawVisible to visible of w
-                    end try
-                    windowRec's setObject:(my nsBool(rawVisible)) forKey:"visible"
-
-                    try
-                        set rawZoomable to zoomable of w
-                    end try
-                    windowRec's setObject:(my nsBool(rawZoomable)) forKey:"zoomable"
-
-                    try
-                        set rawZoomed to zoomed of w
-                    end try
-                    windowRec's setObject:(my nsBool(rawZoomed)) forKey:"zoomed"
-
-                    try
-                        set rawMode to mode of w
-                    end try
-                    windowRec's setObject:(my textOrEmpty(rawMode)) forKey:"mode"
-
-                    try
-                        set rawActiveTabIndex to active tab index of w
-                    end try
-                    windowRec's setObject:(my integerOrZero(rawActiveTabIndex)) forKey:"active_tab_index"
-
-                    try
-                        set rawPresenting to presenting of w
-                    end try
-                    windowRec's setObject:(my nsBool(rawPresenting)) forKey:"presenting"
-
-                    try
-                        set rawActiveTabId to id of active tab of w
-                    end try
-                    windowRec's setObject:(my integerOrZero(rawActiveTabId)) forKey:"active_tab_id"
-
-                    windowData's addObject:windowRec
+                    windowIds's addObject:(my integerOrZero(rawId))
                 end repeat
             end tell
 
             set {jsonData, jsonError} to current application's NSJSONSerialization's ¬
-                dataWithJSONObject:windowData options:0 |error|:(reference)
+                dataWithJSONObject:windowIds options:0 |error|:(reference)
 
             if jsonData is missing value then
                 return "JSON serialization failed: " & ((jsonError's localizedDescription()) as text)
@@ -525,10 +306,10 @@ class WindowsManager(BaseManager[Window]):
         ).strip()
 
         result = self._context.runner.run(script)
-        windows = TypeAdapter(list[Window]).validate_json(result)
+        window_ids = TypeAdapter(list[int]).validate_json(result)
+        windows = [Window(id=window_id) for window_id in window_ids]
 
         for window in windows:
-            window.tabs = TabsManager(_context=self._context, _window_id=window.id)
             window.set_context(self._context)
 
         return windows
