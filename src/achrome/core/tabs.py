@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import time
 from dataclasses import dataclass
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING, TypedDict
@@ -18,7 +19,7 @@ from achrome.core._internal.tab_commands import (
 from achrome.core.exceptions import DoesNotExistError
 
 if TYPE_CHECKING:
-    from typing_extensions import NotRequired, Unpack
+    from typing_extensions import NotRequired, Self, Unpack
 
 
 @dataclass(slots=True, frozen=True)
@@ -140,6 +141,18 @@ activate
             raise DoesNotExistError(
                 f"Cannot {action} tab id={self.id} in window id={self.window_id}: not found.",
             )
+
+    def wait_to_load(self, timeout: float | None = None) -> Self:
+        start_time = time.monotonic()
+        while self.loading:
+            if timeout is not None and (time.monotonic() - start_time) > timeout:
+                raise TimeoutError(
+                    f"Timed out waiting for tab id={self.id} in window id={self.window_id} to load.",
+                )
+
+            time.sleep(0.1)
+
+        return self
 
 
 class TabsFilterCriteria(TypedDict):

@@ -26,8 +26,9 @@ class Chrome:
 def main() -> None:
     chrome = Chrome()
     window = chrome.windows.create()
-    tab = window.tabs.open("https://github.com")
+    tab = window.tabs.open("https://github.com").wait_to_load()
     print(tab)
+    print(tab.loading)
 
 
 if __name__ == "__main__":
