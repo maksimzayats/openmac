@@ -28,8 +28,7 @@ def main() -> None:
 
     for window in chrome.windows:
         print(f"Window: {window.name} (id={window.id})")
-        for tab in window.tabs:
-            print(f"  {tab}")
+        print(window.tabs.active.source)
 
 
 if __name__ == "__main__":

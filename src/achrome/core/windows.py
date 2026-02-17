@@ -36,7 +36,7 @@ class Window(ChromeModel):
     mode: str
     active_tab_index: int
     presenting: bool
-    active_tab_id: str
+    active_tab_id: int
 
     tabs: TabsManager = field(init=False)
 
@@ -68,9 +68,8 @@ class WindowsFilterCriteria(TypedDict):
     active_tab_index: NotRequired[int]
     active_tab_index__in: NotRequired[list[int]]
     presenting: NotRequired[bool]
-    active_tab_id: NotRequired[str]
-    active_tab_id__contains: NotRequired[str]
-    active_tab_id__in: NotRequired[list[str]]
+    active_tab_id: NotRequired[int]
+    active_tab_id__in: NotRequired[list[int]]
 
 
 class WindowsManager(BaseManager[Window]):
@@ -229,7 +228,7 @@ class WindowsManager(BaseManager[Window]):
                 try
                     set rawActiveTabId to id of active tab of w
                 end try
-                windowRec's setObject:(my textOrEmpty(rawActiveTabId)) forKey:"active_tab_id"
+                windowRec's setObject:(my integerOrZero(rawActiveTabId)) forKey:"active_tab_id"
 
                 windowData's addObject:windowRec
             end repeat

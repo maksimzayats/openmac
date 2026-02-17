@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import base64
 import json
 import re
 import runpy
 from typing import TYPE_CHECKING, cast
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -36,7 +37,7 @@ WINDOWS_JSON = json.dumps(
             "mode": "normal",
             "active_tab_index": 1,
             "presenting": False,
-            "active_tab_id": "tab-1",
+            "active_tab_id": 101,
         },
         {
             "id": 2,
@@ -53,7 +54,7 @@ WINDOWS_JSON = json.dumps(
             "mode": "incognito",
             "active_tab_index": 2,
             "presenting": True,
-            "active_tab_id": "tab-2",
+            "active_tab_id": 202,
         },
     ],
 )
@@ -63,27 +64,24 @@ def _tabs_json(window_id: int) -> str:
     return json.dumps(
         [
             {
-                "id": "tab-1",
+                "id": (window_id * 100) + 1,
                 "window_id": window_id,
-                "name": "Tab 1",
                 "title": "Tab 1",
                 "url": "https://example.com",
                 "loading": False,
                 "is_active": True,
             },
             {
-                "id": "tab-2",
+                "id": (window_id * 100) + 2,
                 "window_id": window_id,
-                "name": "Tab 2",
                 "title": "Tab 2",
                 "url": "https://example.com/2",
                 "loading": False,
                 "is_active": False,
             },
             {
-                "id": "tab-3",
+                "id": (window_id * 100) + 3,
                 "window_id": window_id,
-                "name": "Tab 3",
                 "title": "Tab 3",
                 "url": "https://example.com/3",
                 "loading": True,
@@ -107,10 +105,12 @@ def _response_for_script(script: str) -> str:
 class _SpyAppleScriptRunner:
     def __init__(self, response: str | None = None) -> None:
         self.run_calls = 0
+        self.scripts: list[str] = []
         self._response = response
 
     def run(self, script: str) -> str:
         self.run_calls += 1
+        self.scripts.append(script)
         if self._response is not None:
             return self._response
 
@@ -158,12 +158,11 @@ def test_filter_preserves_context_and_manager_specific_fields() -> None:
     context = Context(runner=cast("AppleScriptRunner", _SpyAppleScriptRunner()))
     tabs_manager = TabsManager(_context=context, _window_id=1)
 
-    filtered_tabs_manager = tabs_manager.filter(name="Tab 1")
+    filtered_tabs_manager = tabs_manager.filter(title="Tab 1")
 
     assert isinstance(filtered_tabs_manager, TabsManager)
     assert filtered_tabs_manager._context is context
     assert filtered_tabs_manager._window_id == 1
-    assert [tab.name for tab in filtered_tabs_manager.items] == ["Tab 1"]
     assert [tab.title for tab in filtered_tabs_manager.items] == ["Tab 1"]
 
 
@@ -175,19 +174,26 @@ def test_chrome_is_not_a_context_manager() -> None:
             pass
 
 
-def test_tab_source_and_execute_are_placeholder_values() -> None:
+def test_tab_source_uses_execute_and_returns_runner_value() -> None:
+    runner = _SpyAppleScriptRunner(response="<html>DOM</html>")
     tab = Tab(
-        id="tab-1",
+        id=101,
         window_id=1,
-        name="Tab 1",
         title="Tab 1",
         url="https://example.com",
         loading=False,
+        is_active=True,
     )
-    tab._context = Mock()
+    tab._context = Context(runner=cast("AppleScriptRunner", runner))
+    source_javascript_base64 = base64.b64encode(
+        b"document.documentElement.outerHTML",
+    ).decode("ascii")
 
-    assert tab.source == "<html>...</html>"
-    assert tab.execute("return document.title;") == "result of executing JavaScript"
+    assert tab.execute("return document.title;") == "<html>DOM</html>"
+    assert tab.source == "<html>DOM</html>"
+    assert any(
+        f'set jsBase64 to "{source_javascript_base64}"' in script for script in runner.scripts
+    )
 
 
 def test_tabs_manager_raises_without_window_id() -> None:
@@ -219,7 +225,7 @@ def test_windows_loading_uses_runner_from_context() -> None:
     assert windows[0].mode == "normal"
     assert windows[0].active_tab_index == 1
     assert windows[0].presenting is False
-    assert windows[0].active_tab_id == "tab-1"
+    assert windows[0].active_tab_id == 101
     assert runner.run_calls == 1
 
 
@@ -234,7 +240,4 @@ def test_chrome_module_main_runs_from_entrypoint(capsys: pytest.CaptureFixture[s
     captured_stdout = capsys.readouterr().out
 
     assert "Window: Window 1 (id=1)" in captured_stdout
-    assert (
-        "Tab(id='tab-1', window_id=1, name='Tab 1', title='Tab 1', url='https://example.com'"
-        in captured_stdout
-    )
+    assert '"id": 101' in captured_stdout

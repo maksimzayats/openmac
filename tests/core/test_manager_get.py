@@ -29,7 +29,7 @@ WINDOWS_JSON = json.dumps(
             "mode": "normal",
             "active_tab_index": 1,
             "presenting": False,
-            "active_tab_id": "tab-1",
+            "active_tab_id": 101,
         },
         {
             "id": 2,
@@ -46,7 +46,7 @@ WINDOWS_JSON = json.dumps(
             "mode": "incognito",
             "active_tab_index": 2,
             "presenting": True,
-            "active_tab_id": "tab-2",
+            "active_tab_id": 202,
         },
     ],
 )
@@ -56,27 +56,24 @@ def _tabs_json(window_id: int) -> str:
     return json.dumps(
         [
             {
-                "id": "tab-1",
+                "id": (window_id * 100) + 1,
                 "window_id": window_id,
-                "name": "Tab 1",
                 "title": "Tab 1",
                 "url": "https://example.com",
                 "loading": False,
                 "is_active": True,
             },
             {
-                "id": "tab-2",
+                "id": (window_id * 100) + 2,
                 "window_id": window_id,
-                "name": "Tab 2",
                 "title": "Tab 2",
                 "url": "https://example.com/2",
                 "loading": False,
                 "is_active": False,
             },
             {
-                "id": "tab-3",
+                "id": (window_id * 100) + 3,
                 "window_id": window_id,
-                "name": "Tab 3",
                 "title": "Tab 3",
                 "url": "https://example.com/3",
                 "loading": True,
@@ -116,19 +113,19 @@ def _context(runner: AppleScriptRunner | None = None) -> Context:
 def test_tabs_manager_get_returns_unique_tab_by_id() -> None:
     tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
-    tab = tabs_manager.get(id="tab-1")
+    tab = tabs_manager.get(id=101)
 
     assert isinstance(tab, Tab)
-    assert tab.id == "tab-1"
+    assert tab.id == 101
 
 
 def test_tabs_manager_get_raises_does_not_exist_for_missing_tab() -> None:
     tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
     with pytest.raises(DoesNotExistError) as exc_info:
-        tabs_manager.get(id="missing")
+        tabs_manager.get(id=999)
 
-    assert str(exc_info.value) == "TabsManager.get() found 0 objects for criteria {'id': 'missing'}"
+    assert str(exc_info.value) == "TabsManager.get() found 0 objects for criteria {'id': 999}"
 
 
 def test_tabs_manager_get_raises_multiple_objects_returned_for_non_unique_criteria() -> None:
@@ -143,12 +140,12 @@ def test_tabs_manager_get_raises_multiple_objects_returned_for_non_unique_criter
     )
 
 
-def test_tabs_manager_get_supports_contains_operator() -> None:
+def test_tabs_manager_get_supports_title_contains_operator() -> None:
     tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
-    tab = tabs_manager.get(name__contains="Tab 2")
+    tab = tabs_manager.get(title__contains="Tab 2")
 
-    assert tab.id == "tab-2"
+    assert tab.id == 102
 
 
 def test_tabs_manager_get_supports_title_filters() -> None:
@@ -156,30 +153,29 @@ def test_tabs_manager_get_supports_title_filters() -> None:
 
     tab = tabs_manager.get(title__contains="Tab 3")
 
-    assert tab.id == "tab-3"
+    assert tab.id == 103
 
 
 def test_tabs_manager_get_supports_in_operator() -> None:
     tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
-    tab = tabs_manager.get(id__in=["tab-2", "tab-99"])
+    tab = tabs_manager.get(id__in=[102, 999])
 
-    assert tab.id == "tab-2"
+    assert tab.id == 102
 
 
 def test_tabs_manager_get_propagates_value_error_for_unsupported_operator() -> None:
     tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
     with pytest.raises(ValueError, match="Unsupported operator: unknown"):
-        cast("Any", tabs_manager).get(name__unknown="Tab")
+        cast("Any", tabs_manager).get(title__unknown="Tab")
 
 
 def test_tabs_manager_active_returns_active_tab() -> None:
     context = _context()
     active_tab = Tab(
-        id="tab-42",
+        id=142,
         window_id=1,
-        name="Active Tab",
         title="Active Tab",
         url="https://example.com/active",
         loading=False,
@@ -194,12 +190,12 @@ def test_tabs_manager_active_returns_active_tab() -> None:
 def test_tabs_manager_items_raises_runtime_error_without_window_id() -> None:
     context = _context()
     tab = Tab(
-        id="tab-1",
+        id=101,
         window_id=1,
-        name="Tab 1",
         title="Tab 1",
         url="https://example.com",
         loading=False,
+        is_active=False,
     )
     tab._context = context
     tabs_manager = TabsManager(_context=context, _items=[tab])
@@ -228,13 +224,13 @@ def test_windows_manager_get_supports_bounds_filters() -> None:
     assert window_by_member.id == 1
 
 
-def test_windows_manager_defaults_invalid_bounds_shape_to_zero_tuple() -> None:
+def test_windows_manager_accepts_pre_sanitized_bounds_from_loader() -> None:
     windows_payload = json.dumps(
         [
             {
                 "id": 1,
                 "name": "Window 1",
-                "bounds": [1, 2, 3],
+                "bounds": [0, 0, 0, 0],
                 "index": 1,
                 "closeable": True,
                 "minimizable": True,
@@ -246,7 +242,7 @@ def test_windows_manager_defaults_invalid_bounds_shape_to_zero_tuple() -> None:
                 "mode": "normal",
                 "active_tab_index": 1,
                 "presenting": False,
-                "active_tab_id": "tab-1",
+                "active_tab_id": 101,
             },
         ],
     )
@@ -257,6 +253,13 @@ def test_windows_manager_defaults_invalid_bounds_shape_to_zero_tuple() -> None:
     window = windows_manager.get(id=1)
 
     assert window.bounds == Bounds(0, 0, 0, 0)
+
+
+def test_window_active_tab_uses_active_tab_id_lookup() -> None:
+    windows_manager = WindowsManager(_context=_context())
+    window = windows_manager.get(id=1)
+
+    assert window.active_tab.id == 101
 
 
 def test_windows_manager_get_without_criteria_raises_multiple_objects_returned() -> None:

@@ -7,6 +7,12 @@ from pydantic import TypeAdapter
 
 from achrome.core._internal.manager import BaseManager
 from achrome.core._internal.models import ChromeModel
+from achrome.core._internal.tab_commands import (
+    NOT_FOUND_SENTINEL,
+    build_execute_script,
+    build_void_tab_command_script,
+)
+from achrome.core.exceptions import DoesNotExistError
 
 if TYPE_CHECKING:
     from typing_extensions import NotRequired, Unpack
@@ -14,7 +20,7 @@ if TYPE_CHECKING:
 
 @dataclass(slots=True, kw_only=True)
 class Tab(ChromeModel):
-    id: str
+    id: int
     window_id: int
     title: str
     url: str
@@ -23,35 +29,89 @@ class Tab(ChromeModel):
 
     @property
     def source(self) -> str:
-        return "<html>...</html>"  # Placeholder for the actual page source
+        return self.execute("document.documentElement.outerHTML")
 
-    def close(self) -> None: ...
+    def close(self) -> None:
+        self._run_tab_command(action="close", command_body="close t")
 
-    def reload(self) -> None: ...
+    def reload(self) -> None:
+        self._run_tab_command(action="reload", command_body="reload t")
 
-    def back(self) -> None: ...
+    def back(self) -> None:
+        self._run_tab_command(action="go back", command_body="go back t")
 
-    def forward(self) -> None: ...
+    def forward(self) -> None:
+        self._run_tab_command(action="go forward", command_body="go forward t")
 
-    def activate(self) -> None: ...
+    def activate(self) -> None:
+        self._run_tab_command(
+            action="activate",
+            command_body="""
+set active tab index of targetWindow to tabIndex
+activate
+""",
+        )
 
-    def enter_presentation_mode(self) -> None: ...
+    def enter_presentation_mode(self) -> None:
+        self._run_window_command(
+            action="enter presentation mode",
+            command_body="enter presentation mode targetWindow",
+        )
 
-    def exit_presentation_mode(self) -> None: ...
+    def exit_presentation_mode(self) -> None:
+        self._run_window_command(
+            action="exit presentation mode",
+            command_body="exit presentation mode targetWindow",
+        )
 
     def execute(self, javascript: str) -> str:
-        # Placeholder for executing JavaScript in the tab and returning the result
-        _ = javascript, self  # Use the JavaScript code to execute in the tab
-        return "result of executing JavaScript"
+        script = build_execute_script(self.window_id, self.id, javascript)
+        result = self._context.runner.run(script)
+        self._raise_if_not_found(result, action="execute JavaScript in")
+        return result
+
+    def _run_tab_command(self, *, action: str, command_body: str) -> None:
+        script = build_void_tab_command_script(self.window_id, self.id, command_body=command_body)
+        result = self._context.runner.run(script)
+        self._raise_if_not_found(result, action=action)
+
+    def _run_window_command(self, *, action: str, command_body: str) -> None:
+        script = f"""
+use AppleScript version "2.8"
+use scripting additions
+
+tell application "Google Chrome"
+    set targetWindowId to {self.window_id}
+    set targetWindow to missing value
+
+    repeat with w in windows
+        if ((id of w) as integer) is targetWindowId then
+            set targetWindow to w
+            exit repeat
+        end if
+    end repeat
+
+    if targetWindow is missing value then
+        return "{NOT_FOUND_SENTINEL}"
+    end if
+
+    {command_body}
+    return "ok"
+end tell
+"""
+        result = self._context.runner.run(script)
+        self._raise_if_not_found(result, action=action)
+
+    def _raise_if_not_found(self, result: str, *, action: str) -> None:
+        if result == NOT_FOUND_SENTINEL:
+            raise DoesNotExistError(
+                f"Cannot {action} tab id={self.id} in window id={self.window_id}: not found.",
+            )
 
 
 class TabsFilterCriteria(TypedDict):
-    id: NotRequired[str]
-    id__in: NotRequired[list[str]]
-    id__contains: NotRequired[str]
-    name: NotRequired[str]
-    name__in: NotRequired[list[str]]
-    name__contains: NotRequired[str]
+    id: NotRequired[int]
+    id__in: NotRequired[list[int]]
     title: NotRequired[str]
     title__in: NotRequired[list[str]]
     title__contains: NotRequired[str]
@@ -132,7 +192,7 @@ class TabsManager(BaseManager[Tab]):
                 set t to tab tabIndex of targetWindow
                 set tabRec to current application's NSMutableDictionary's dictionary()
 
-                tabRec's setObject:((id of t) as text) forKey:"id"
+                tabRec's setObject:((id of t) as integer) forKey:"id"
                 tabRec's setObject:targetWindowId forKey:"window_id"
                 tabRec's setObject:(my textOrEmpty(title of t)) forKey:"title"
                 tabRec's setObject:(my textOrEmpty(URL of t)) forKey:"url"
