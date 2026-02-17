@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from achrome.core._internal.apple_script import AppleScriptRunner
 from achrome.core._internal.context import Context
 from achrome.core.tabs import Tab, TabsManager
@@ -25,12 +27,9 @@ class Chrome:
 
 def main() -> None:
     chrome = Chrome()
-    chrome.tabs.open("https://www.google.com")
-
-    # for window in chrome.windows:
-    #     for tab in window.tabs.filter(url__contains="git"):
-    #         print(f"Window {window.id} - Tab {tab.id}: {tab.title} ({tab.url})")
-    #         tab.activate()
+    window = chrome.windows.create()
+    tab = window.tabs.open("https://github.com")
+    print(tab.loading)
 
 
 if __name__ == "__main__":
