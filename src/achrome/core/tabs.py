@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypedDict
 
+from achrome.core._internal.context import Context
 from achrome.core._internal.manager import BaseManager
 
 if TYPE_CHECKING:
@@ -16,6 +17,8 @@ class Tab:
     name: str
     url: str
     loading: bool
+
+    _context: Context
 
     @property
     def source(self) -> str:
@@ -61,6 +64,7 @@ class TabsManager(BaseManager[Tab]):
                 name="Tab 1",
                 url="https://example.com",
                 loading=False,
+                _context=self._context,
             ),
             Tab(
                 id="tab-2",
@@ -68,6 +72,7 @@ class TabsManager(BaseManager[Tab]):
                 name="Tab 2",
                 url="https://example.org",
                 loading=True,
+                _context=self._context,
             ),
             Tab(
                 id="tab-3",
@@ -75,5 +80,6 @@ class TabsManager(BaseManager[Tab]):
                 name="Tab 3",
                 url="https://example.net",
                 loading=False,
+                _context=self._context,
             ),
         ]
