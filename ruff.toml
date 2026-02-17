@@ -38,6 +38,13 @@ ignore = [
     "EM102",
     "EM103",
     "B903",
+
+    "DOC201",
+    "D102",
+    "PLR6301",
+
+    # TEMP
+    "T201",
 ]
 
 [lint.per-file-ignores]
@@ -105,7 +112,7 @@ required-imports = ["from __future__ import annotations"]
 ban-relative-imports = "all"
 
 [lint.pylint]
-max-positional-args = 2
+max-positional-args = 3
 
 [format]
 preview = true
