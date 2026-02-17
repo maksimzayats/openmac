@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from achrome.core._internal.filterer import GenericFilterer
@@ -10,11 +10,14 @@ from achrome.core._internal.filterer import GenericFilterer
 if TYPE_CHECKING:
     from typing_extensions import Self
 
+    from achrome.core._internal.context import Context
+
 T = TypeVar("T")
 
 
 @dataclass(kw_only=True)
 class BaseManager(ABC, Generic[T]):
+    _context: Context
     _items: list[T] | None = None
 
     @property
@@ -35,7 +38,7 @@ class BaseManager(ABC, Generic[T]):
         filterer = GenericFilterer[T](dict(criteria))
         filtered_items = filterer.filter(self.items)
 
-        return self.__class__(_items=filtered_items)
+        return replace(self, _items=filtered_items)
 
     def __iter__(self) -> Iterator[T]:
         return iter(self.items)

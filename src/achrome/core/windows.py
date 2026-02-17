@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypedDict
 
-from achrome.core._internal.context import context
 from achrome.core._internal.manager import BaseManager
 from achrome.core.tabs import TabsManager
 
@@ -28,14 +27,18 @@ class WindowsFilterCriteria(TypedDict):
 
 class WindowsManager(BaseManager[Window]):
     def _load_items(self) -> list[Window]:
-        _ = context.chrome_api.get_windows()
+        _ = self._context.chrome_api.get_windows()
         return [
             Window(
                 id="window-1",
                 name="Window 1",
-                tabs=TabsManager(_window_id="window-1"),
+                tabs=TabsManager(_context=self._context, _window_id="window-1"),
             ),
-            Window(id="window-2", name="Window 2", tabs=TabsManager(_window_id="window-2")),
+            Window(
+                id="window-2",
+                name="Window 2",
+                tabs=TabsManager(_context=self._context, _window_id="window-2"),
+            ),
         ]
 
     if TYPE_CHECKING:

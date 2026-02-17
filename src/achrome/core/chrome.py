@@ -1,25 +1,18 @@
 from __future__ import annotations
 
-from types import TracebackType
-from typing import TYPE_CHECKING
-
 from achrome.core._internal.chome_api import ChromeAPI
 from achrome.core._internal.context import Context
 from achrome.core.tabs import Tab, TabsManager
 from achrome.core.windows import WindowsManager
 
-if TYPE_CHECKING:
-    from typing_extensions import Self
-
 
 class Chrome:
     def __init__(self, chrome_api: ChromeAPI) -> None:
         self._context = Context(chrome_api=chrome_api)
-        self._context.__enter__()
 
     @property
     def windows(self) -> WindowsManager:
-        return WindowsManager()
+        return WindowsManager(_context=self._context)
 
     @property
     def tabs(self) -> TabsManager:
@@ -27,7 +20,7 @@ class Chrome:
         for window in self.windows:
             tabs.extend(window.tabs.items)
 
-        return TabsManager(_items=tabs)
+        return TabsManager(_context=self._context, _items=tabs)
 
     def open(
         self,
@@ -53,18 +46,6 @@ class Chrome:
             url=url,
             loading=True,
         )
-
-    def __enter__(self) -> Self:
-        self._context.__enter__()
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> None:
-        self._context.__exit__(exc_type, exc_value, traceback)
 
 
 def main() -> None:
