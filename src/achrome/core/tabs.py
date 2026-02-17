@@ -19,7 +19,7 @@ class Tab:
     title: str
     url: str
     loading: bool
-    is_active: bool = False
+    is_active: bool
 
     _context: Context = field(init=False)
 
