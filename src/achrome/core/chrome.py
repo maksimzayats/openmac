@@ -27,8 +27,9 @@ def main() -> None:
     chrome = Chrome()
 
     for window in chrome.windows:
-        print(f"Window: {window.name} (id={window.id})")
-        print(window.tabs.active.source)
+        for tab in window.tabs.filter(url__contains="git"):
+            print(f"Window {window.id} - Tab {tab.id}: {tab.title} ({tab.url})")
+            tab.activate()
 
 
 if __name__ == "__main__":
