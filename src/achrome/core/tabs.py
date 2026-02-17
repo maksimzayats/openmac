@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from dataclasses import dataclass
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING, TypedDict
@@ -144,14 +145,146 @@ class TabsManager(BaseManager[Tab]):
     def active(self) -> Tab:
         return self.get(is_active=True)
 
-    def open(
-        self,
-        url: str,
-        *,
-        new_window: bool = False,
-        incognito: bool = False,
-    ) -> Tab:
-        raise NotImplementedError
+    def open(self, url: str) -> Tab:
+        """Open URL in a new window globally, or a tab in the bound window, without activation.
+
+        Raises:
+            DoesNotExistError: If the bound window does not exist.
+
+        """
+        url_b64 = base64.b64encode(url.encode("utf-8")).decode("ascii")
+
+        if self._window_id is None:
+            script = dedent(
+                f"""
+                use AppleScript version "2.8"
+                use framework "Foundation"
+                use scripting additions
+
+                on nsBool(v)
+                    return current application's NSNumber's numberWithBool:(v = true)
+                end nsBool
+
+                on textOrEmpty(v)
+                    if v is missing value then
+                        return ""
+                    end if
+                    return v as text
+                end textOrEmpty
+
+                set urlBase64 to "{url_b64}"
+                set urlData to current application's NSData's alloc()'s ¬
+                    initWithBase64EncodedString:urlBase64 options:0
+                if urlData is missing value then
+                    set urlText to ""
+                else
+                    set urlText to (current application's NSString's alloc()'s ¬
+                        initWithData:urlData encoding:(current application's NSUTF8StringEncoding)) as text
+                end if
+
+                tell application "Google Chrome"
+                    set targetWindow to make new window
+                    set t to active tab of targetWindow
+                    set URL of t to urlText
+
+                    set tabRec to current application's NSMutableDictionary's dictionary()
+                    tabRec's setObject:((id of t) as integer) forKey:"id"
+                    tabRec's setObject:((id of targetWindow) as integer) forKey:"window_id"
+                    tabRec's setObject:(my textOrEmpty(title of t)) forKey:"title"
+                    tabRec's setObject:(my textOrEmpty(URL of t)) forKey:"url"
+                    tabRec's setObject:(my nsBool(loading of t)) forKey:"loading"
+                    tabRec's setObject:(my nsBool(true)) forKey:"is_active"
+
+                    set {{jsonData, jsonError}} to current application's NSJSONSerialization's ¬
+                        dataWithJSONObject:tabRec options:0 |error|:(reference)
+
+                    if jsonData is missing value then
+                        return "JSON serialization failed: " & ((jsonError's localizedDescription()) as text)
+                    end if
+
+                    set jsonString to (current application's NSString's alloc()'s ¬
+                        initWithData:jsonData encoding:(current application's NSUTF8StringEncoding)) as text
+
+                    return jsonString
+                end tell
+                """,
+            ).strip()
+        else:
+            script = dedent(
+                f"""
+                use AppleScript version "2.8"
+                use framework "Foundation"
+                use scripting additions
+
+                on nsBool(v)
+                    return current application's NSNumber's numberWithBool:(v = true)
+                end nsBool
+
+                on textOrEmpty(v)
+                    if v is missing value then
+                        return ""
+                    end if
+                    return v as text
+                end textOrEmpty
+
+                set targetWindowId to {self._window_id}
+                set urlBase64 to "{url_b64}"
+                set urlData to current application's NSData's alloc()'s ¬
+                    initWithBase64EncodedString:urlBase64 options:0
+                if urlData is missing value then
+                    set urlText to ""
+                else
+                    set urlText to (current application's NSString's alloc()'s ¬
+                        initWithData:urlData encoding:(current application's NSUTF8StringEncoding)) as text
+                end if
+
+                tell application "Google Chrome"
+                    set targetWindow to missing value
+
+                    repeat with w in windows
+                        if ((id of w) as integer) is targetWindowId then
+                            set targetWindow to w
+                            exit repeat
+                        end if
+                    end repeat
+
+                    if targetWindow is missing value then
+                        return "{NOT_FOUND_SENTINEL}"
+                    end if
+
+                    set newTab to make new tab at end of tabs of targetWindow with properties {{URL:urlText}}
+                    set active tab index of targetWindow to (count of tabs of targetWindow)
+
+                    set tabRec to current application's NSMutableDictionary's dictionary()
+                    tabRec's setObject:((id of newTab) as integer) forKey:"id"
+                    tabRec's setObject:targetWindowId forKey:"window_id"
+                    tabRec's setObject:(my textOrEmpty(title of newTab)) forKey:"title"
+                    tabRec's setObject:(my textOrEmpty(URL of newTab)) forKey:"url"
+                    tabRec's setObject:(my nsBool(loading of newTab)) forKey:"loading"
+                    tabRec's setObject:(my nsBool(true)) forKey:"is_active"
+
+                    set {{jsonData, jsonError}} to current application's NSJSONSerialization's ¬
+                        dataWithJSONObject:tabRec options:0 |error|:(reference)
+
+                    if jsonData is missing value then
+                        return "JSON serialization failed: " & ((jsonError's localizedDescription()) as text)
+                    end if
+
+                    set jsonString to (current application's NSString's alloc()'s ¬
+                        initWithData:jsonData encoding:(current application's NSUTF8StringEncoding)) as text
+
+                    return jsonString
+                end tell
+                """,
+            ).strip()
+
+        result = self._context.runner.run(script)
+        if result == NOT_FOUND_SENTINEL:
+            raise DoesNotExistError(f"Cannot open tab in window id={self._window_id}: not found.")
+
+        tab = TypeAdapter(Tab).validate_json(result)
+        tab.set_context(self._context)
+        return tab
 
     def _load_items(self) -> list[Tab]:
         if self._window_id is None:
