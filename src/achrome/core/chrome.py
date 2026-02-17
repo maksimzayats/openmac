@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from achrome.core._internal.chome_api import ChromeAPI
+from achrome.core._internal.apple_script import AppleScriptRunner
 from achrome.core._internal.context import Context
 from achrome.core.tabs import Tab, TabsManager
 from achrome.core.windows import WindowsManager
 
 
 class Chrome:
-    def __init__(self, chrome_api: ChromeAPI) -> None:
-        self._context = Context(chrome_api=chrome_api)
+    def __init__(self) -> None:
+        self._context = Context(runner=AppleScriptRunner())
 
     @property
     def windows(self) -> WindowsManager:
@@ -24,7 +24,7 @@ class Chrome:
 
 
 def main() -> None:
-    chrome = Chrome(chrome_api=ChromeAPI())
+    chrome = Chrome()
 
     for window in chrome.windows:
         print(f"Window: {window.name} (id={window.id})")

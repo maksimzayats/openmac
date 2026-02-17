@@ -62,7 +62,7 @@ class TabsFilterCriteria(TypedDict):
 
 @dataclass(kw_only=True)
 class TabsManager(BaseManager[Tab]):
-    _window_id: str | None = None
+    _window_id: int | None = None
     """A window id to which the tabs belong."""
 
     def __post_init__(self) -> None:
@@ -83,7 +83,7 @@ class TabsManager(BaseManager[Tab]):
         new_window: bool = False,
         incognito: bool = False,
     ) -> Tab:
-        ...
+        raise NotImplementedError
 
     def _load_items(self) -> list[Tab]:
         if self._window_id is None:

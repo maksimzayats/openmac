@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock
 
 import pytest
+from achrome.core._internal.chome_api import ChromeAPI
 
 import achrome.core.chrome
-from achrome.core._internal.chome_api import ChromeAPI
 from achrome.core._internal.context import Context
 from achrome.core.chrome import Chrome
 from achrome.core.tabs import Tab, TabsManager
@@ -94,27 +94,10 @@ def test_tab_source_and_execute_are_placeholder_values() -> None:
 
 def test_tabs_manager_raises_without_window_id() -> None:
     with pytest.raises(
-        ValueError, match=r"TabsManager requires either _items or _window_id to be provided\.",
+        ValueError,
+        match=r"TabsManager requires either _items or _window_id to be provided\.",
     ):
         TabsManager(_context=Context(chrome_api=_SpyChromeAPI()))
-
-
-def test_chrome_open_returns_placeholder_tab() -> None:
-    chrome = Chrome(chrome_api=_SpyChromeAPI())
-
-    tab = chrome.open(
-        "https://example.dev",
-        window_id="window-2",
-        new_window=True,
-        incognito=True,
-        tab_id="tab-5",
-    )
-
-    assert tab.id == "new-tab-id"
-    assert tab.window_id == "window-1"
-    assert tab.name == "New Tab"
-    assert tab.url == "https://example.dev"
-    assert tab.loading is True
 
 
 def test_chrome_api_placeholder_methods_return_empty_lists() -> None:
