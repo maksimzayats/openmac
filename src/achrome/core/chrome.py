@@ -45,6 +45,7 @@ class Chrome:
             name="New Tab",
             url=url,
             loading=True,
+            _context=self._context,
         )
 
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import runpy
 from typing import TYPE_CHECKING, cast
+from unittest.mock import Mock
 
 import pytest
 
@@ -84,6 +85,7 @@ def test_tab_source_and_execute_are_placeholder_values() -> None:
         name="Tab 1",
         url="https://example.com",
         loading=False,
+        _context=Mock(),
     )
 
     assert tab.source == "<html>...</html>"
