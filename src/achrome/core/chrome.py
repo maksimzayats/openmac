@@ -22,35 +22,10 @@ class Chrome:
 
         return TabsManager(_context=self._context, _items=tabs)
 
-    def open(
-        self,
-        url: str,
-        *,
-        window_id: str | None = None,
-        new_window: bool = False,
-        incognito: bool = False,
-        tab_id: str | None = None,
-    ) -> Tab:
-        # Placeholder for opening a new tab with the specified URL and returning the created Tab object
-        _ = (
-            url,
-            window_id,
-            new_window,
-            incognito,
-            tab_id,
-        )
-        return Tab(
-            id="new-tab-id",
-            window_id="window-1",
-            name="New Tab",
-            url=url,
-            loading=True,
-            _context=self._context,
-        )
-
 
 def main() -> None:
     chrome = Chrome(chrome_api=ChromeAPI())
+
     for window in chrome.windows:
         print(f"Window: {window.name} (id={window.id})")
         for tab in window.tabs:

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from typing_extensions import NotRequired, Unpack
 
 
-@dataclass(slots=True, kw_only=True, frozen=True)
+@dataclass(slots=True, kw_only=True)
 class Tab:
     id: str
     window_id: str
@@ -29,6 +29,20 @@ class Tab:
         # Placeholder for executing JavaScript in the tab and returning the result
         _ = javascript, self  # Use the JavaScript code to execute in the tab
         return "result of executing JavaScript"
+
+    def close(self) -> None: ...
+
+    def reload(self) -> None: ...
+
+    def back(self) -> None: ...
+
+    def forward(self) -> None: ...
+
+    def activate(self) -> None: ...
+
+    def enter_presentation_mode(self) -> None: ...
+
+    def exit_presentation_mode(self) -> None: ...
 
 
 class TabsFilterCriteria(TypedDict):
@@ -61,6 +75,15 @@ class TabsManager(BaseManager[Tab]):
     @property
     def active(self) -> Tab:
         return self.get(is_active=True)
+
+    def open(
+        self,
+        url: str,
+        *,
+        new_window: bool = False,
+        incognito: bool = False,
+    ) -> Tab:
+        ...
 
     def _load_items(self) -> list[Tab]:
         if self._window_id is None:
