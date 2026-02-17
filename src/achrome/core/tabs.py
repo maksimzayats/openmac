@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, TypedDict
 from achrome.core._internal.manager import BaseManager
 
 if TYPE_CHECKING:
-    from typing_extensions import NotRequired
+    from typing_extensions import NotRequired, Unpack
 
 
 @dataclass(slots=True, kw_only=True, frozen=True)
@@ -45,6 +45,10 @@ class TabsFilterCriteria(TypedDict):
 class TabsManager(BaseManager[Tab]):
     _window_id: str | None = None
     """A window id to which the tabs belong."""
+
+    if TYPE_CHECKING:
+
+        def get(self, **criteria: Unpack[TabsFilterCriteria]) -> Tab: ...  # type: ignore[override]
 
     def _load_items(self) -> list[Tab]:
         if self._window_id is None:

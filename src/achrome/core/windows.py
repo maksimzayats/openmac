@@ -44,3 +44,4 @@ class WindowsManager(BaseManager[Window]):
     if TYPE_CHECKING:
 
         def filter(self, **criteria: Unpack[WindowsFilterCriteria]) -> Self: ...  # type: ignore[override]
+        def get(self, **criteria: Unpack[WindowsFilterCriteria]) -> Window: ...  # type: ignore[override]

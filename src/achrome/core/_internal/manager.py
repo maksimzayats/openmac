@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from achrome.core._internal.filterer import GenericFilterer
+from achrome.core.exceptions import DoesNotExistError, MultipleObjectsReturnedError
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -39,6 +40,22 @@ class BaseManager(ABC, Generic[T]):
         filtered_items = filterer.filter(self.items)
 
         return replace(self, _items=filtered_items)
+
+    def get(self, **criteria: Any) -> T:
+        filtered_items = self.filter(**criteria).items
+        item_count = len(filtered_items)
+        manager_name = type(self).__name__
+
+        if item_count == 1:
+            return filtered_items[0]
+        if item_count == 0:
+            raise DoesNotExistError(
+                f"{manager_name}.get() found 0 objects for criteria {criteria!r}",
+            )
+
+        raise MultipleObjectsReturnedError(
+            f"{manager_name}.get() found {item_count} objects for criteria {criteria!r}, expected 1",
+        )
 
     def __iter__(self) -> Iterator[T]:
         return iter(self.items)

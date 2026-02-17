@@ -21,6 +21,11 @@ class GenericFilterer(Generic[T]):
                 field_name, operator_name = key, "eq"
 
             item_value = getattr(item, field_name, None)
+            if operator_name == "in":
+                if item_value not in value:
+                    return False
+                continue
+
             operator_value = getattr(operator, operator_name, None)
 
             if operator_value is None:
