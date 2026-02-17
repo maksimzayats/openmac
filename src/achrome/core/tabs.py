@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class Tab:
     id: str
     window_id: int
-    name: str
+    title: str
     url: str
     loading: bool
     is_active: bool = False
@@ -54,6 +54,9 @@ class TabsFilterCriteria(TypedDict):
     name: NotRequired[str]
     name__in: NotRequired[list[str]]
     name__contains: NotRequired[str]
+    title: NotRequired[str]
+    title__in: NotRequired[list[str]]
+    title__contains: NotRequired[str]
     url: NotRequired[str]
     url__in: NotRequired[list[str]]
     url__contains: NotRequired[str]
@@ -133,7 +136,7 @@ class TabsManager(BaseManager[Tab]):
 
                 tabRec's setObject:((id of t) as text) forKey:"id"
                 tabRec's setObject:targetWindowId forKey:"window_id"
-                tabRec's setObject:(my textOrEmpty(title of t)) forKey:"name"
+                tabRec's setObject:(my textOrEmpty(title of t)) forKey:"title"
                 tabRec's setObject:(my textOrEmpty(URL of t)) forKey:"url"
                 tabRec's setObject:(my nsBool(loading of t)) forKey:"loading"
                 tabRec's setObject:(my nsBool(tabIndex is activeTabIndex)) forKey:"is_active"
@@ -156,8 +159,7 @@ class TabsManager(BaseManager[Tab]):
         """
 
         result = self._context.runner.run(script)
-        adapter = TypeAdapter(list[Tab])
-        tabs = adapter.validate_json(result)
+        tabs = TypeAdapter(list[Tab]).validate_json(result)
 
         for tab in tabs:
             tab._context = self._context  # noqa: SLF001

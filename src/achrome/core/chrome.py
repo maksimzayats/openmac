@@ -29,7 +29,7 @@ def main() -> None:
     for window in chrome.windows:
         print(f"Window: {window.name} (id={window.id})")
         for tab in window.tabs:
-            print(f"  Tab: {tab.name} (id={tab.id}, url={tab.url}, wid={tab.window_id})")
+            print(f"  {tab}")
 
 
 if __name__ == "__main__":

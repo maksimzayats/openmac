@@ -10,9 +10,46 @@ from achrome.core._internal.apple_script import AppleScriptRunner
 from achrome.core._internal.context import Context
 from achrome.core.exceptions import AChromeError, DoesNotExistError, MultipleObjectsReturnedError
 from achrome.core.tabs import Tab, TabsManager
-from achrome.core.windows import Window, WindowsManager
+from achrome.core.windows import Bounds, Window, WindowsManager
 
-WINDOWS_JSON = '[{"id": 1, "name": "Window 1"}, {"id": 2, "name": "Window 2"}]'
+WINDOWS_JSON = json.dumps(
+    [
+        {
+            "id": 1,
+            "name": "Window 1",
+            "bounds": [0, 0, 1280, 720],
+            "index": 1,
+            "closeable": True,
+            "minimizable": True,
+            "minimized": False,
+            "resizable": True,
+            "visible": True,
+            "zoomable": True,
+            "zoomed": False,
+            "mode": "normal",
+            "active_tab_index": 1,
+            "presenting": False,
+            "active_tab_id": "tab-1",
+        },
+        {
+            "id": 2,
+            "name": "Window 2",
+            "bounds": [100, 80, 1024, 768],
+            "index": 2,
+            "closeable": True,
+            "minimizable": True,
+            "minimized": True,
+            "resizable": True,
+            "visible": False,
+            "zoomable": True,
+            "zoomed": True,
+            "mode": "incognito",
+            "active_tab_index": 2,
+            "presenting": True,
+            "active_tab_id": "tab-2",
+        },
+    ],
+)
 
 
 def _tabs_json(window_id: int) -> str:
@@ -22,6 +59,7 @@ def _tabs_json(window_id: int) -> str:
                 "id": "tab-1",
                 "window_id": window_id,
                 "name": "Tab 1",
+                "title": "Tab 1",
                 "url": "https://example.com",
                 "loading": False,
                 "is_active": True,
@@ -30,6 +68,7 @@ def _tabs_json(window_id: int) -> str:
                 "id": "tab-2",
                 "window_id": window_id,
                 "name": "Tab 2",
+                "title": "Tab 2",
                 "url": "https://example.com/2",
                 "loading": False,
                 "is_active": False,
@@ -38,6 +77,7 @@ def _tabs_json(window_id: int) -> str:
                 "id": "tab-3",
                 "window_id": window_id,
                 "name": "Tab 3",
+                "title": "Tab 3",
                 "url": "https://example.com/3",
                 "loading": True,
                 "is_active": False,
@@ -111,6 +151,14 @@ def test_tabs_manager_get_supports_contains_operator() -> None:
     assert tab.id == "tab-2"
 
 
+def test_tabs_manager_get_supports_title_filters() -> None:
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
+
+    tab = tabs_manager.get(title__contains="Tab 3")
+
+    assert tab.id == "tab-3"
+
+
 def test_tabs_manager_get_supports_in_operator() -> None:
     tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
@@ -132,6 +180,7 @@ def test_tabs_manager_active_returns_active_tab() -> None:
         id="tab-42",
         window_id=1,
         name="Active Tab",
+        title="Active Tab",
         url="https://example.com/active",
         loading=False,
         is_active=True,
@@ -148,6 +197,7 @@ def test_tabs_manager_items_raises_runtime_error_without_window_id() -> None:
         id="tab-1",
         window_id=1,
         name="Tab 1",
+        title="Tab 1",
         url="https://example.com",
         loading=False,
     )
@@ -166,6 +216,47 @@ def test_windows_manager_get_returns_unique_window_by_id() -> None:
 
     assert isinstance(window, Window)
     assert window.id == 1
+
+
+def test_windows_manager_get_supports_bounds_filters() -> None:
+    windows_manager = WindowsManager(_context=_context())
+
+    window_by_bounds = windows_manager.get(bounds=Bounds(100, 80, 1024, 768))
+    window_by_member = windows_manager.get(bounds__contains=1280)
+
+    assert window_by_bounds.id == 2
+    assert window_by_member.id == 1
+
+
+def test_windows_manager_defaults_invalid_bounds_shape_to_zero_tuple() -> None:
+    windows_payload = json.dumps(
+        [
+            {
+                "id": 1,
+                "name": "Window 1",
+                "bounds": [1, 2, 3],
+                "index": 1,
+                "closeable": True,
+                "minimizable": True,
+                "minimized": False,
+                "resizable": True,
+                "visible": True,
+                "zoomable": True,
+                "zoomed": False,
+                "mode": "normal",
+                "active_tab_index": 1,
+                "presenting": False,
+                "active_tab_id": "tab-1",
+            },
+        ],
+    )
+    windows_manager = WindowsManager(
+        _context=_context(runner=cast("AppleScriptRunner", _SpyAppleScriptRunner(windows_payload))),
+    )
+
+    window = windows_manager.get(id=1)
+
+    assert window.bounds == Bounds(0, 0, 0, 0)
 
 
 def test_windows_manager_get_without_criteria_raises_multiple_objects_returned() -> None:

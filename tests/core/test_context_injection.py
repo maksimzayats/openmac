@@ -13,12 +13,50 @@ from achrome.core._internal.apple_script import AppleScriptRunner
 from achrome.core._internal.context import Context
 from achrome.core.chrome import Chrome
 from achrome.core.tabs import Tab, TabsManager
+from achrome.core.windows import Bounds
 
 if TYPE_CHECKING:
     from typing import Any
 
 
-WINDOWS_JSON = '[{"id": 1, "name": "Window 1"}, {"id": 2, "name": "Window 2"}]'
+WINDOWS_JSON = json.dumps(
+    [
+        {
+            "id": 1,
+            "name": "Window 1",
+            "bounds": [0, 0, 1280, 720],
+            "index": 1,
+            "closeable": True,
+            "minimizable": True,
+            "minimized": False,
+            "resizable": True,
+            "visible": True,
+            "zoomable": True,
+            "zoomed": False,
+            "mode": "normal",
+            "active_tab_index": 1,
+            "presenting": False,
+            "active_tab_id": "tab-1",
+        },
+        {
+            "id": 2,
+            "name": "Window 2",
+            "bounds": [100, 80, 1024, 768],
+            "index": 2,
+            "closeable": True,
+            "minimizable": True,
+            "minimized": True,
+            "resizable": True,
+            "visible": False,
+            "zoomable": True,
+            "zoomed": True,
+            "mode": "incognito",
+            "active_tab_index": 2,
+            "presenting": True,
+            "active_tab_id": "tab-2",
+        },
+    ],
+)
 
 
 def _tabs_json(window_id: int) -> str:
@@ -28,6 +66,7 @@ def _tabs_json(window_id: int) -> str:
                 "id": "tab-1",
                 "window_id": window_id,
                 "name": "Tab 1",
+                "title": "Tab 1",
                 "url": "https://example.com",
                 "loading": False,
                 "is_active": True,
@@ -36,6 +75,7 @@ def _tabs_json(window_id: int) -> str:
                 "id": "tab-2",
                 "window_id": window_id,
                 "name": "Tab 2",
+                "title": "Tab 2",
                 "url": "https://example.com/2",
                 "loading": False,
                 "is_active": False,
@@ -44,6 +84,7 @@ def _tabs_json(window_id: int) -> str:
                 "id": "tab-3",
                 "window_id": window_id,
                 "name": "Tab 3",
+                "title": "Tab 3",
                 "url": "https://example.com/3",
                 "loading": True,
                 "is_active": False,
@@ -123,6 +164,7 @@ def test_filter_preserves_context_and_manager_specific_fields() -> None:
     assert filtered_tabs_manager._context is context
     assert filtered_tabs_manager._window_id == 1
     assert [tab.name for tab in filtered_tabs_manager.items] == ["Tab 1"]
+    assert [tab.title for tab in filtered_tabs_manager.items] == ["Tab 1"]
 
 
 def test_chrome_is_not_a_context_manager() -> None:
@@ -138,6 +180,7 @@ def test_tab_source_and_execute_are_placeholder_values() -> None:
         id="tab-1",
         window_id=1,
         name="Tab 1",
+        title="Tab 1",
         url="https://example.com",
         loading=False,
     )
@@ -164,6 +207,19 @@ def test_windows_loading_uses_runner_from_context() -> None:
 
     assert [window.id for window in windows] == [1, 2]
     assert [window.name for window in windows] == ["Window 1", "Window 2"]
+    assert windows[0].bounds == Bounds(0, 0, 1280, 720)
+    assert windows[0].index == 1
+    assert windows[0].closeable is True
+    assert windows[0].minimizable is True
+    assert windows[0].minimized is False
+    assert windows[0].resizable is True
+    assert windows[0].visible is True
+    assert windows[0].zoomable is True
+    assert windows[0].zoomed is False
+    assert windows[0].mode == "normal"
+    assert windows[0].active_tab_index == 1
+    assert windows[0].presenting is False
+    assert windows[0].active_tab_id == "tab-1"
     assert runner.run_calls == 1
 
 
@@ -178,4 +234,7 @@ def test_chrome_module_main_runs_from_entrypoint(capsys: pytest.CaptureFixture[s
     captured_stdout = capsys.readouterr().out
 
     assert "Window: Window 1 (id=1)" in captured_stdout
-    assert "Tab: Tab 1 (id=tab-1, url=https://example.com, wid=1)" in captured_stdout
+    assert (
+        "Tab(id='tab-1', window_id=1, name='Tab 1', title='Tab 1', url='https://example.com'"
+        in captured_stdout
+    )
