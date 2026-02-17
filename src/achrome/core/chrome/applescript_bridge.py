@@ -233,6 +233,13 @@ on open_url(bundleId, commandArgs)
   set modeValue to item 2 of commandArgs
   set targetValue to item 3 of commandArgs
   set activateValue to item 4 of commandArgs
+  set previousFrontmostAppPath to ""
+  if activateValue is "0" then
+    try
+      set previousFrontmostAppPath to POSIX path of (path to frontmost application)
+    end try
+  end if
+  set resultJson to my json_null()
 
   using terms from application "Google Chrome"
     tell application id bundleId
@@ -240,7 +247,7 @@ on open_url(bundleId, commandArgs)
         set targetInfo to my find_tab(bundleId, targetValue)
         tell item 2 of targetInfo to set URL to targetUrl
         if activateValue is "1" then set active tab index of item 1 of targetInfo to index of item 2 of targetInfo
-        return my tab_to_json(item 1 of targetInfo, item 2 of targetInfo)
+        set resultJson to my tab_to_json(item 1 of targetInfo, item 2 of targetInfo)
       else if modeValue is "new_window" then
         if targetValue is "incognito" then
           set oneWindow to make new window with properties {mode:"incognito"}
@@ -249,27 +256,43 @@ on open_url(bundleId, commandArgs)
         end if
         set URL of active tab of oneWindow to targetUrl
         if activateValue is "1" then set index of oneWindow to 1
-        return my tab_index_to_json(oneWindow, active tab index of oneWindow)
+        set resultJson to my tab_index_to_json(oneWindow, active tab index of oneWindow)
       else if modeValue is "window" then
         set oneWindow to first window whose id is (targetValue as integer)
+        set previousActiveTabIndex to active tab index of oneWindow
         set oneTab to make new tab at end of tabs of oneWindow with properties {URL:targetUrl}
         set newTabIndex to count of tabs of oneWindow
-        if activateValue is "1" then set active tab index of oneWindow to newTabIndex
-        return my tab_index_to_json(oneWindow, newTabIndex)
+        if activateValue is "1" then
+          set active tab index of oneWindow to newTabIndex
+        else
+          set active tab index of oneWindow to previousActiveTabIndex
+        end if
+        set resultJson to my tab_index_to_json(oneWindow, newTabIndex)
       else
         if (count of windows) is 0 then
           set oneWindow to make new window
           set URL of active tab of oneWindow to targetUrl
-          return my tab_index_to_json(oneWindow, active tab index of oneWindow)
+          set resultJson to my tab_index_to_json(oneWindow, active tab index of oneWindow)
+        else
+          set oneWindow to front window
+          set previousActiveTabIndex to active tab index of oneWindow
+          set oneTab to make new tab at end of tabs of oneWindow with properties {URL:targetUrl}
+          set newTabIndex to count of tabs of oneWindow
+          if activateValue is "1" then
+            set active tab index of oneWindow to newTabIndex
+          else
+            set active tab index of oneWindow to previousActiveTabIndex
+          end if
+          set resultJson to my tab_index_to_json(oneWindow, newTabIndex)
         end if
-        set oneWindow to front window
-        set oneTab to make new tab at end of tabs of oneWindow with properties {URL:targetUrl}
-        set newTabIndex to count of tabs of oneWindow
-        if activateValue is "1" then set active tab index of oneWindow to newTabIndex
-        return my tab_index_to_json(oneWindow, newTabIndex)
       end if
     end tell
   end using terms from
+
+  if activateValue is "0" then
+    my restore_frontmost_application(previousFrontmostAppPath)
+  end if
+  return resultJson
 end open_url
 
 on close_tab(bundleId, commandArgs)
@@ -387,6 +410,13 @@ on tab_index_to_json(oneWindow, tabIndexValue)
     return my json_obj({my json_kv("id", my json_string((id of oneTab) as text)), my json_kv("window_id", my json_string((id of oneWindow) as text)), my json_kv("index", my json_num(tabIndexValue)), my json_kv("title", my json_string(title of oneTab as text)), my json_kv("url", my json_string(URL of oneTab as text)), my json_kv("loading", my json_bool(loading of oneTab as boolean)), my json_kv("window_name", my json_string(name of oneWindow as text)), my json_kv("is_active", my json_bool(isActive))})
   end using terms from
 end tab_index_to_json
+
+on restore_frontmost_application(appPath)
+  if appPath is "" then return
+  try
+    tell application appPath to activate
+  end try
+end restore_frontmost_application
 
 on find_tab(bundleId, tabSpec)
   set AppleScript's text item delimiters to ":"

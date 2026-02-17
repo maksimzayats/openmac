@@ -1,8 +1,7 @@
 # Agent Notes for achrome
 
-This repository is a Python 3.12+ library. Use strict linting, typing, and
-testing standards. Prefer uv for all tooling and keep changes compatible with
-the current public API.
+This repository is a Python 3.10+ library. Use strict linting, typing, and
+testing standards. Prefer uv for all tooling.
 
 ## Quick commands
 
@@ -53,10 +52,13 @@ the current public API.
 
 ## Typing and types
 
-- Python minimum version is 3.12 (use `|` unions, `list[str]`, etc.).
+- Always use __future__ annotations for forward references and to enable postponed evaluation of annotations.
+- Python minimum version is 3.10 with future annotation (use `|` unions, `list[str]`, etc.).
 - All new public APIs must be fully typed.
 - mypy is strict; keep types precise and avoid `Any`.
 - If `Any` is unavoidable, document why and keep scope minimal.
+- Do not use generic `object` annotations when domain types already exist (for example, prefer `CodexConfigObject` / `CodexConfigValue`).
+- Do not use `| object` unions in new annotations - use Any instead.
 - Use `typing.Protocol` or `collections.abc` for public contracts.
 - Prefer `Final` for constants that should not change.
 
