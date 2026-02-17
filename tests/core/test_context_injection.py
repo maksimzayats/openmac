@@ -93,10 +93,10 @@ def test_tab_source_and_execute_are_placeholder_values() -> None:
 
 
 def test_tabs_manager_raises_without_window_id() -> None:
-    tabs_manager = TabsManager(_context=Context(chrome_api=_SpyChromeAPI()))
-
-    with pytest.raises(RuntimeError, match=r"Cannot load tabs without a window id\."):
-        _ = tabs_manager.items
+    with pytest.raises(
+        ValueError, match=r"TabsManager requires either _items or _window_id to be provided\.",
+    ):
+        TabsManager(_context=Context(chrome_api=_SpyChromeAPI()))
 
 
 def test_chrome_open_returns_placeholder_tab() -> None:

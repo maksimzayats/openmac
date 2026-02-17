@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from achrome.core._internal.filterer import GenericFilterer
@@ -20,6 +20,7 @@ T = TypeVar("T")
 class BaseManager(ABC, Generic[T]):
     _context: Context
     _items: list[T] | None = None
+    _default_filters: dict[str, Any] = field(default_factory=dict, init=False)
 
     @property
     def items(self) -> list[T]:
@@ -36,6 +37,7 @@ class BaseManager(ABC, Generic[T]):
 
         If more than one filter is provided, the `OR` operator is applied between them.
         """
+        criteria = {**self._default_filters, **criteria}
         filterer = GenericFilterer[T](dict(criteria))
         filtered_items = filterer.filter(self.items)
 

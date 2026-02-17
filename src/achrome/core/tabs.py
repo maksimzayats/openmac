@@ -17,6 +17,7 @@ class Tab:
     name: str
     url: str
     loading: bool
+    is_active: bool = False
 
     _context: Context
 
@@ -42,6 +43,7 @@ class TabsFilterCriteria(TypedDict):
     url__contains: NotRequired[str]
     loading: NotRequired[bool]
     loading__in: NotRequired[list[bool]]
+    is_active: NotRequired[bool]
 
 
 @dataclass(kw_only=True)
@@ -49,9 +51,16 @@ class TabsManager(BaseManager[Tab]):
     _window_id: str | None = None
     """A window id to which the tabs belong."""
 
-    if TYPE_CHECKING:
+    def __post_init__(self) -> None:
+        if not self._items and self._window_id is None:
+            raise ValueError("TabsManager requires either _items or _window_id to be provided.")
 
-        def get(self, **criteria: Unpack[TabsFilterCriteria]) -> Tab: ...  # type: ignore[override]
+        if self._window_id:
+            self._default_filters = {"window_id": self._window_id}
+
+    @property
+    def active(self) -> Tab:
+        return self.get(is_active=True)
 
     def _load_items(self) -> list[Tab]:
         if self._window_id is None:
@@ -83,3 +92,8 @@ class TabsManager(BaseManager[Tab]):
                 _context=self._context,
             ),
         ]
+
+    if TYPE_CHECKING:
+
+        def get(self, **criteria: Unpack[TabsFilterCriteria]) -> Tab: ...  # type: ignore[override]
+        def filter(self, **criteria: Unpack[TabsFilterCriteria]) -> TabsManager: ...  # type: ignore[override]
