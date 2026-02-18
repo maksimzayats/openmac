@@ -6,15 +6,14 @@ from collections.abc import Iterator
 from typing import cast
 
 import pytest
-
-from achrome.core._internal.apple_script import AppleScriptRunner
-from achrome.core._internal.context import Context
-from achrome.core._internal.tab_commands import (
+from openmac.core._internal.apple_scripts.runner import AppleScriptRunner
+from openmac.core._internal.context import Context
+from openmac.core._internal.tab_commands import (
     EXECUTE_MISSING_RESULT_SENTINEL,
     NOT_FOUND_SENTINEL,
 )
-from achrome.core.exceptions import DoesNotExistError
-from achrome.core.tabs import Tab
+from openmac.core.exceptions import DoesNotExistError
+from openmac.core.tabs import Tab
 
 
 class _SpyAppleScriptRunner:

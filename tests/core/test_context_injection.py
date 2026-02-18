@@ -6,12 +6,11 @@ import re
 from typing import TYPE_CHECKING, cast
 
 import pytest
-
-from achrome.core._internal.apple_script import AppleScriptRunner
-from achrome.core._internal.context import Context
-from achrome.core.chrome import Chrome
-from achrome.core.tabs import Tab, TabsManager
-from achrome.core.windows import Bounds
+from openmac.core._internal.apple_scripts.runner import AppleScriptRunner
+from openmac.core._internal.context import Context
+from openmac.core.chrome import Chrome
+from openmac.core.tabs import Tab, TabsManager
+from openmac.core.windows import Bounds
 
 if TYPE_CHECKING:
     from typing import Any

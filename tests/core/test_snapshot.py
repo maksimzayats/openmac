@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import cast
 
 from bs4 import BeautifulSoup
-
-from achrome.core.source import Snapshot, _attribute_value, _truncate_name
+from openmac.core.source import Snapshot, _attribute_value, _truncate_name
 
 
 def test_snapshot_from_empty_and_text_only_source_returns_empty() -> None:

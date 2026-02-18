@@ -45,6 +45,7 @@ ignore = [
 
     # TEMP
     "T201",
+    "PLW3201",
 ]
 
 [lint.per-file-ignores]

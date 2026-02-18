@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+import openmac.core.chrome as chrome_module
 import pytest
-
-import achrome.core.chrome as chrome_module
 
 
 class _FakeTab:

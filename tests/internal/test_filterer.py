@@ -3,8 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import pytest
-
-from achrome.core._internal.filterer import GenericFilterer
+from openmac.core._internal.filterer import GenericFilterer
 
 
 @dataclass(frozen=True)

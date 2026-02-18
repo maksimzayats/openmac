@@ -4,13 +4,12 @@ import json
 from typing import cast
 
 import pytest
-
-from achrome.core._internal.apple_script import AppleScriptRunner
-from achrome.core._internal.context import Context
-from achrome.core._internal.tab_commands import NOT_FOUND_SENTINEL
-from achrome.core.exceptions import DoesNotExistError
-from achrome.core.tabs import Tab
-from achrome.core.windows import Bounds, Window
+from openmac.core._internal.apple_scripts.runner import AppleScriptRunner
+from openmac.core._internal.context import Context
+from openmac.core._internal.tab_commands import NOT_FOUND_SENTINEL
+from openmac.core.exceptions import DoesNotExistError
+from openmac.core.tabs import Tab
+from openmac.core.windows import Bounds, Window
 
 
 class _SpyAppleScriptRunner:

@@ -5,12 +5,11 @@ import re
 from typing import Any, cast
 
 import pytest
-
-from achrome.core._internal.apple_script import AppleScriptRunner
-from achrome.core._internal.context import Context
-from achrome.core.exceptions import AChromeError, DoesNotExistError, MultipleObjectsReturnedError
-from achrome.core.tabs import Tab, TabsManager
-from achrome.core.windows import Bounds, Window, WindowsManager
+from openmac.core._internal.apple_scripts.runner import AppleScriptRunner
+from openmac.core._internal.context import Context
+from openmac.core.exceptions import AChromeError, DoesNotExistError, MultipleObjectsReturnedError
+from openmac.core.tabs import Tab, TabsManager
+from openmac.core.windows import Bounds, Window, WindowsManager
 
 WINDOW_INFO_BY_ID: dict[int, dict[str, object]] = {
     1: {

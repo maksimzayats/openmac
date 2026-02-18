@@ -1,5 +1,5 @@
 [project]
-name = "achrome"
+name = "openmac"
 dynamic = ["version"]
 readme = "README.md"
 license = "Apache-2.0"
@@ -28,9 +28,6 @@ dependencies = [
     "uvicorn>=0.40.0",
 ]
 
-[project.scripts]
-achrome = "achrome.adapters.cli.__main__:main"
-
 [project.urls]
 Homepage = "https://github.com/maksimzayats/achrome"
 Documentation = "https://docs.achrome.dev"
@@ -44,6 +41,7 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.13",
+    "xmltodict>=1.0.3",
 ]
 docs = [
     "furo>=2025.12.19",

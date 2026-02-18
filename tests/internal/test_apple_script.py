@@ -4,8 +4,7 @@ import subprocess  # noqa: S404
 from unittest.mock import patch
 
 import pytest
-
-from achrome.core._internal.apple_script import AppleScriptRunner
+from openmac.core._internal.apple_scripts.runner import AppleScriptRunner
 
 
 def test_run_executes_osascript_and_returns_output_without_trailing_newline() -> None:

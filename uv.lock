@@ -20,56 +20,6 @@ wheels = [
 ]
 
 [[package]]
-name = "achrome"
-source = { editable = "." }
-dependencies = [
-    { name = "acodex" },
-    { name = "beautifulsoup4" },
-    { name = "diwire" },
-    { name = "fastapi" },
-    { name = "typer" },
-    { name = "uvicorn" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-]
-docs = [
-    { name = "furo" },
-    { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "sphinx", version = "9.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "sphinx-copybutton" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "acodex", specifier = ">=0.101.0" },
-    { name = "beautifulsoup4", specifier = ">=4.13.0" },
-    { name = "diwire", git = "https://github.com/maksimzayats/diwire" },
-    { name = "fastapi", specifier = ">=0.129.0" },
-    { name = "typer", specifier = ">=0.23.1" },
-    { name = "uvicorn", specifier = ">=0.40.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy", specifier = ">=1.19.1" },
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "pytest-cov", specifier = ">=7.0.0" },
-    { name = "ruff", specifier = ">=0.14.13" },
-]
-docs = [
-    { name = "furo", specifier = ">=2025.12.19" },
-    { name = "sphinx", specifier = ">=8.1.3" },
-    { name = "sphinx-copybutton", specifier = ">=0.5.2" },
-]
-
-[[package]]
 name = "acodex"
 version = "0.101.0"
 source = { registry = "https://pypi.org/simple" }
@@ -749,6 +699,58 @@ wheels = [
 ]
 
 [[package]]
+name = "openmac"
+source = { editable = "." }
+dependencies = [
+    { name = "acodex" },
+    { name = "beautifulsoup4" },
+    { name = "diwire" },
+    { name = "fastapi" },
+    { name = "typer" },
+    { name = "uvicorn" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "xmltodict" },
+]
+docs = [
+    { name = "furo" },
+    { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "sphinx", version = "9.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
+    { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "sphinx-copybutton" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "acodex", specifier = ">=0.101.0" },
+    { name = "beautifulsoup4", specifier = ">=4.13.0" },
+    { name = "diwire", git = "https://github.com/maksimzayats/diwire" },
+    { name = "fastapi", specifier = ">=0.129.0" },
+    { name = "typer", specifier = ">=0.23.1" },
+    { name = "uvicorn", specifier = ">=0.40.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "ruff", specifier = ">=0.14.13" },
+    { name = "xmltodict", specifier = ">=1.0.3" },
+]
+docs = [
+    { name = "furo", specifier = ">=2025.12.19" },
+    { name = "sphinx", specifier = ">=8.1.3" },
+    { name = "sphinx-copybutton", specifier = ">=0.5.2" },
+]
+
+[[package]]
 name = "packaging"
 version = "26.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1337,4 +1339,13 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c3/d1/8f3c683c9561a4e6689dd3b1d345c815f10f86acd044ee1fb9a4dcd0b8c5/uvicorn-0.40.0.tar.gz", hash = "sha256:839676675e87e73694518b5574fd0f24c9d97b46bea16df7b8c05ea1a51071ea", size = 81761, upload-time = "2025-12-21T14:16:22.45Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3d/d8/2083a1daa7439a66f3a48589a57d576aa117726762618f6bb09fe3798796/uvicorn-0.40.0-py3-none-any.whl", hash = "sha256:c6c8f55bc8bf13eb6fa9ff87ad62308bbbc33d0b67f84293151efe87e0d5f2ee", size = 68502, upload-time = "2025-12-21T14:16:21.041Z" },
+]
+
+[[package]]
+name = "xmltodict"
+version = "1.0.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a9/66/d1242ce8748c698e0036837dfbb530480e31f11d3ecf7101cd4e30d29913/xmltodict-1.0.3.tar.gz", hash = "sha256:3bf1f49c7836df34cf6d9cc7e690c4351f7dfff2ab0b8a1988bba4a9b9474909", size = 25170, upload-time = "2026-02-15T04:05:05.728Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/82/df/5c50d5bfc886cf61e665f34925e70c7d5ab1d39db0bcc4a03f6fdae3cd76/xmltodict-1.0.3-py3-none-any.whl", hash = "sha256:35d65d5c08f2a1121df338a0c4e49ca638480fa7c1b899ded45e0759bf32e40e", size = 13295, upload-time = "2026-02-15T04:05:04.407Z" },
 ]
