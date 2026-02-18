@@ -18,7 +18,7 @@ from achrome.core._internal.tab_commands import (
     build_void_tab_command_script,
 )
 from achrome.core.exceptions import DoesNotExistError
-from achrome.core.source import Source
+from achrome.core.source import Snapshot
 
 if TYPE_CHECKING:
     from typing_extensions import NotRequired, Self, Unpack
@@ -63,14 +63,18 @@ class Tab(ChromeModel):
         return self._load_info().is_active
 
     @property
-    def source(self) -> Source:
+    def source(self) -> str:
         source = self.execute("document.documentElement.outerHTML")
         if source is None:
             raise RuntimeError(
                 f"Cannot read source for tab id={self.id} in window id={self.window_id}: "
                 "JavaScript returned no value.",
             )
-        return Source.from_html(source)
+        return source
+
+    @property
+    def snapshot(self) -> Snapshot:
+        return Snapshot.from_source(self.source)
 
     def close(self) -> None:
         self._run_tab_command(action="close", command_body="close t")

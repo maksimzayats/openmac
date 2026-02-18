@@ -100,7 +100,7 @@ def test_tab_source_uses_outer_html_javascript() -> None:
     source = tab.source
 
     script = runner.scripts[-1]
-    assert source.html == "<html>source</html>"
+    assert source == "<html>source</html>"
     assert f'set jsBase64 to "{source_javascript_base64}"' in script
 
 
