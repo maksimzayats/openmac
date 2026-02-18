@@ -203,7 +203,7 @@ def test_tab_source_uses_execute_and_returns_runner_value() -> None:
     ).decode("ascii")
 
     assert tab.execute("return document.title;") == "<html>DOM</html>"
-    assert tab.source == "<html>DOM</html>"
+    assert tab.source.html == "<html>DOM</html>"
     assert any(
         f'set jsBase64 to "{source_javascript_base64}"' in script for script in runner.scripts
     )
