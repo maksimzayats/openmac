@@ -59,6 +59,22 @@ class BaseManager(ABC, Generic[T]):
             f"{manager_name}.get() found {item_count} objects for criteria {criteria!r}, expected 1",
         )
 
+    def first(self) -> T:
+        items = self.items
+        if not items:
+            manager_name = type(self).__name__
+            raise DoesNotExistError(f"{manager_name}.first() found 0 objects")
+
+        return items[0]
+
+    def last(self) -> T:
+        items = self.items
+        if not items:
+            manager_name = type(self).__name__
+            raise DoesNotExistError(f"{manager_name}.last() found 0 objects")
+
+        return items[-1]
+
     def __iter__(self) -> Iterator[T]:
         return iter(self.items)
 

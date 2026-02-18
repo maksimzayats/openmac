@@ -184,6 +184,48 @@ def test_tabs_manager_get_supports_in_operator() -> None:
     assert tab.id == 102
 
 
+def test_tabs_manager_first_returns_first_tab() -> None:
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
+
+    tab = tabs_manager.first()
+
+    assert tab.id == 101
+
+
+def test_tabs_manager_last_returns_last_tab() -> None:
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
+
+    tab = tabs_manager.last()
+
+    assert tab.id == 103
+
+
+def test_tabs_manager_first_raises_does_not_exist_for_empty_filtered_result() -> None:
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
+
+    with pytest.raises(DoesNotExistError) as exc_info:
+        tabs_manager.filter(id=999).first()
+
+    assert str(exc_info.value) == "TabsManager.first() found 0 objects"
+
+
+def test_tabs_manager_last_raises_does_not_exist_for_empty_filtered_result() -> None:
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
+
+    with pytest.raises(DoesNotExistError) as exc_info:
+        tabs_manager.filter(id=999).last()
+
+    assert str(exc_info.value) == "TabsManager.last() found 0 objects"
+
+
+def test_tabs_manager_first_and_last_preserve_filtered_order() -> None:
+    tabs_manager = TabsManager(_context=_context(), _window_id=1)
+    filtered_tabs_manager = tabs_manager.filter(loading=False)
+
+    assert filtered_tabs_manager.first().id == 101
+    assert filtered_tabs_manager.last().id == 102
+
+
 def test_tabs_manager_get_propagates_value_error_for_unsupported_operator() -> None:
     tabs_manager = TabsManager(_context=_context(), _window_id=1)
 
@@ -237,6 +279,22 @@ def test_windows_manager_get_supports_bounds_filters() -> None:
 
     assert window_by_bounds.id == 2
     assert window_by_member.id == 1
+
+
+def test_windows_manager_first_returns_first_window() -> None:
+    windows_manager = WindowsManager(_context=_context())
+
+    window = windows_manager.first()
+
+    assert window.id == 1
+
+
+def test_windows_manager_last_returns_last_window() -> None:
+    windows_manager = WindowsManager(_context=_context())
+
+    window = windows_manager.last()
+
+    assert window.id == 2
 
 
 def test_window_active_tab_uses_active_tab_id_lookup() -> None:
