@@ -5,6 +5,7 @@ from textwrap import dedent
 from typing import Final
 
 NOT_FOUND_SENTINEL: Final[str] = "__ACHROME_NOT_FOUND__"
+EXECUTE_MISSING_RESULT_SENTINEL: Final[str] = "__ACHROME_EXECUTE_MISSING_RESULT__"
 
 
 def _indent_lines(text: str, *, spaces: int = 4) -> str:
@@ -96,6 +97,9 @@ def build_execute_script(window_id: int, tab_id: int, javascript: str) -> str:
             end if
 
             set resultValue to execute t javascript jsText
+            if resultValue is missing value then
+                return "{EXECUTE_MISSING_RESULT_SENTINEL}"
+            end if
             try
                 return resultValue as text
             on error

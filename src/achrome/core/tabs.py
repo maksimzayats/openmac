@@ -11,6 +11,7 @@ from pydantic import TypeAdapter
 from achrome.core._internal.manager import BaseManager
 from achrome.core._internal.models import ChromeModel
 from achrome.core._internal.tab_commands import (
+    EXECUTE_MISSING_RESULT_SENTINEL,
     NOT_FOUND_SENTINEL,
     build_execute_script,
     build_tab_info_script,
@@ -59,7 +60,13 @@ class Tab(ChromeModel):
 
     @property
     def source(self) -> str:
-        return self.execute("document.documentElement.outerHTML")
+        source = self.execute("document.documentElement.outerHTML")
+        if source is None:
+            raise RuntimeError(
+                f"Cannot read source for tab id={self.id} in window id={self.window_id}: "
+                "JavaScript returned no value.",
+            )
+        return source
 
     def close(self) -> None:
         self._run_tab_command(action="close", command_body="close t")
@@ -94,10 +101,12 @@ activate
             command_body="exit presentation mode targetWindow",
         )
 
-    def execute(self, javascript: str) -> str:
+    def execute(self, javascript: str) -> str | None:
         script = build_execute_script(self.window_id, self.id, javascript)
         result = self._context.runner.run(script)
         self._raise_if_not_found(result, action="execute JavaScript in")
+        if result == EXECUTE_MISSING_RESULT_SENTINEL:
+            return None
         return result
 
     def _run_tab_command(self, *, action: str, command_body: str) -> None:

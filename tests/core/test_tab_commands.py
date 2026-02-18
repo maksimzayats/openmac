@@ -7,7 +7,10 @@ import pytest
 
 from achrome.core._internal.apple_script import AppleScriptRunner
 from achrome.core._internal.context import Context
-from achrome.core._internal.tab_commands import NOT_FOUND_SENTINEL
+from achrome.core._internal.tab_commands import (
+    EXECUTE_MISSING_RESULT_SENTINEL,
+    NOT_FOUND_SENTINEL,
+)
 from achrome.core.exceptions import DoesNotExistError
 from achrome.core.tabs import Tab
 
@@ -77,6 +80,15 @@ def test_tab_execute_emits_expected_script_and_returns_runner_output() -> None:
     assert "set targetTabId to 42" in script
     assert f'set jsBase64 to "{javascript_base64}"' in script
     assert "set resultValue to execute t javascript jsText" in script
+    assert "if resultValue is missing value then" in script
+
+
+def test_tab_execute_returns_none_on_missing_result_sentinel() -> None:
+    tab, _runner = _make_tab(response=EXECUTE_MISSING_RESULT_SENTINEL)
+
+    result = tab.execute("console.log('x')")
+
+    assert result is None
 
 
 def test_tab_source_uses_outer_html_javascript() -> None:
@@ -90,6 +102,18 @@ def test_tab_source_uses_outer_html_javascript() -> None:
     script = runner.scripts[-1]
     assert source == "<html>source</html>"
     assert f'set jsBase64 to "{source_javascript_base64}"' in script
+
+
+def test_tab_source_raises_runtime_error_when_execute_returns_missing_result() -> None:
+    tab, _runner = _make_tab(response=EXECUTE_MISSING_RESULT_SENTINEL)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        _ = tab.source
+
+    assert (
+        str(exc_info.value)
+        == "Cannot read source for tab id=42 in window id=7: JavaScript returned no value."
+    )
 
 
 @pytest.mark.parametrize(
