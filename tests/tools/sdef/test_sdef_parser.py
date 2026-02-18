@@ -6,20 +6,20 @@ import pytest
 
 from tools.sdef.parser import load_sdef
 
-FIXTURE_PATH = Path(__file__).resolve().parents[1] / "tools" / "sdef" / "suite.sdef"
+FIXTURE_PATH = Path(__file__).resolve().parents[3] / "tools" / "sdef" / "suite.sdef"
 
 
 def test_load_sdef_parses_repository_suite_fixture() -> None:
     dictionary = load_sdef(FIXTURE_PATH)
 
     assert dictionary.title == "Dictionary"
-    assert len(dictionary.suite) == 2
+    assert len(dictionary.suites) == 2
 
     save_command = None
     open_command = None
 
-    for suite in dictionary.suite:
-        for command in suite.command:
+    for suite in dictionary.suites:
+        for command in suite.commands:
             if command.name == "save":
                 save_command = command
             if command.name == "open":
@@ -27,14 +27,14 @@ def test_load_sdef_parses_repository_suite_fixture() -> None:
 
     assert save_command is not None
     assert open_command is not None
-    assert save_command.access_group
-    assert save_command.access_group[0].identifier == "*"
+    assert save_command.access_groups
+    assert save_command.access_groups[0].identifier == "*"
 
-    assert open_command.direct_parameter
-    assert open_command.direct_parameter[0].type is None
-    assert open_command.direct_parameter[0].type_element
-    assert open_command.direct_parameter[0].type_element[0].type == "file"
-    assert open_command.direct_parameter[0].type_element[0].list == "yes"
+    assert open_command.direct_parameters
+    assert open_command.direct_parameters[0].type is None
+    assert open_command.direct_parameters[0].type_elements
+    assert open_command.direct_parameters[0].type_elements[0].type == "file"
+    assert open_command.direct_parameters[0].type_elements[0].list == "yes"
 
 
 def test_load_sdef_rejects_unknown_fields_in_strict_mode(tmp_path: Path) -> None:

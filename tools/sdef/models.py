@@ -28,8 +28,8 @@ class Property(BaseModel):
     hidden: YesNo | None = None
     access: AccessType | None = None
 
-    type_element: list[TypeElement] = Field(default_factory=list)
-    cocoa: list[Cocoa] = Field(default_factory=list)
+    type_elements: list[TypeElement] = Field(default_factory=list, alias="type_element")
+    cocoas: list[Cocoa] = Field(default_factory=list, alias="cocoa")
 
 
 class Element(BaseModel):
@@ -38,14 +38,14 @@ class Element(BaseModel):
     hidden: YesNo | None = None
     access: AccessType | None = None
 
-    type_element: list[TypeElement] = Field(default_factory=list)
-    cocoa: list[Cocoa] = Field(default_factory=list)
+    type_elements: list[TypeElement] = Field(default_factory=list, alias="type_element")
+    cocoas: list[Cocoa] = Field(default_factory=list, alias="cocoa")
 
 
 class RespondsTo(BaseModel):
     command: str
     hidden: YesNo | None = None
-    cocoa: list[Cocoa] = Field(default_factory=list)
+    cocoas: list[Cocoa] = Field(default_factory=list, alias="cocoa")
 
 
 class DirectParameter(BaseModel):
@@ -53,7 +53,7 @@ class DirectParameter(BaseModel):
     description: str | None = None
     optional: YesNo | None = None
 
-    type_element: list[TypeElement] = Field(default_factory=list)
+    type_elements: list[TypeElement] = Field(default_factory=list, alias="type_element")
 
 
 class Parameter(BaseModel):
@@ -63,15 +63,15 @@ class Parameter(BaseModel):
     description: str | None = None
     optional: YesNo | None = None
 
-    type_element: list[TypeElement] = Field(default_factory=list)
-    cocoa: list[Cocoa] = Field(default_factory=list)
+    type_elements: list[TypeElement] = Field(default_factory=list, alias="type_element")
+    cocoas: list[Cocoa] = Field(default_factory=list, alias="cocoa")
 
 
 class Result(BaseModel):
     type: str | None = None
     description: str | None = None
 
-    type_element: list[TypeElement] = Field(default_factory=list)
+    type_elements: list[TypeElement] = Field(default_factory=list, alias="type_element")
 
 
 class AccessGroup(BaseModel):
@@ -83,11 +83,11 @@ class Command(BaseModel):
     code: str | None = None
     description: str | None = None
 
-    access_group: list[AccessGroup] = Field(default_factory=list)
-    parameter: list[Parameter] = Field(default_factory=list)
-    direct_parameter: list[DirectParameter] = Field(default_factory=list)
-    result: list[Result] = Field(default_factory=list)
-    cocoa: list[Cocoa] = Field(default_factory=list)
+    access_groups: list[AccessGroup] = Field(default_factory=list, alias="access_group")
+    parameters: list[Parameter] = Field(default_factory=list, alias="parameter")
+    direct_parameters: list[DirectParameter] = Field(default_factory=list, alias="direct_parameter")
+    results: list[Result] = Field(default_factory=list, alias="result")
+    cocoas: list[Cocoa] = Field(default_factory=list, alias="cocoa")
 
 
 class Class(BaseModel):
@@ -96,10 +96,10 @@ class Class(BaseModel):
     description: str | None = None
     hidden: YesNo | None = None
 
-    property: list[Property] = Field(default_factory=list)
-    element: list[Element] = Field(default_factory=list)
-    responds_to: list[RespondsTo] = Field(default_factory=list)
-    cocoa: list[Cocoa] = Field(default_factory=list)
+    properties: list[Property] = Field(default_factory=list, alias="property")
+    elements: list[Element] = Field(default_factory=list, alias="element")
+    responds_tos: list[RespondsTo] = Field(default_factory=list, alias="responds_to")
+    cocoas: list[Cocoa] = Field(default_factory=list, alias="cocoa")
 
 
 class ClassExtension(BaseModel):
@@ -107,10 +107,10 @@ class ClassExtension(BaseModel):
     description: str | None = None
     hidden: YesNo | None = None
 
-    property: list[Property] = Field(default_factory=list)
-    element: list[Element] = Field(default_factory=list)
-    responds_to: list[RespondsTo] = Field(default_factory=list)
-    cocoa: list[Cocoa] = Field(default_factory=list)
+    properties: list[Property] = Field(default_factory=list, alias="property")
+    elements: list[Element] = Field(default_factory=list, alias="element")
+    responds_tos: list[RespondsTo] = Field(default_factory=list, alias="responds_to")
+    cocoas: list[Cocoa] = Field(default_factory=list, alias="cocoa")
 
 
 class Suite(BaseModel):
@@ -118,11 +118,11 @@ class Suite(BaseModel):
     code: str | None = None
     description: str | None = None
 
-    class_: list[Class] = Field(default_factory=list, alias="class")
-    class_extension: list[ClassExtension] = Field(default_factory=list)
-    command: list[Command] = Field(default_factory=list)
+    classes: list[Class] = Field(default_factory=list, alias="class")
+    class_extensions: list[ClassExtension] = Field(default_factory=list, alias="class_extension")
+    commands: list[Command] = Field(default_factory=list, alias="command")
 
 
 class Dictionary(BaseModel):
     title: str | None = None
-    suite: list[Suite] = Field(default_factory=list)
+    suites: list[Suite] = Field(default_factory=list, alias="suite")
