@@ -4,7 +4,7 @@ import base64
 import time
 from dataclasses import dataclass
 from textwrap import dedent, indent
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, TypedDict, TypeVar, overload
 
 from pydantic import TypeAdapter
 
@@ -21,6 +21,9 @@ from achrome.core.exceptions import DoesNotExistError
 
 if TYPE_CHECKING:
     from typing_extensions import NotRequired, Self, Unpack
+
+
+T = TypeVar("T")
 
 
 @dataclass(slots=True, frozen=True)
@@ -101,12 +104,33 @@ activate
             command_body="exit presentation mode targetWindow",
         )
 
-    def execute(self, javascript: str) -> str | None:
+    @overload
+    def execute(self, javascript: str, *, return_type: type[T]) -> T: ...
+
+    @overload
+    def execute(self, javascript: str, *, return_type: None = None) -> str | None: ...
+
+    def execute(self, javascript: str, *, return_type: type[T] | None = None) -> T | str | None:
         script = build_execute_script(self.window_id, self.id, javascript)
         result = self._context.runner.run(script)
         self._raise_if_not_found(result, action="execute JavaScript in")
         if result == EXECUTE_MISSING_RESULT_SENTINEL:
+            if return_type is not None:
+                raise RuntimeError(
+                    f"Expected a return value from executing JavaScript in tab id={self.id} "
+                    "in window id={self.window_id}, but got none.",
+                )
+
             return None
+
+        if return_type is not None:
+            try:
+                return TypeAdapter(return_type).validate_json(result)
+            except Exception as error:
+                raise RuntimeError(
+                    f"Failed to parse JavaScript execution result as {return_type}: {error}",
+                ) from error
+
         return result
 
     def _run_tab_command(self, *, action: str, command_body: str) -> None:
