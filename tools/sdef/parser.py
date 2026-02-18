@@ -13,6 +13,10 @@ FORCE_LIST: tuple[str, ...] = (
     "class",
     "class-extension",
     "command",
+    "enumeration",
+    "enumerator",
+    "value-type",
+    "record-type",
     "property",
     "element",
     "responds-to",
@@ -22,6 +26,10 @@ FORCE_LIST: tuple[str, ...] = (
     "type",
     "cocoa",
     "access-group",
+    "synonym",
+    "documentation",
+    "accessor",
+    "xi:include",
 )
 
 
@@ -64,7 +72,11 @@ def load_sdef(path: Path) -> Dictionary:
     xml_content = path.read_text(encoding="utf-8")
 
     try:
-        raw_data = xmltodict.parse(xml_content, force_list=FORCE_LIST)
+        raw_data = xmltodict.parse(
+            xml_content,
+            force_list=FORCE_LIST,
+            disable_entities=False,
+        )
     except xmltodict.expat.ExpatError as exc:
         msg = f"Failed to parse SDEF XML at {path}: {exc}"
         raise ValueError(msg) from exc

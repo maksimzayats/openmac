@@ -4,88 +4,103 @@ from pathlib import Path
 
 import pytest
 
+from tools.sdef.models import Command
 from tools.sdef.parser import load_sdef
 
 FIXTURE_PATH = Path(__file__).resolve().parents[3] / "tools" / "sdef" / "suite.sdef"
 APP_SDEF_DIR = Path(__file__).resolve().parent / "captured_apps_sdef"
-APP_SDEF_NAMES = (
-    "developer.sdef",
-    "google_chrome.sdef",
-    "google_chrome_beta.sdef",
-    "iterm.sdef",
-    "keynote.sdef",
-    "microsoft_edge.sdef",
-    "microsoft_excel.sdef",
-    "microsoft_outlook.sdef",
-    "microsoft_word.sdef",
-    "numbers.sdef",
-    "pages.sdef",
-    "safari.sdef",
-    "spotify.sdef",
-    "xcode.sdef",
-)
-CHROMIUM_APP_SDEFS = ("google_chrome.sdef", "google_chrome_beta.sdef", "microsoft_edge.sdef")
+APP_SDEF_PATHS = sorted(APP_SDEF_DIR.glob("*.sdef"))
+CHROMIUM_APP_SDEF_NAMES = {"google_chrome.sdef", "google_chrome_beta.sdef", "microsoft_edge.sdef"}
 
 
-def test_captured_app_sdef_files_exist() -> None:
-    assert APP_SDEF_DIR.is_dir()
+def _find_command(dictionary_title: str, command_name: str, fixture_path: Path) -> Command:
+    dictionary = load_sdef(fixture_path)
 
-    for fixture_name in APP_SDEF_NAMES:
-        assert (APP_SDEF_DIR / fixture_name).is_file()
-
-
-@pytest.mark.parametrize("fixture_name", CHROMIUM_APP_SDEFS)
-def test_load_sdef_parses_captured_chromium_app_sdefs(fixture_name: str) -> None:
-    dictionary = load_sdef(APP_SDEF_DIR / fixture_name)
-
-    assert dictionary.title == "Dictionary"
-    assert len(dictionary.suites) == 2
-
-    save_command = None
-    open_command = None
+    assert dictionary.title == dictionary_title
 
     for suite in dictionary.suites:
         for command in suite.commands:
-            if command.name == "save":
-                save_command = command
-            if command.name == "open":
-                open_command = command
+            if command.name == command_name:
+                return command
 
-    assert save_command is not None
-    assert open_command is not None
-    assert save_command.access_groups
-    assert save_command.access_groups[0].identifier == "*"
-    assert open_command.direct_parameters
-    assert open_command.direct_parameters[0].type_elements
-    assert open_command.direct_parameters[0].type_elements[0].type == "file"
+    pytest.fail(f"Missing command {command_name!r} in fixture {fixture_path.name}")
+
+
+def test_captured_app_sdef_files_are_discovered() -> None:
+    assert APP_SDEF_DIR.is_dir()
+    assert APP_SDEF_PATHS
+
+
+@pytest.mark.parametrize("fixture_path", APP_SDEF_PATHS, ids=lambda path: path.name)
+def test_load_sdef_parses_all_captured_app_sdefs(fixture_path: Path) -> None:
+    dictionary = load_sdef(fixture_path)
+    assert dictionary.suites
 
 
 def test_load_sdef_parses_repository_suite_fixture() -> None:
-    dictionary = load_sdef(FIXTURE_PATH)
+    save_command = _find_command("Dictionary", "save", FIXTURE_PATH)
+    open_command = _find_command("Dictionary", "open", FIXTURE_PATH)
 
-    assert dictionary.title == "Dictionary"
-    assert len(dictionary.suites) == 2
-
-    save_command = None
-    open_command = None
-
-    for suite in dictionary.suites:
-        for command in suite.commands:
-            if command.name == "save":
-                save_command = command
-            if command.name == "open":
-                open_command = command
-
-    assert save_command is not None
-    assert open_command is not None
     assert save_command.access_groups
     assert save_command.access_groups[0].identifier == "*"
-
     assert open_command.direct_parameters
     assert open_command.direct_parameters[0].type is None
     assert open_command.direct_parameters[0].type_elements
     assert open_command.direct_parameters[0].type_elements[0].type == "file"
     assert open_command.direct_parameters[0].type_elements[0].list == "yes"
+
+
+@pytest.mark.parametrize(
+    "fixture_path",
+    [path for path in APP_SDEF_PATHS if path.name in CHROMIUM_APP_SDEF_NAMES],
+    ids=lambda path: path.name,
+)
+def test_load_sdef_parses_captured_chromium_app_sdefs(fixture_path: Path) -> None:
+    save_command = _find_command("Dictionary", "save", fixture_path)
+    open_command = _find_command("Dictionary", "open", fixture_path)
+
+    assert save_command.access_groups
+    assert save_command.access_groups[0].identifier == "*"
+    assert open_command.direct_parameters
+    assert open_command.direct_parameters[0].type_elements
+    assert open_command.direct_parameters[0].type_elements[0].type == "file"
+
+
+def test_load_sdef_parses_iwork_value_type_and_documentation() -> None:
+    dictionary = load_sdef(APP_SDEF_DIR / "keynote.sdef")
+
+    assert any(suite.value_types for suite in dictionary.suites)
+    assert any(command.documentation for suite in dictionary.suites for command in suite.commands)
+
+
+def test_load_sdef_parses_outlook_accessor_and_in_properties() -> None:
+    dictionary = load_sdef(APP_SDEF_DIR / "microsoft_outlook.sdef")
+
+    assert any(
+        element.accessors
+        for suite in dictionary.suites
+        for class_ in suite.classes
+        for element in class_.elements
+    )
+    assert any(
+        property_.in_properties == "no"
+        for suite in dictionary.suites
+        for class_ in suite.classes
+        for property_ in class_.properties
+    )
+
+
+def test_load_sdef_parses_xcode_requires_access_and_documentation() -> None:
+    dictionary = load_sdef(APP_SDEF_DIR / "xcode.sdef")
+
+    assert any(
+        direct_parameter.requires_access
+        for suite in dictionary.suites
+        for command in suite.commands
+        for direct_parameter in command.direct_parameters
+    )
+    assert any(command.documentation for suite in dictionary.suites for command in suite.commands)
+    assert any(class_.documentation for suite in dictionary.suites for class_ in suite.classes)
 
 
 def test_load_sdef_rejects_unknown_fields_in_strict_mode(tmp_path: Path) -> None:
