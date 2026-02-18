@@ -25,8 +25,8 @@ class Chrome:
 
 def main() -> None:
     chrome = Chrome()
-    window = chrome.windows.items[0]
-    result = window.tabs.active.execute("123")
+    window = chrome.windows.front
+    result = window.tabs.active.execute("console.log('Hello from the active tab!');")
     print(result)
 
 
