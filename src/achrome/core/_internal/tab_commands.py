@@ -177,3 +177,119 @@ def build_tab_info_script(window_id: int, tab_id: int) -> str:
         """,
     ).strip()
     return script.replace("__ACHROME_FIND_SCRIPT__", find_script)
+
+
+def build_tabs_info_list_script(window_id: int) -> str:
+    """Build an AppleScript that returns tab info records for a window as JSON."""
+    return dedent(
+        f"""
+        use AppleScript version "2.8"
+        use framework "Foundation"
+        use scripting additions
+
+        on integerOrZero(v)
+            if v is missing value then
+                return 0
+            end if
+            try
+                return v as integer
+            on error
+                return 0
+            end try
+        end integerOrZero
+
+        on boolOrFalse(v)
+            if v is missing value then
+                return false
+            end if
+            try
+                return (v is true)
+            on error
+                return false
+            end try
+        end boolOrFalse
+
+        on nsBool(v)
+            return current application's NSNumber's numberWithBool:(my boolOrFalse(v))
+        end nsBool
+
+        on textOrEmpty(v)
+            if v is missing value then
+                return ""
+            end if
+            try
+                return v as text
+            on error
+                return ""
+            end try
+        end textOrEmpty
+
+        set targetWindowId to {window_id}
+        set tabRecs to current application's NSMutableArray's array()
+
+        tell application "Google Chrome"
+            set targetWindow to missing value
+
+            repeat with w in windows
+                if ((id of w) as integer) is targetWindowId then
+                    set targetWindow to w
+                    exit repeat
+                end if
+            end repeat
+
+            if targetWindow is missing value then
+                return "[]"
+            end if
+
+            set activeTabIndex to active tab index of targetWindow
+            set tabCount to (count of tabs of targetWindow)
+
+            repeat with tabIndex from 1 to tabCount
+                set t to tab tabIndex of targetWindow
+
+                set rawId to missing value
+                set rawTitle to missing value
+                set rawUrl to missing value
+                set rawLoading to missing value
+
+                set tabRec to current application's NSMutableDictionary's dictionary()
+
+                try
+                    set rawId to id of t
+                end try
+                tabRec's setObject:(my integerOrZero(rawId)) forKey:"id"
+
+                try
+                    set rawTitle to title of t
+                end try
+                tabRec's setObject:(my textOrEmpty(rawTitle)) forKey:"title"
+
+                try
+                    set rawUrl to URL of t
+                end try
+                tabRec's setObject:(my textOrEmpty(rawUrl)) forKey:"url"
+
+                try
+                    set rawLoading to loading of t
+                end try
+                tabRec's setObject:(my nsBool(rawLoading)) forKey:"loading"
+
+                tabRec's setObject:(my nsBool(tabIndex is activeTabIndex)) forKey:"is_active"
+
+                tabRecs's addObject:tabRec
+            end repeat
+        end tell
+
+        set {{jsonData, jsonError}} to current application's NSJSONSerialization's ¬
+            dataWithJSONObject:tabRecs options:0 |error|:(reference)
+
+        if jsonData is missing value then
+            return "JSON serialization failed: " & ((jsonError's localizedDescription()) as text)
+        end if
+
+        set jsonString to (current application's NSString's alloc()'s ¬
+            initWithData:jsonData encoding:(current application's NSUTF8StringEncoding)) as text
+
+        return jsonString
+        """,
+    ).strip()

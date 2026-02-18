@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from typing import Any
 
 
-WINDOW_IDS_JSON = json.dumps([1, 2])
 WINDOW_INFO_BY_ID: dict[int, dict[str, object]] = {
     1: {
         "name": "Window 1",
@@ -52,10 +51,6 @@ WINDOW_INFO_BY_ID: dict[int, dict[str, object]] = {
         "active_tab_id": 202,
     },
 }
-TAB_IDS_BY_WINDOW_ID: dict[int, list[int]] = {
-    1: [101, 102, 103],
-    2: [201, 202, 203],
-}
 TAB_INFO_BY_WINDOW_AND_ID: dict[tuple[int, int], dict[str, object]] = {
     (1, 101): {"title": "Tab 1", "url": "https://example.com", "loading": False, "is_active": True},
     (1, 102): {
@@ -89,24 +84,44 @@ TAB_INFO_BY_WINDOW_AND_ID: dict[tuple[int, int], dict[str, object]] = {
         "is_active": False,
     },
 }
+WINDOW_LIST_JSON = json.dumps(
+    [
+        {
+            "id": window_id,
+            **window_info,
+        }
+        for window_id, window_info in WINDOW_INFO_BY_ID.items()
+    ],
+)
+TAB_LIST_BY_WINDOW_ID: dict[int, list[dict[str, object]]] = {
+    window_id: [
+        {
+            "id": tab_id,
+            **TAB_INFO_BY_WINDOW_AND_ID[window_id, tab_id],
+        }
+        for (tab_window_id, tab_id), _ in TAB_INFO_BY_WINDOW_AND_ID.items()
+        if tab_window_id == window_id
+    ]
+    for window_id in WINDOW_INFO_BY_ID
+}
 
 
 def _response_for_script(script: str) -> str:
     response = "[]"
 
-    if "set windowIds to current application's NSMutableArray's array()" in script:
-        response = WINDOW_IDS_JSON
+    if "set windowRecs to current application's NSMutableArray's array()" in script:
+        response = WINDOW_LIST_JSON
     elif "set windowRec to current application's NSMutableDictionary's dictionary()" in script:
         match = re.search(r"set targetWindowId to (\d+)", script)
         if match is not None:
             window_id = int(match.group(1))
             payload = WINDOW_INFO_BY_ID.get(window_id)
             response = json.dumps(payload) if payload is not None else "__ACHROME_NOT_FOUND__"
-    elif "set tabIds to current application's NSMutableArray's array()" in script:
+    elif "set tabRecs to current application's NSMutableArray's array()" in script:
         match = re.search(r"set targetWindowId to (\d+)", script)
         if match is not None:
             window_id = int(match.group(1))
-            response = json.dumps(TAB_IDS_BY_WINDOW_ID.get(window_id, []))
+            response = json.dumps(TAB_LIST_BY_WINDOW_ID.get(window_id, []))
     elif "set targetTabId to " in script:
         window_match = re.search(r"set targetWindowId to (\d+)", script)
         tab_match = re.search(r"set targetTabId to (\d+)", script)
@@ -236,9 +251,9 @@ def test_windows_loading_uses_runner_from_context() -> None:
     assert runner.run_calls == 1
 
     assert windows[0].name == "Window 1"
-    assert runner.run_calls == 2
+    assert runner.run_calls == 1
     assert windows[0].name == "Window 1"
-    assert runner.run_calls == 3
+    assert runner.run_calls == 1
 
     assert windows[0].bounds == Bounds(0, 0, 1280, 720)
-    assert runner.run_calls == 4
+    assert runner.run_calls == 1

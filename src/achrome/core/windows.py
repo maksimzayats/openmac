@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from textwrap import dedent
 from typing import TYPE_CHECKING, Literal, NamedTuple, TypedDict
 
@@ -12,6 +12,7 @@ from achrome.core._internal.tab_commands import NOT_FOUND_SENTINEL, build_void_t
 from achrome.core._internal.window_commands import (
     build_void_window_command_script,
     build_window_info_script,
+    build_windows_info_list_script,
 )
 from achrome.core.exceptions import DoesNotExistError
 from achrome.core.tabs import Tab, TabsManager
@@ -45,9 +46,29 @@ class _WindowInfo:
     active_tab_id: int
 
 
+@dataclass(slots=True, frozen=True)
+class _WindowListInfo:
+    id: int
+    name: str
+    bounds: Bounds
+    index: int
+    closeable: bool
+    minimizable: bool
+    minimized: bool
+    resizable: bool
+    visible: bool
+    zoomable: bool
+    zoomed: bool
+    mode: str
+    active_tab_index: int
+    presenting: bool
+    active_tab_id: int
+
+
 @dataclass(slots=True)  # noqa: PLR0904 - required public API surface
 class Window(ChromeModel):
     id: int
+    _info: _WindowInfo | None = field(default=None, repr=False, compare=False, kw_only=True)
 
     @property
     def active_tab(self) -> Tab:
@@ -57,68 +78,77 @@ class Window(ChromeModel):
     def tabs(self) -> TabsManager:
         return TabsManager(_context=self._context, _window_id=self.id)
 
-    def _load_info(self) -> _WindowInfo:
+    def _require_info(self) -> _WindowInfo:
+        if self._info is None:
+            raise RuntimeError(
+                f"Window id={self.id} state is not hydrated. "
+                "Call `window.refresh()` before accessing properties.",
+            )
+        return self._info
+
+    def refresh(self) -> Self:
         script = build_window_info_script(self.id)
         result = self._context.runner.run(script)
         if result == NOT_FOUND_SENTINEL:
             raise DoesNotExistError(f"Cannot read window id={self.id}: not found.")
-        return TypeAdapter(_WindowInfo).validate_json(result)
+        self._info = TypeAdapter(_WindowInfo).validate_json(result)
+        return self
 
     @property
     def name(self) -> str:
-        return self._load_info().name
+        return self._require_info().name
 
     @property
     def bounds(self) -> Bounds:
-        return self._load_info().bounds
+        return self._require_info().bounds
 
     @property
     def index(self) -> int:
-        return self._load_info().index
+        return self._require_info().index
 
     @property
     def closeable(self) -> bool:
-        return self._load_info().closeable
+        return self._require_info().closeable
 
     @property
     def minimizable(self) -> bool:
-        return self._load_info().minimizable
+        return self._require_info().minimizable
 
     @property
     def minimized(self) -> bool:
-        return self._load_info().minimized
+        return self._require_info().minimized
 
     @property
     def resizable(self) -> bool:
-        return self._load_info().resizable
+        return self._require_info().resizable
 
     @property
     def visible(self) -> bool:
-        return self._load_info().visible
+        return self._require_info().visible
 
     @property
     def zoomable(self) -> bool:
-        return self._load_info().zoomable
+        return self._require_info().zoomable
 
     @property
     def zoomed(self) -> bool:
-        return self._load_info().zoomed
+        return self._require_info().zoomed
 
     @property
     def mode(self) -> str:
-        return self._load_info().mode
+        return self._require_info().mode
 
     @property
     def active_tab_index(self) -> int:
-        return self._load_info().active_tab_index
+        return self._require_info().active_tab_index
 
     @property
     def presenting(self) -> bool:
-        return self._load_info().presenting
+        return self._require_info().presenting
 
     @property
     def active_tab_id(self) -> int:
-        return self._load_info().active_tab_id
+        return self._require_info().active_tab_id
 
     def close(self) -> None:
         self._run_window_command("close", "close targetWindow")
@@ -259,55 +289,34 @@ class WindowsManager(BaseManager[Window]):
         window_id = TypeAdapter(int).validate_json(result)
         window = Window(id=window_id)
         window.set_context(self._context)
-        return window
+        return window.refresh()
 
     def _load_items(self) -> list[Window]:
-        script = dedent(
-            """
-            use AppleScript version "2.8"
-            use framework "Foundation"
-            use scripting additions
-
-            on integerOrZero(v)
-                if v is missing value then
-                    return 0
-                end if
-                try
-                    return v as integer
-                on error
-                    return 0
-                end try
-            end integerOrZero
-
-            set windowIds to current application's NSMutableArray's array()
-
-            tell application "Google Chrome"
-                repeat with w in windows
-                    set rawId to missing value
-                    try
-                        set rawId to id of w
-                    end try
-                    windowIds's addObject:(my integerOrZero(rawId))
-                end repeat
-            end tell
-
-            set {jsonData, jsonError} to current application's NSJSONSerialization's ¬
-                dataWithJSONObject:windowIds options:0 |error|:(reference)
-
-            if jsonData is missing value then
-                return "JSON serialization failed: " & ((jsonError's localizedDescription()) as text)
-            end if
-
-            set jsonString to (current application's NSString's alloc()'s ¬
-                initWithData:jsonData encoding:(current application's NSUTF8StringEncoding)) as text
-
-            return jsonString
-            """,
-        ).strip()
-
+        script = build_windows_info_list_script()
         result = self._context.runner.run(script)
-        window_ids = TypeAdapter(list[int]).validate_json(result)
-        windows = [Window(id=window_id) for window_id in window_ids]
+        window_infos = TypeAdapter(list[_WindowListInfo]).validate_json(result)
+        windows = [
+            Window(
+                id=window_info.id,
+                _info=_WindowInfo(
+                    name=window_info.name,
+                    bounds=window_info.bounds,
+                    index=window_info.index,
+                    closeable=window_info.closeable,
+                    minimizable=window_info.minimizable,
+                    minimized=window_info.minimized,
+                    resizable=window_info.resizable,
+                    visible=window_info.visible,
+                    zoomable=window_info.zoomable,
+                    zoomed=window_info.zoomed,
+                    mode=window_info.mode,
+                    active_tab_index=window_info.active_tab_index,
+                    presenting=window_info.presenting,
+                    active_tab_id=window_info.active_tab_id,
+                ),
+            )
+            for window_info in window_infos
+        ]
 
         for window in windows:
             window.set_context(self._context)

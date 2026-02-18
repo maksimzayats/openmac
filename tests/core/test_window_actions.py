@@ -12,7 +12,6 @@ from achrome.core._internal.tab_commands import NOT_FOUND_SENTINEL
 from achrome.core.exceptions import DoesNotExistError
 from achrome.core.windows import Bounds, Window, WindowsManager
 
-WINDOW_IDS_JSON = json.dumps([1, 2])
 WINDOW_INFO_BY_ID: dict[int, dict[str, object]] = {
     1: {
         "name": "Window 1",
@@ -47,20 +46,37 @@ WINDOW_INFO_BY_ID: dict[int, dict[str, object]] = {
         "active_tab_id": 202,
     },
 }
+WINDOW_LIST_JSON = json.dumps(
+    [
+        {
+            "id": window_id,
+            **window_info,
+        }
+        for window_id, window_info in WINDOW_INFO_BY_ID.items()
+    ],
+)
 
 
 class _SpyAppleScriptRunner:
-    def __init__(self, response: str | None = None) -> None:
-        self.response = response
+    def __init__(self, responses: str | list[str] | None = None) -> None:
+        if responses is None:
+            self._responses = None
+        elif isinstance(responses, str):
+            self._responses = [responses]
+        else:
+            self._responses = responses
         self.scripts: list[str] = []
 
     def run(self, script: str) -> str:
         self.scripts.append(script)
-        if self.response is not None:
-            return self.response
+        if self._responses is not None:
+            if len(self._responses) > 1:
+                return self._responses.pop(0)
 
-        if "set windowIds to current application's NSMutableArray's array()" in script:
-            return WINDOW_IDS_JSON
+            return self._responses[0]
+
+        if "set windowRecs to current application's NSMutableArray's array()" in script:
+            return WINDOW_LIST_JSON
 
         if "set windowRec to current application's NSMutableDictionary's dictionary()" in script:
             for window_id, payload in WINDOW_INFO_BY_ID.items():
@@ -71,7 +87,7 @@ class _SpyAppleScriptRunner:
         return "ok"
 
 
-def _make_context(response: str) -> tuple[Context, _SpyAppleScriptRunner]:
+def _make_context(response: str | list[str]) -> tuple[Context, _SpyAppleScriptRunner]:
     runner = _SpyAppleScriptRunner(response)
     return Context(runner=cast("AppleScriptRunner", runner)), runner
 
@@ -205,30 +221,82 @@ def test_windows_manager_front_returns_window_with_index_one() -> None:
 
 
 def test_windows_manager_create_incognito_returns_window_with_context_and_tabs() -> None:
-    context, runner = _make_context("55")
+    context, runner = _make_context(
+        [
+            "55",
+            json.dumps(
+                {
+                    "name": "New Incognito Window",
+                    "bounds": [1, 2, 3, 4],
+                    "index": 1,
+                    "closeable": True,
+                    "minimizable": True,
+                    "minimized": False,
+                    "resizable": True,
+                    "visible": True,
+                    "zoomable": True,
+                    "zoomed": False,
+                    "mode": "incognito",
+                    "active_tab_index": 1,
+                    "presenting": False,
+                    "active_tab_id": 501,
+                },
+            ),
+        ],
+    )
     windows_manager = WindowsManager(_context=context)
 
     window = windows_manager.create(mode="incognito")
 
-    script = runner.scripts[-1]
+    create_script = runner.scripts[0]
+    refresh_script = runner.scripts[1]
     assert window.id == 55
     assert window._context is context
     assert window.tabs._window_id == window.id
     assert window.tabs._context is context
-    assert "make new window" in script
-    assert 'with properties {mode:"incognito"}' in script
+    assert window.mode == "incognito"
+    assert "make new window" in create_script
+    assert 'with properties {mode:"incognito"}' in create_script
+    assert "set targetWindowId to 55" in refresh_script
+    assert len(runner.scripts) == 2
 
 
 def test_windows_manager_create_normal_uses_default_window_mode() -> None:
-    context, runner = _make_context("56")
+    context, runner = _make_context(
+        [
+            "56",
+            json.dumps(
+                {
+                    "name": "New Window",
+                    "bounds": [10, 20, 800, 600],
+                    "index": 1,
+                    "closeable": True,
+                    "minimizable": True,
+                    "minimized": False,
+                    "resizable": True,
+                    "visible": True,
+                    "zoomable": True,
+                    "zoomed": False,
+                    "mode": "normal",
+                    "active_tab_index": 1,
+                    "presenting": False,
+                    "active_tab_id": 601,
+                },
+            ),
+        ],
+    )
     windows_manager = WindowsManager(_context=context)
 
     window = windows_manager.create()
 
-    script = runner.scripts[-1]
+    create_script = runner.scripts[0]
+    refresh_script = runner.scripts[1]
     assert window.id == 56
     assert window._context is context
     assert window.tabs._window_id == window.id
     assert window.tabs._context is context
-    assert "set targetWindow to make new window" in script
-    assert 'with properties {mode:"incognito"}' not in script
+    assert window.mode == "normal"
+    assert "set targetWindow to make new window" in create_script
+    assert 'with properties {mode:"incognito"}' not in create_script
+    assert "set targetWindowId to 56" in refresh_script
+    assert len(runner.scripts) == 2

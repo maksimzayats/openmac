@@ -18,17 +18,23 @@ from achrome.core.tabs import Tab
 
 
 class _SpyAppleScriptRunner:
-    def __init__(self, response: str = "ok") -> None:
-        self.response = response
+    def __init__(self, responses: str | list[str] = "ok") -> None:
+        if isinstance(responses, str):
+            self._responses = [responses]
+        else:
+            self._responses = responses
         self.scripts: list[str] = []
 
     def run(self, script: str) -> str:
         self.scripts.append(script)
-        return self.response
+        if len(self._responses) > 1:
+            return self._responses.pop(0)
+
+        return self._responses[0]
 
 
-def _make_tab(*, response: str = "ok") -> tuple[Tab, _SpyAppleScriptRunner]:
-    runner = _SpyAppleScriptRunner(response=response)
+def _make_tab(*, response: str | list[str] = "ok") -> tuple[Tab, _SpyAppleScriptRunner]:
+    runner = _SpyAppleScriptRunner(responses=response)
     tab = Tab(
         id=42,
         window_id=7,
@@ -40,7 +46,6 @@ def _make_tab(*, response: str = "ok") -> tuple[Tab, _SpyAppleScriptRunner]:
 @pytest.mark.parametrize(
     ("method_name", "expected_command"),
     [
-        ("reload", "reload t"),
         ("back", "go back t"),
         ("forward", "go forward t"),
         ("close", "close t"),
@@ -55,6 +60,34 @@ def test_tab_void_commands_emit_expected_script(method_name: str, expected_comma
     assert "set targetWindowId to 7" in script
     assert "set targetTabId to 42" in script
     assert expected_command in script
+
+
+def test_tab_reload_emits_reload_script_then_refreshes_state() -> None:
+    tab, runner = _make_tab(
+        response=[
+            "ok",
+            json.dumps(
+                {
+                    "title": "Reloaded",
+                    "url": "https://example.com",
+                    "loading": False,
+                    "is_active": True,
+                },
+            ),
+        ],
+    )
+
+    tab.reload()
+
+    reload_script = runner.scripts[0]
+    refresh_script = runner.scripts[1]
+    assert "set targetWindowId to 7" in reload_script
+    assert "set targetTabId to 42" in reload_script
+    assert "reload t" in reload_script
+    assert "set targetWindowId to 7" in refresh_script
+    assert "set targetTabId to 42" in refresh_script
+    assert tab.title == "Reloaded"
+    assert len(runner.scripts) == 2
 
 
 def test_tab_activate_emits_expected_script() -> None:

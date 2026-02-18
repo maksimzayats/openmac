@@ -25,8 +25,7 @@ class Chrome:
 
 def main() -> None:
     chrome = Chrome()
-    for tab in chrome.tabs:
-        print(tab)
+    print(chrome.windows.front.tabs.active.execute("123", return_type=int))
 
 
 if __name__ == "__main__":  # pragma: no cover

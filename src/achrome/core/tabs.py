@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import base64
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING, TypedDict, TypeVar, overload
 
@@ -15,6 +15,7 @@ from achrome.core._internal.tab_commands import (
     NOT_FOUND_SENTINEL,
     build_execute_script,
     build_tab_info_script,
+    build_tabs_info_list_script,
     build_void_tab_command_script,
 )
 from achrome.core.exceptions import DoesNotExistError
@@ -35,32 +36,51 @@ class _TabInfo:
     is_active: bool
 
 
+@dataclass(slots=True, frozen=True)
+class _TabListInfo:
+    id: int
+    title: str
+    url: str
+    loading: bool
+    is_active: bool
+
+
 @dataclass(slots=True, kw_only=True)
 class Tab(ChromeModel):
     id: int
     window_id: int
+    _info: _TabInfo | None = field(default=None, repr=False, compare=False)
 
-    def _load_info(self) -> _TabInfo:
+    def _require_info(self) -> _TabInfo:
+        if self._info is None:
+            raise RuntimeError(
+                f"Tab id={self.id} in window id={self.window_id} state is not hydrated. "
+                "Call `tab.refresh()` before accessing properties.",
+            )
+        return self._info
+
+    def refresh(self) -> Self:
         script = build_tab_info_script(self.window_id, self.id)
         result = self._context.runner.run(script)
         self._raise_if_not_found(result, action="read")
-        return TypeAdapter(_TabInfo).validate_json(result)
+        self._info = TypeAdapter(_TabInfo).validate_json(result)
+        return self
 
     @property
     def title(self) -> str:
-        return self._load_info().title
+        return self._require_info().title
 
     @property
     def url(self) -> str:
-        return self._load_info().url
+        return self._require_info().url
 
     @property
     def loading(self) -> bool:
-        return self._load_info().loading
+        return self._require_info().loading
 
     @property
     def is_active(self) -> bool:
-        return self._load_info().is_active
+        return self._require_info().is_active
 
     @property
     def source(self) -> str:
@@ -81,6 +101,7 @@ class Tab(ChromeModel):
 
     def reload(self) -> None:
         self._run_tab_command(action="reload", command_body="reload t")
+        self.refresh()
 
     def back(self) -> None:
         self._run_tab_command(action="go back", command_body="go back t")
@@ -182,6 +203,7 @@ activate
 
     def wait_to_load(self, timeout: float | None = None) -> Self:
         start_time = time.monotonic()
+        self.refresh()
         while self.loading:
             if timeout is not None and (time.monotonic() - start_time) > timeout:
                 raise TimeoutError(
@@ -189,6 +211,7 @@ activate
                 )
 
             time.sleep(0.1)
+            self.refresh()
 
         return self
 
@@ -349,76 +372,29 @@ class TabsManager(BaseManager[Tab]):
             open_result_window = TypeAdapter(_WindowTabOpenResult).validate_json(result)
             tab = Tab(id=open_result_window["id"], window_id=window_id)
         tab.set_context(self._context)
-        return tab
+        return tab.refresh()
 
     def _load_items(self) -> list[Tab]:
         if self._window_id is None:
             raise RuntimeError("Cannot load tabs without a window id.")
 
         window_id = self._window_id
-        script = dedent(
-            f"""
-            use AppleScript version "2.8"
-            use framework "Foundation"
-            use scripting additions
-
-            on integerOrZero(v)
-                if v is missing value then
-                    return 0
-                end if
-                try
-                    return v as integer
-                on error
-                    return 0
-                end try
-            end integerOrZero
-
-            set targetWindowId to {self._window_id}
-            set tabIds to current application's NSMutableArray's array()
-
-            tell application "Google Chrome"
-                set targetWindow to missing value
-
-                repeat with w in windows
-                    if ((id of w) as integer) is targetWindowId then
-                        set targetWindow to w
-                        exit repeat
-                    end if
-                end repeat
-
-                if targetWindow is missing value then
-                    return "[]"
-                end if
-
-                set tabCount to (count of tabs of targetWindow)
-
-                repeat with tabIndex from 1 to tabCount
-                    set t to tab tabIndex of targetWindow
-                    set rawId to missing value
-                    try
-                        set rawId to id of t
-                    end try
-                    tabIds's addObject:(my integerOrZero(rawId))
-                end repeat
-            end tell
-
-            set {{jsonData, jsonError}} to current application's NSJSONSerialization's ¬
-                dataWithJSONObject:tabIds options:0 |error|:(reference)
-
-            if jsonData is missing value then
-                return "JSON serialization failed: " & ((jsonError's localizedDescription()) as text)
-            end if
-
-            set jsonString to (current application's NSString's alloc()'s ¬
-                initWithData:jsonData encoding:(current application's NSUTF8StringEncoding)) as text
-
-            return jsonString
-            """,
-        ).strip()
-
+        script = build_tabs_info_list_script(window_id)
         result = self._context.runner.run(script)
-        tab_ids = TypeAdapter(list[int]).validate_json(result)
-        tabs = [Tab(id=tab_id, window_id=window_id) for tab_id in tab_ids]
+        tab_infos = TypeAdapter(list[_TabListInfo]).validate_json(result)
+        tabs = [
+            Tab(
+                id=tab_info.id,
+                window_id=window_id,
+                _info=_TabInfo(
+                    title=tab_info.title,
+                    url=tab_info.url,
+                    loading=tab_info.loading,
+                    is_active=tab_info.is_active,
+                ),
+            )
+            for tab_info in tab_infos
+        ]
 
         for tab in tabs:
             tab.set_context(self._context)
