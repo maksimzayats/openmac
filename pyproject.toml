@@ -21,6 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "acodex>=0.101.0",
+    "beautifulsoup4>=4.13.0",
     "diwire>=1.0.0",
     "fastapi>=0.129.0",
     "typer>=0.23.1",

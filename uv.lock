@@ -24,6 +24,7 @@ name = "achrome"
 source = { editable = "." }
 dependencies = [
     { name = "acodex" },
+    { name = "beautifulsoup4" },
     { name = "diwire" },
     { name = "fastapi" },
     { name = "typer" },
@@ -48,6 +49,7 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "acodex", specifier = ">=0.101.0" },
+    { name = "beautifulsoup4", specifier = ">=4.13.0" },
     { name = "diwire", git = "https://github.com/maksimzayats/diwire" },
     { name = "fastapi", specifier = ">=0.129.0" },
     { name = "typer", specifier = ">=0.23.1" },

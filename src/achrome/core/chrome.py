@@ -25,10 +25,9 @@ class Chrome:
 
 def main() -> None:
     chrome = Chrome()
-    window = chrome.windows.front
-    result = window.tabs.active.execute("123", return_type=int)
-    print(result)
+    for tab in chrome.tabs:
+        print(tab)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

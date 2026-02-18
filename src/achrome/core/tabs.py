@@ -123,7 +123,7 @@ activate
             if return_type is not None:
                 raise RuntimeError(
                     f"Expected a return value from executing JavaScript in tab id={self.id} "
-                    "in window id={self.window_id}, but got none.",
+                    f"in window id={self.window_id}, but got none.",
                 )
 
             return None
