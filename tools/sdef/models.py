@@ -74,11 +74,16 @@ class Result(BaseModel):
     type_element: list[TypeElement] = Field(default_factory=list)
 
 
+class AccessGroup(BaseModel):
+    identifier: str | None = None
+
+
 class Command(BaseModel):
     name: str | None = None
     code: str | None = None
     description: str | None = None
 
+    access_group: list[AccessGroup] = Field(default_factory=list)
     parameter: list[Parameter] = Field(default_factory=list)
     direct_parameter: list[DirectParameter] = Field(default_factory=list)
     result: list[Result] = Field(default_factory=list)
