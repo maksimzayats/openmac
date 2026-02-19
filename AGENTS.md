@@ -3,6 +3,11 @@
 This repository is a Python 3.10+ library. Use strict linting, typing, and
 testing standards. Prefer uv for all tooling.
 
+## Project maturity
+
+- This project is in an EARLY stage.
+- There is no stable public API yet; breaking changes are acceptable by default.
+
 ## Quick commands
 
 - Install deps (dev): `uv sync --group dev`
