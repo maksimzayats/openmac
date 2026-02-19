@@ -9,10 +9,10 @@ from tools.sdef.parser import load_sdef
 
 FIXTURE_PATH = Path(__file__).resolve().parents[3] / "tools" / "sdef" / "suite.sdef"
 CHROME_SDEF_PATH = (
-    Path(__file__).resolve().parents[3] / "src" / "openmac" / "chrome" / "chrome.sdef"
+    Path(__file__).resolve().parents[3] / "src" / "openmac" / "chrome" / "sdef" / "chrome.sdef"
 )
 FINDER_SDEF_PATH = (
-    Path(__file__).resolve().parents[3] / "src" / "openmac" / "finder" / "finder.sdef"
+    Path(__file__).resolve().parents[3] / "src" / "openmac" / "finder" / "sdef" / "finder.sdef"
 )
 APP_SDEF_DIR = Path(__file__).resolve().parent / "captured_apps_sdef"
 APP_SDEF_PATHS = sorted(APP_SDEF_DIR.glob("*.sdef"))

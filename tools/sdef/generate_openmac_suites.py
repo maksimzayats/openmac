@@ -51,13 +51,13 @@ APP_TARGETS: Final[dict[str, AppTarget]] = {
     "chrome": AppTarget(
         app="chrome",
         package="openmac.chrome.sdef.suites",
-        sdef_path=ROOT / "src" / "openmac" / "chrome" / "chrome.sdef",
+        sdef_path=ROOT / "src" / "openmac" / "chrome" / "sdef" / "chrome.sdef",
         suites_dir=ROOT / "src" / "openmac" / "chrome" / "sdef" / "suites",
     ),
     "finder": AppTarget(
         app="finder",
         package="openmac.finder.sdef.suites",
-        sdef_path=ROOT / "src" / "openmac" / "finder" / "finder.sdef",
+        sdef_path=ROOT / "src" / "openmac" / "finder" / "sdef" / "finder.sdef",
         suites_dir=ROOT / "src" / "openmac" / "finder" / "sdef" / "suites",
     ),
 }
