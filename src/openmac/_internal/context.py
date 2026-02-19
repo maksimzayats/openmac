@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from openmac._internal.applescript.runner import AppleScriptRunner
+from openmac._internal.applescript.executor import AppleScriptExecutor
 
 
 @dataclass
 class Context:
-    runner: AppleScriptRunner
+    executor: AppleScriptExecutor

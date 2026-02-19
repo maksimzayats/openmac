@@ -9,7 +9,7 @@ OSASCRIPT_EXECUTE_FLAG: Final[str] = "-e"
 
 
 @dataclass(slots=True, frozen=True)
-class AppleScriptRunner:
+class AppleScriptExecutor:
     executable: str = OSASCRIPT_EXECUTABLE
 
     def run(self, script: str) -> str:

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+from openmac._internal.applescript.executor import AppleScriptExecutor
 from openmac._internal.context import Context
-from openmac._internal.applescript.runner import AppleScriptRunner
 
 
-def test_context_stores_runner() -> None:
-    runner = AppleScriptRunner()
-    context = Context(runner=runner)
+def test_context_stores_executor() -> None:
+    executor = AppleScriptExecutor()
+    context = Context(executor=executor)
 
-    assert context.runner is runner
+    assert context.executor is executor
