@@ -297,119 +297,99 @@ class Item(MacModel):
         elements=(),
         responds_to=(),
     )
-    name: str | None = Field(default=None, alias="name", description="the name of the item")
-    displayed_name: str | None = Field(
-        default=None,
+    name: str = Field(..., alias="name", description="the name of the item")
+    displayed_name: str = Field(
+        ...,
         alias="displayed name",
         description="the user-visible name of the item",
     )
-    name_extension: str | None = Field(
-        default=None,
+    name_extension: str = Field(
+        ...,
         alias="name extension",
         description='the name extension of the item (such as "txt")',
     )
-    extension_hidden: bool | None = Field(
-        default=None,
+    extension_hidden: bool = Field(
+        ...,
         alias="extension hidden",
         description="Is the item's extension hidden from the user?",
     )
-    index: int | None = Field(
-        default=None,
+    index: int = Field(
+        ...,
         alias="index",
         description="the index in the front-to-back ordering within its container",
     )
-    container: sdef_types.Specifier | None = Field(
-        default=None,
+    container: sdef_types.Specifier = Field(
+        ...,
         alias="container",
         description="the container of the item",
     )
-    disk: sdef_types.Specifier | None = Field(
-        default=None,
+    disk: sdef_types.Specifier = Field(
+        ...,
         alias="disk",
         description="the disk on which the item is stored",
     )
-    position: sdef_types.Point | None = Field(
-        default=None,
+    position: sdef_types.Point = Field(
+        ...,
         alias="position",
         description="the position of the item within its parent window (can only be set for an item in a window viewed as icons or buttons)",
     )
-    desktop_position: sdef_types.Point | None = Field(
-        default=None,
+    desktop_position: sdef_types.Point = Field(
+        ...,
         alias="desktop position",
         description="the position of the item on the desktop",
     )
-    bounds: sdef_types.Rectangle | None = Field(
-        default=None,
+    bounds: sdef_types.Rectangle = Field(
+        ...,
         alias="bounds",
         description="the bounding rectangle of the item (can only be set for an item in a window viewed as icons or buttons)",
     )
-    label_index: int | None = Field(
-        default=None,
-        alias="label index",
-        description="the label of the item",
-    )
-    locked: bool | None = Field(default=None, alias="locked", description="Is the file locked?")
-    kind: str | None = Field(default=None, alias="kind", description="the kind of the item")
-    description: str | None = Field(
-        default=None,
-        alias="description",
-        description="a description of the item",
-    )
-    comment: str | None = Field(
-        default=None,
+    label_index: int = Field(..., alias="label index", description="the label of the item")
+    locked: bool = Field(..., alias="locked", description="Is the file locked?")
+    kind: str = Field(..., alias="kind", description="the kind of the item")
+    description: str = Field(..., alias="description", description="a description of the item")
+    comment: str = Field(
+        ...,
         alias="comment",
         description='the comment of the item, displayed in the "Get Info" window',
     )
-    size: int | None = Field(default=None, alias="size", description="the logical size of the item")
-    physical_size: int | None = Field(
-        default=None,
+    size: int = Field(..., alias="size", description="the logical size of the item")
+    physical_size: int = Field(
+        ...,
         alias="physical size",
         description="the actual space used by the item on disk",
     )
-    creation_date: sdef_types.Date | None = Field(
-        default=None,
+    creation_date: sdef_types.Date = Field(
+        ...,
         alias="creation date",
         description="the date on which the item was created",
     )
-    modification_date: sdef_types.Date | None = Field(
-        default=None,
+    modification_date: sdef_types.Date = Field(
+        ...,
         alias="modification date",
         description="the date on which the item was last modified",
     )
-    icon: sdef_types.Specifier | None = Field(
-        default=None,
-        alias="icon",
-        description="the icon bitmap of the item",
-    )
-    url: str | None = Field(default=None, alias="URL", description="the URL of the item")
-    owner: str | None = Field(
-        default=None,
-        alias="owner",
-        description="the user that owns the container",
-    )
-    group: str | None = Field(
-        default=None,
+    icon: sdef_types.Specifier = Field(..., alias="icon", description="the icon bitmap of the item")
+    url: str = Field(..., alias="URL", description="the URL of the item")
+    owner: str = Field(..., alias="owner", description="the user that owns the container")
+    group: str = Field(
+        ...,
         alias="group",
         description="the user or group that has special access to the container",
     )
-    owner_privileges: Priv | None = Field(default=None, alias="owner privileges", description=None)
-    group_privileges: Priv | None = Field(default=None, alias="group privileges", description=None)
-    everyones_privileges: Priv | None = Field(
-        default=None,
-        alias="everyones privileges",
-        description=None,
-    )
-    information_window: sdef_types.Specifier | None = Field(
-        default=None,
+    owner_privileges: Priv = Field(..., alias="owner privileges", description=None)
+    group_privileges: Priv = Field(..., alias="group privileges", description=None)
+    everyones_privileges: Priv = Field(..., alias="everyones privileges", description=None)
+    information_window: sdef_types.Specifier = Field(
+        ...,
         alias="information window",
         description="the information window for the item",
     )
-    properties: sdef_types.Record | None = Field(
-        default=None,
+    properties: sdef_types.Record = Field(
+        ...,
         alias="properties",
         description="every property of an item",
     )
-    class_: str | None = Field(default=None, alias="class", description="the class of the item")
+    class_: str = Field(..., alias="class", description="the class of the item")
 
 
 class Priv(str, Enum):
@@ -547,7 +527,7 @@ class FinderItemsSuite:
 
     def clean_up(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
         by: sdef_types.Specifier | None = None,
     ) -> None:
@@ -567,17 +547,17 @@ class FinderItemsSuite:
         """Empty the trash\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "\\"empty\\" and \\"empty trash\\" both do the same thing", "optional": "yes", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "sec?", "description": "(obsolete)", "name": "security", "optional": "yes", "type": "boolean", "type_element": []}]}"""
         raise NotImplementedError
 
-    def erase(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def erase(self, direct_parameter: sdef_types.Specifier) -> None:
         """(NOT AVAILABLE) Erase the specified disk(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the items to erase", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def reveal(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def reveal(self, direct_parameter: sdef_types.Specifier) -> None:
         """Bring the specified object(s) into view\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to be made visible", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
     def update(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
         necessity: bool | None = None,
         registering_applications: bool | None = None,

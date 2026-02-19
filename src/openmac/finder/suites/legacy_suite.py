@@ -134,54 +134,50 @@ class Process(MacModel):
         elements=(),
         responds_to=(),
     )
-    name: str | None = Field(default=None, alias="name", description="the name of the process")
-    visible: bool | None = Field(
-        default=None,
-        alias="visible",
-        description="Is the process' layer visible?",
-    )
-    frontmost: bool | None = Field(
-        default=None,
+    name: str = Field(..., alias="name", description="the name of the process")
+    visible: bool = Field(..., alias="visible", description="Is the process' layer visible?")
+    frontmost: bool = Field(
+        ...,
         alias="frontmost",
         description="Is the process the frontmost process?",
     )
-    file: sdef_types.Specifier | None = Field(
-        default=None,
+    file: sdef_types.Specifier = Field(
+        ...,
         alias="file",
         description="the file from which the process was launched",
     )
-    file_type: str | None = Field(
-        default=None,
+    file_type: str = Field(
+        ...,
         alias="file type",
         description="the OSType of the file type of the process",
     )
-    creator_type: str | None = Field(
-        default=None,
+    creator_type: str = Field(
+        ...,
         alias="creator type",
         description="the OSType of the creator of the process (the signature)",
     )
-    accepts_high_level_events: bool | None = Field(
-        default=None,
+    accepts_high_level_events: bool = Field(
+        ...,
         alias="accepts high level events",
         description="Is the process high-level event aware (accepts open application, open document, print document, and quit)?",
     )
-    accepts_remote_events: bool | None = Field(
-        default=None,
+    accepts_remote_events: bool = Field(
+        ...,
         alias="accepts remote events",
         description="Does the process accept remote events?",
     )
-    has_scripting_terminology: bool | None = Field(
-        default=None,
+    has_scripting_terminology: bool = Field(
+        ...,
         alias="has scripting terminology",
         description="Does the process have a scripting terminology, i.e., can it be scripted?",
     )
-    total_partition_size: int | None = Field(
-        default=None,
+    total_partition_size: int = Field(
+        ...,
         alias="total partition size",
         description="the size of the partition with which the process was launched",
     )
-    partition_space_used: int | None = Field(
-        default=None,
+    partition_space_used: int = Field(
+        ...,
         alias="partition space used",
         description="the number of bytes currently used in the process' partition",
     )
@@ -212,8 +208,8 @@ class ApplicationProcess(Process):
         elements=(),
         responds_to=(),
     )
-    application_file: sdef_types.Specifier | None = Field(
-        default=None,
+    application_file: sdef_types.Specifier = Field(
+        ...,
         alias="application file",
         description="the application file from which this process was launched",
     )
@@ -244,8 +240,8 @@ class DeskAccessoryProcess(Process):
         elements=(),
         responds_to=(),
     )
-    desk_accessory_file: sdef_types.Specifier | None = Field(
-        default=None,
+    desk_accessory_file: sdef_types.Specifier = Field(
+        ...,
         alias="desk accessory file",
         description="the desk accessory file from which this process was launched",
     )
@@ -276,8 +272,8 @@ class Application(finder_basics_suite_module.Application):
         elements=(),
         responds_to=(),
     )
-    desktop_picture: sdef_types.File | None = Field(
-        default=None,
+    desktop_picture: sdef_types.File = Field(
+        ...,
         alias="desktop picture",
         description="the desktop picture of the main monitor",
     )

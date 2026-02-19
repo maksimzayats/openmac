@@ -102,28 +102,28 @@ class Container(MacModel):
         ),
         responds_to=(),
     )
-    entire_contents: sdef_types.Specifier | None = Field(
-        default=None,
+    entire_contents: sdef_types.Specifier = Field(
+        ...,
         alias="entire contents",
         description="the entire contents of the container, including the contents of its children",
     )
-    expandable: bool | None = Field(
-        default=None,
+    expandable: bool = Field(
+        ...,
         alias="expandable",
         description="(NOT AVAILABLE YET) Is the container capable of being expanded as an outline?",
     )
-    expanded: bool | None = Field(
-        default=None,
+    expanded: bool = Field(
+        ...,
         alias="expanded",
         description="(NOT AVAILABLE YET) Is the container opened as an outline? (can only be set for containers viewed as lists)",
     )
-    completely_expanded: bool | None = Field(
-        default=None,
+    completely_expanded: bool = Field(
+        ...,
         alias="completely expanded",
         description="(NOT AVAILABLE YET) Are the container and all of its children opened as outlines? (can only be set for containers viewed as lists)",
     )
-    container_window: sdef_types.Specifier | None = Field(
-        default=None,
+    container_window: sdef_types.Specifier = Field(
+        ...,
         alias="container window",
         description="the container window for this folder",
     )
@@ -264,48 +264,40 @@ class Disk(Container):
         ),
         responds_to=(),
     )
-    id_: int | None = Field(
-        default=None,
+    id_: int = Field(
+        ...,
         alias="id",
         description="the unique id for this disk (unchanged while disk remains connected and Finder remains running)",
     )
-    capacity: int | None = Field(
-        default=None,
+    capacity: int = Field(
+        ...,
         alias="capacity",
         description="the total number of bytes (free or used) on the disk",
     )
-    free_space: int | None = Field(
-        default=None,
+    free_space: int = Field(
+        ...,
         alias="free space",
         description="the number of free bytes left on the disk",
     )
-    ejectable: bool | None = Field(
-        default=None,
+    ejectable: bool = Field(
+        ...,
         alias="ejectable",
         description="Can the media be ejected (floppies, CDs, and so on)?",
     )
-    local_volume: bool | None = Field(
-        default=None,
+    local_volume: bool = Field(
+        ...,
         alias="local volume",
         description="Is the media a local volume (as opposed to a file server)?",
     )
-    startup: bool | None = Field(
-        default=None,
-        alias="startup",
-        description="Is this disk the boot disk?",
-    )
-    format_: Edfm | None = Field(
-        default=None,
-        alias="format",
-        description="the filesystem format of this disk",
-    )
-    journaling_enabled: bool | None = Field(
-        default=None,
+    startup: bool = Field(..., alias="startup", description="Is this disk the boot disk?")
+    format_: Edfm = Field(..., alias="format", description="the filesystem format of this disk")
+    journaling_enabled: bool = Field(
+        ...,
         alias="journaling enabled",
         description="Does this disk do file system journaling?",
     )
-    ignore_privileges: bool | None = Field(
-        default=None,
+    ignore_privileges: bool = Field(
+        ...,
         alias="ignore privileges",
         description="Ignore permissions on this disk?",
     )
@@ -434,8 +426,8 @@ class TrashObject(Container):
         ),
         responds_to=(),
     )
-    warns_before_emptying: bool | None = Field(
-        default=None,
+    warns_before_emptying: bool = Field(
+        ...,
         alias="warns before emptying",
         description="Display a dialog when emptying the trash?",
     )

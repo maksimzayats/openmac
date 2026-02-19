@@ -48,6 +48,26 @@ SUITE_CLASSES = [
 ]
 
 
+def _required_arguments(method: Any) -> tuple[list[object], dict[str, object]]:
+    positional_args: list[object] = []
+    keyword_args: dict[str, object] = {}
+    signature = inspect.signature(method)
+
+    for parameter in signature.parameters.values():
+        if parameter.name == "self" or parameter.default is not inspect.Signature.empty:
+            continue
+        if parameter.kind in {
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        }:
+            positional_args.append(object())
+            continue
+        if parameter.kind is inspect.Parameter.KEYWORD_ONLY:
+            keyword_args[parameter.name] = object()
+
+    return (positional_args, keyword_args)
+
+
 @pytest.mark.parametrize("module_name", GENERATED_MODULES)
 def test_generated_suite_modules_import(module_name: str) -> None:
     module = importlib.import_module(module_name)
@@ -66,5 +86,6 @@ def test_generated_suite_command_methods_raise_not_implemented(suite_class: type
     commands = cast("tuple[object, ...]", cast("Any", suite_class).COMMANDS)
     assert len(command_methods) == len(commands)
     for method in command_methods:
+        positional_args, keyword_args = _required_arguments(method)
         with pytest.raises(NotImplementedError):
-            method(suite_instance)
+            method(suite_instance, *positional_args, **keyword_args)

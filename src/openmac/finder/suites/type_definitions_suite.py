@@ -171,78 +171,78 @@ class Preferences(MacModel):
         elements=(),
         responds_to=(),
     )
-    window: sdef_types.Specifier | None = Field(
-        default=None,
+    window: sdef_types.Specifier = Field(
+        ...,
         alias="window",
         description="the window that would open if Finder preferences was opened",
     )
-    icon_view_options: IconViewOptions | None = Field(
-        default=None,
+    icon_view_options: IconViewOptions = Field(
+        ...,
         alias="icon view options",
         description="the default icon view options",
     )
-    list_view_options: ListViewOptions | None = Field(
-        default=None,
+    list_view_options: ListViewOptions = Field(
+        ...,
         alias="list view options",
         description="the default list view options",
     )
-    column_view_options: ColumnViewOptions | None = Field(
-        default=None,
+    column_view_options: ColumnViewOptions = Field(
+        ...,
         alias="column view options",
         description="the column view options for all windows",
     )
-    folders_spring_open: bool | None = Field(
-        default=None,
+    folders_spring_open: bool = Field(
+        ...,
         alias="folders spring open",
         description="Spring open folders after the specified delay?",
     )
-    delay_before_springing: float | None = Field(
-        default=None,
+    delay_before_springing: float = Field(
+        ...,
         alias="delay before springing",
         description="the delay before springing open a container in seconds (from 0.167 to 1.169)",
     )
-    desktop_shows_hard_disks: bool | None = Field(
-        default=None,
+    desktop_shows_hard_disks: bool = Field(
+        ...,
         alias="desktop shows hard disks",
         description="Hard disks appear on the desktop?",
     )
-    desktop_shows_external_hard_disks: bool | None = Field(
-        default=None,
+    desktop_shows_external_hard_disks: bool = Field(
+        ...,
         alias="desktop shows external hard disks",
         description="External hard disks appear on the desktop?",
     )
-    desktop_shows_removable_media: bool | None = Field(
-        default=None,
+    desktop_shows_removable_media: bool = Field(
+        ...,
         alias="desktop shows removable media",
         description="CDs, DVDs, and iPods appear on the desktop?",
     )
-    desktop_shows_connected_servers: bool | None = Field(
-        default=None,
+    desktop_shows_connected_servers: bool = Field(
+        ...,
         alias="desktop shows connected servers",
         description="Connected servers appear on the desktop?",
     )
-    new_window_target: sdef_types.Specifier | None = Field(
-        default=None,
+    new_window_target: sdef_types.Specifier = Field(
+        ...,
         alias="new window target",
         description="target location for a newly-opened Finder window",
     )
-    folders_open_in_new_windows: bool | None = Field(
-        default=None,
+    folders_open_in_new_windows: bool = Field(
+        ...,
         alias="folders open in new windows",
         description="Folders open into new windows?",
     )
-    folders_open_in_new_tabs: bool | None = Field(
-        default=None,
+    folders_open_in_new_tabs: bool = Field(
+        ...,
         alias="folders open in new tabs",
         description="Folders open into new tabs?",
     )
-    new_windows_open_in_column_view: bool | None = Field(
-        default=None,
+    new_windows_open_in_column_view: bool = Field(
+        ...,
         alias="new windows open in column view",
         description="Open new windows in column view?",
     )
-    all_name_extensions_showing: bool | None = Field(
-        default=None,
+    all_name_extensions_showing: bool = Field(
+        ...,
         alias="all name extensions showing",
         description='Show name extensions, even for items whose "extension hidden" is true?',
     )
@@ -291,18 +291,14 @@ class Label(MacModel):
         elements=(),
         responds_to=(),
     )
-    name: str | None = Field(
-        default=None,
-        alias="name",
-        description="the name associated with the label",
-    )
-    index: int | None = Field(
-        default=None,
+    name: str = Field(..., alias="name", description="the name associated with the label")
+    index: int = Field(
+        ...,
         alias="index",
         description="the index in the front-to-back ordering within its container",
     )
-    color: sdef_types.Specifier | None = Field(
-        default=None,
+    color: sdef_types.Specifier = Field(
+        ...,
         alias="color",
         description="the color associated with the label",
     )
@@ -414,53 +410,53 @@ class IconFamily(MacModel):
         elements=(),
         responds_to=(),
     )
-    large_monochrome_icon_and_mask: sdef_types.Specifier | None = Field(
-        default=None,
+    large_monochrome_icon_and_mask: sdef_types.Specifier = Field(
+        ...,
         alias="large monochrome icon and mask",
         description="the large black-and-white icon and the mask for large icons",
     )
-    large_8_bit_mask: sdef_types.Specifier | None = Field(
-        default=None,
+    large_8_bit_mask: sdef_types.Specifier = Field(
+        ...,
         alias="large 8 bit mask",
         description="the large 8-bit mask for large 32-bit icons",
     )
-    large_32_bit_icon: sdef_types.Specifier | None = Field(
-        default=None,
+    large_32_bit_icon: sdef_types.Specifier = Field(
+        ...,
         alias="large 32 bit icon",
         description="the large 32-bit color icon",
     )
-    large_8_bit_icon: sdef_types.Specifier | None = Field(
-        default=None,
+    large_8_bit_icon: sdef_types.Specifier = Field(
+        ...,
         alias="large 8 bit icon",
         description="the large 8-bit color icon",
     )
-    large_4_bit_icon: sdef_types.Specifier | None = Field(
-        default=None,
+    large_4_bit_icon: sdef_types.Specifier = Field(
+        ...,
         alias="large 4 bit icon",
         description="the large 4-bit color icon",
     )
-    small_monochrome_icon_and_mask: sdef_types.Specifier | None = Field(
-        default=None,
+    small_monochrome_icon_and_mask: sdef_types.Specifier = Field(
+        ...,
         alias="small monochrome icon and mask",
         description="the small black-and-white icon and the mask for small icons",
     )
-    small_8_bit_mask: sdef_types.Specifier | None = Field(
-        default=None,
+    small_8_bit_mask: sdef_types.Specifier = Field(
+        ...,
         alias="small 8 bit mask",
         description="the small 8-bit mask for small 32-bit icons",
     )
-    small_32_bit_icon: sdef_types.Specifier | None = Field(
-        default=None,
+    small_32_bit_icon: sdef_types.Specifier = Field(
+        ...,
         alias="small 32 bit icon",
         description="the small 32-bit color icon",
     )
-    small_8_bit_icon: sdef_types.Specifier | None = Field(
-        default=None,
+    small_8_bit_icon: sdef_types.Specifier = Field(
+        ...,
         alias="small 8 bit icon",
         description="the small 8-bit color icon",
     )
-    small_4_bit_icon: sdef_types.Specifier | None = Field(
-        default=None,
+    small_4_bit_icon: sdef_types.Specifier = Field(
+        ...,
         alias="small 4 bit icon",
         description="the small 4-bit color icon",
     )
@@ -554,43 +550,43 @@ class IconViewOptions(MacModel):
         elements=(),
         responds_to=(),
     )
-    arrangement: Earr | None = Field(
-        default=None,
+    arrangement: Earr = Field(
+        ...,
         alias="arrangement",
         description="the property by which to keep icons arranged",
     )
-    icon_size: int | None = Field(
-        default=None,
+    icon_size: int = Field(
+        ...,
         alias="icon size",
         description="the size of icons displayed in the icon view",
     )
-    shows_item_info: bool | None = Field(
-        default=None,
+    shows_item_info: bool = Field(
+        ...,
         alias="shows item info",
         description="additional info about an item displayed in icon view",
     )
-    shows_icon_preview: bool | None = Field(
-        default=None,
+    shows_icon_preview: bool = Field(
+        ...,
         alias="shows icon preview",
         description="displays a preview of the item in icon view",
     )
-    text_size: int | None = Field(
-        default=None,
+    text_size: int = Field(
+        ...,
         alias="text size",
         description="the size of the text displayed in the icon view",
     )
-    label_position: Epos | None = Field(
-        default=None,
+    label_position: Epos = Field(
+        ...,
         alias="label position",
         description="the location of the label in reference to the icon",
     )
-    background_picture: sdef_types.File | None = Field(
-        default=None,
+    background_picture: sdef_types.File = Field(
+        ...,
         alias="background picture",
         description="the background picture of the icon view",
     )
-    background_color: sdef_types.Specifier | None = Field(
-        default=None,
+    background_color: sdef_types.Specifier = Field(
+        ...,
         alias="background color",
         description="the background color of the icon view",
     )
@@ -657,28 +653,28 @@ class ColumnViewOptions(MacModel):
         elements=(),
         responds_to=(),
     )
-    text_size: int | None = Field(
-        default=None,
+    text_size: int = Field(
+        ...,
         alias="text size",
         description="the size of the text displayed in the column view",
     )
-    shows_icon: bool | None = Field(
-        default=None,
+    shows_icon: bool = Field(
+        ...,
         alias="shows icon",
         description="displays an icon next to the label in column view",
     )
-    shows_icon_preview: bool | None = Field(
-        default=None,
+    shows_icon_preview: bool = Field(
+        ...,
         alias="shows icon preview",
         description="displays a preview of the item in column view",
     )
-    shows_preview_column: bool | None = Field(
-        default=None,
+    shows_preview_column: bool = Field(
+        ...,
         alias="shows preview column",
         description="displays the preview column in column view",
     )
-    discloses_preview_pane: bool | None = Field(
-        default=None,
+    discloses_preview_pane: bool = Field(
+        ...,
         alias="discloses preview pane",
         description="discloses the preview pane of the preview column in column view",
     )
@@ -756,33 +752,33 @@ class ListViewOptions(MacModel):
         ),
         responds_to=(),
     )
-    calculates_folder_sizes: bool | None = Field(
-        default=None,
+    calculates_folder_sizes: bool = Field(
+        ...,
         alias="calculates folder sizes",
         description="Are folder sizes calculated and displayed in the window?",
     )
-    shows_icon_preview: bool | None = Field(
-        default=None,
+    shows_icon_preview: bool = Field(
+        ...,
         alias="shows icon preview",
         description="displays a preview of the item in list view",
     )
-    icon_size: Lvic | None = Field(
-        default=None,
+    icon_size: Lvic = Field(
+        ...,
         alias="icon size",
         description="the size of icons displayed in the list view",
     )
-    text_size: int | None = Field(
-        default=None,
+    text_size: int = Field(
+        ...,
         alias="text size",
         description="the size of the text displayed in the list view",
     )
-    sort_column: Column | None = Field(
-        default=None,
+    sort_column: Column = Field(
+        ...,
         alias="sort column",
         description="the column that the list view is sorted on",
     )
-    uses_relative_dates: bool | None = Field(
-        default=None,
+    uses_relative_dates: bool = Field(
+        ...,
         alias="uses relative dates",
         description="Are relative dates (e.g., today, yesterday) shown in the list view?",
     )
@@ -867,33 +863,29 @@ class Column(MacModel):
         elements=(),
         responds_to=(),
     )
-    index: int | None = Field(
-        default=None,
+    index: int = Field(
+        ...,
         alias="index",
         description="the index in the front-to-back ordering within its container",
     )
-    name: Elsv | None = Field(default=None, alias="name", description="the column name")
-    sort_direction: Sodr | None = Field(
-        default=None,
+    name: Elsv = Field(..., alias="name", description="the column name")
+    sort_direction: Sodr = Field(
+        ...,
         alias="sort direction",
         description="The direction in which the window is sorted",
     )
-    width: int | None = Field(default=None, alias="width", description="the width of this column")
-    minimum_width: int | None = Field(
-        default=None,
+    width: int = Field(..., alias="width", description="the width of this column")
+    minimum_width: int = Field(
+        ...,
         alias="minimum width",
         description="the minimum allowed width of this column",
     )
-    maximum_width: int | None = Field(
-        default=None,
+    maximum_width: int = Field(
+        ...,
         alias="maximum width",
         description="the maximum allowed width of this column",
     )
-    visible: bool | None = Field(
-        default=None,
-        alias="visible",
-        description="is this column visible",
-    )
+    visible: bool = Field(..., alias="visible", description="is this column visible")
 
 
 class AliasList(MacModel):

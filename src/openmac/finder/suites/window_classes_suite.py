@@ -171,62 +171,38 @@ class Window(MacModel):
         elements=(),
         responds_to=(),
     )
-    id_: int | None = Field(default=None, alias="id", description="the unique id for this window")
-    position: sdef_types.Point | None = Field(
-        default=None,
+    id_: int = Field(..., alias="id", description="the unique id for this window")
+    position: sdef_types.Point = Field(
+        ...,
         alias="position",
         description="the upper left position of the window",
     )
-    bounds: sdef_types.Rectangle | None = Field(
-        default=None,
+    bounds: sdef_types.Rectangle = Field(
+        ...,
         alias="bounds",
         description="the boundary rectangle for the window",
     )
-    titled: bool | None = Field(
-        default=None,
-        alias="titled",
-        description="Does the window have a title bar?",
-    )
-    name: str | None = Field(default=None, alias="name", description="the name of the window")
-    index: int | None = Field(
-        default=None,
+    titled: bool = Field(..., alias="titled", description="Does the window have a title bar?")
+    name: str = Field(..., alias="name", description="the name of the window")
+    index: int = Field(
+        ...,
         alias="index",
         description="the number of the window in the front-to-back layer ordering",
     )
-    closeable: bool | None = Field(
-        default=None,
-        alias="closeable",
-        description="Does the window have a close box?",
-    )
-    floating: bool | None = Field(
-        default=None,
-        alias="floating",
-        description="Does the window have a title bar?",
-    )
-    modal: bool | None = Field(default=None, alias="modal", description="Is the window modal?")
-    resizable: bool | None = Field(
-        default=None,
-        alias="resizable",
-        description="Is the window resizable?",
-    )
-    zoomable: bool | None = Field(
-        default=None,
-        alias="zoomable",
-        description="Is the window zoomable?",
-    )
-    zoomed: bool | None = Field(default=None, alias="zoomed", description="Is the window zoomed?")
-    visible: bool | None = Field(
-        default=None,
+    closeable: bool = Field(..., alias="closeable", description="Does the window have a close box?")
+    floating: bool = Field(..., alias="floating", description="Does the window have a title bar?")
+    modal: bool = Field(..., alias="modal", description="Is the window modal?")
+    resizable: bool = Field(..., alias="resizable", description="Is the window resizable?")
+    zoomable: bool = Field(..., alias="zoomable", description="Is the window zoomable?")
+    zoomed: bool = Field(..., alias="zoomed", description="Is the window zoomed?")
+    visible: bool = Field(
+        ...,
         alias="visible",
         description="Is the window visible (always true for open Finder windows)?",
     )
-    collapsed: bool | None = Field(
-        default=None,
-        alias="collapsed",
-        description="Is the window collapsed",
-    )
-    properties: sdef_types.Record | None = Field(
-        default=None,
+    collapsed: bool = Field(..., alias="collapsed", description="Is the window collapsed")
+    properties: sdef_types.Record = Field(
+        ...,
         alias="properties",
         description="every property of a window",
     )
@@ -329,48 +305,48 @@ class FinderWindow(Window):
         elements=(),
         responds_to=(),
     )
-    target: sdef_types.Specifier | None = Field(
-        default=None,
+    target: sdef_types.Specifier = Field(
+        ...,
         alias="target",
         description="the container at which this file viewer is targeted",
     )
-    current_view: Ecvw | None = Field(
-        default=None,
+    current_view: Ecvw = Field(
+        ...,
         alias="current view",
         description="the current view for the container window",
     )
-    icon_view_options: sdef_types.Specifier | None = Field(
-        default=None,
+    icon_view_options: sdef_types.Specifier = Field(
+        ...,
         alias="icon view options",
         description="the icon view options for the container window",
     )
-    list_view_options: sdef_types.Specifier | None = Field(
-        default=None,
+    list_view_options: sdef_types.Specifier = Field(
+        ...,
         alias="list view options",
         description="the list view options for the container window",
     )
-    column_view_options: sdef_types.Specifier | None = Field(
-        default=None,
+    column_view_options: sdef_types.Specifier = Field(
+        ...,
         alias="column view options",
         description="the column view options for the container window",
     )
-    toolbar_visible: bool | None = Field(
-        default=None,
+    toolbar_visible: bool = Field(
+        ...,
         alias="toolbar visible",
         description="Is the window's toolbar visible?",
     )
-    statusbar_visible: bool | None = Field(
-        default=None,
+    statusbar_visible: bool = Field(
+        ...,
         alias="statusbar visible",
         description="Is the window's status bar visible?",
     )
-    pathbar_visible: bool | None = Field(
-        default=None,
+    pathbar_visible: bool = Field(
+        ...,
         alias="pathbar visible",
         description="Is the window's path bar visible?",
     )
-    sidebar_width: int | None = Field(
-        default=None,
+    sidebar_width: int = Field(
+        ...,
         alias="sidebar width",
         description="the width of the sidebar for the container window",
     )
@@ -427,13 +403,13 @@ class InformationWindow(Window):
         elements=(),
         responds_to=(),
     )
-    item: sdef_types.Specifier | None = Field(
-        default=None,
+    item: sdef_types.Specifier = Field(
+        ...,
         alias="item",
         description="the item from which this window was opened",
     )
-    current_panel: Ipnl | None = Field(
-        default=None,
+    current_panel: Ipnl = Field(
+        ...,
         alias="current panel",
         description="the current panel in the information window",
     )
@@ -464,8 +440,8 @@ class PreferencesWindow(Window):
         elements=(),
         responds_to=(),
     )
-    current_panel: Pple | None = Field(
-        default=None,
+    current_panel: Pple = Field(
+        ...,
         alias="current panel",
         description="The current panel in the Finder preferences window",
     )

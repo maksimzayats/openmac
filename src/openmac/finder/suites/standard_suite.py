@@ -355,7 +355,7 @@ class StandardSuite:
 
     def open_(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
         using: sdef_types.Specifier | None = None,
         with_properties: sdef_types.Record | None = None,
@@ -365,7 +365,7 @@ class StandardSuite:
 
     def print_(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
         with_properties: sdef_types.Record | None = None,
     ) -> None:
@@ -380,35 +380,25 @@ class StandardSuite:
         """Activate the specified window (or the Finder)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the window to activate (if not specified, activates the Finder)", "optional": "yes", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def close(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def close(self, direct_parameter: sdef_types.Specifier) -> None:
         """Close an object\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to close", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def count(
-        self,
-        direct_parameter: sdef_types.Specifier | None = None,
-        *,
-        each: str | None = None,
-    ) -> int:
+    def count(self, direct_parameter: sdef_types.Specifier, *, each: str) -> int:
         """Return the number of elements of a particular class within an object\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object whose elements are to be counted", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "kocl", "description": "the class of the elements to be counted", "name": "each", "type": "type", "type_element": []}], "results": [{"description": "the number of elements", "type": "integer", "type_element": []}]}"""
         raise NotImplementedError
 
-    def data_size(
-        self,
-        direct_parameter: sdef_types.Specifier | None = None,
-        *,
-        as_: str | None = None,
-    ) -> int:
+    def data_size(self, direct_parameter: sdef_types.Specifier, *, as_: str | None = None) -> int:
         """Return the size in bytes of an object\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object whose data size is to be returned", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "rtyp", "description": "the data type for which the size is calculated", "name": "as", "optional": "yes", "type": "type", "type_element": []}], "results": [{"description": "the size of the object in bytes", "type": "integer", "type_element": []}]}"""
         raise NotImplementedError
 
-    def delete(self, direct_parameter: sdef_types.Specifier | None = None) -> sdef_types.Specifier:
+    def delete(self, direct_parameter: sdef_types.Specifier) -> sdef_types.Specifier:
         """Move an item from its container to the trash\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the item to delete", "type": "specifier", "type_element": []}], "results": [{"description": "to the item that was just deleted", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
     def duplicate(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
         to: sdef_types.LocationSpecifier | None = None,
         replacing: bool | None = None,
@@ -418,15 +408,15 @@ class StandardSuite:
         """Duplicate one or more object(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object(s) to duplicate", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "insh", "description": "the new location for the object(s)", "name": "to", "optional": "yes", "type": "location specifier", "type_element": []}, {"cocoa": [], "code": "alrp", "description": "Specifies whether or not to replace items in the destination that have the same name as items being duplicated", "name": "replacing", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "rout", "description": "Specifies whether or not to autoroute items (default is false). Only applies when copying to the system folder.", "name": "routing suppressed", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "exct", "description": "Specifies whether or not to copy permissions/ownership as is", "name": "exact copy", "optional": "yes", "type": "boolean", "type_element": []}], "results": [{"description": "to the duplicated object(s)", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def exists(self, direct_parameter: sdef_types.Specifier | None = None) -> bool:
+    def exists(self, direct_parameter: sdef_types.Specifier) -> bool:
         """Verify if an object exists\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object in question", "type": "specifier", "type_element": []}], "results": [{"description": "true if it exists, false if not", "type": "boolean", "type_element": []}]}"""
         raise NotImplementedError
 
     def make(
         self,
         *,
-        new: str | None = None,
-        at: sdef_types.LocationSpecifier | None = None,
+        new: str,
+        at: sdef_types.LocationSpecifier,
         to: sdef_types.Specifier | None = None,
         with_properties: sdef_types.Record | None = None,
     ) -> sdef_types.Specifier:
@@ -435,9 +425,9 @@ class StandardSuite:
 
     def move(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
-        to: sdef_types.LocationSpecifier | None = None,
+        to: sdef_types.LocationSpecifier,
         replacing: bool | None = None,
         positioned_at: sdef_types.Specifier | None = None,
         routing_suppressed: bool | None = None,
@@ -445,7 +435,7 @@ class StandardSuite:
         """Move object(s) to a new location\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object(s) to move", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "insh", "description": "the new location for the object(s)", "name": "to", "type": "location specifier", "type_element": []}, {"cocoa": [], "code": "alrp", "description": "Specifies whether or not to replace items in the destination that have the same name as items being moved", "name": "replacing", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "mvpl", "description": "Gives a list (in local window coordinates) of positions for the destination items", "name": "positioned at", "optional": "yes", "type": "list", "type_element": []}, {"cocoa": [], "code": "rout", "description": "Specifies whether or not to autoroute items (default is false). Only applies when moving to the system folder.", "name": "routing suppressed", "optional": "yes", "type": "boolean", "type_element": []}], "results": [{"description": "to the object(s) after they have been moved", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def select(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def select(self, direct_parameter: sdef_types.Specifier) -> None:
         """Select the specified object(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to select", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 

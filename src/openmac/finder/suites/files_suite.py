@@ -79,28 +79,24 @@ class File(MacModel):
         elements=(),
         responds_to=(),
     )
-    file_type: str | None = Field(
-        default=None,
+    file_type: str = Field(
+        ...,
         alias="file type",
         description="the OSType identifying the type of data contained in the item",
     )
-    creator_type: str | None = Field(
-        default=None,
+    creator_type: str = Field(
+        ...,
         alias="creator type",
         description="the OSType identifying the application that created the item",
     )
-    stationery: bool | None = Field(
-        default=None,
-        alias="stationery",
-        description="Is the file a stationery pad?",
-    )
-    product_version: str | None = Field(
-        default=None,
+    stationery: bool = Field(..., alias="stationery", description="Is the file a stationery pad?")
+    product_version: str = Field(
+        ...,
         alias="product version",
         description='the version of the product (visible at the top of the "Get Info" window)',
     )
-    version: str | None = Field(
-        default=None,
+    version: str = Field(
+        ...,
         alias="version",
         description='the version of the file (visible at the bottom of the "Get Info" window)',
     )
@@ -131,8 +127,8 @@ class AliasFile(File):
         elements=(),
         responds_to=(),
     )
-    original_item: sdef_types.Specifier | None = Field(
-        default=None,
+    original_item: sdef_types.Specifier = Field(
+        ...,
         alias="original item",
         description="the original item pointed to by the alias",
     )
@@ -217,38 +213,38 @@ class ApplicationFile(File):
         elements=(),
         responds_to=(),
     )
-    id_: str | None = Field(
-        default=None,
+    id_: str = Field(
+        ...,
         alias="id",
         description="the bundle identifier or creator type of the application",
     )
-    suggested_size: int | None = Field(
-        default=None,
+    suggested_size: int = Field(
+        ...,
         alias="suggested size",
         description="(AVAILABLE IN 10.1 TO 10.4) the memory size with which the developer recommends the application be launched",
     )
-    minimum_size: int | None = Field(
-        default=None,
+    minimum_size: int = Field(
+        ...,
         alias="minimum size",
         description="(AVAILABLE IN 10.1 TO 10.4) the smallest memory size with which the application can be launched",
     )
-    preferred_size: int | None = Field(
-        default=None,
+    preferred_size: int = Field(
+        ...,
         alias="preferred size",
         description="(AVAILABLE IN 10.1 TO 10.4) the memory size with which the application will be launched",
     )
-    accepts_high_level_events: bool | None = Field(
-        default=None,
+    accepts_high_level_events: bool = Field(
+        ...,
         alias="accepts high level events",
         description="Is the application high-level event aware? (OBSOLETE: always returns true)",
     )
-    has_scripting_terminology: bool | None = Field(
-        default=None,
+    has_scripting_terminology: bool = Field(
+        ...,
         alias="has scripting terminology",
         description="Does the process have a scripting terminology, i.e., can it be scripted?",
     )
-    opens_in_classic: bool | None = Field(
-        default=None,
+    opens_in_classic: bool = Field(
+        ...,
         alias="opens in Classic",
         description="(AVAILABLE IN 10.1 TO 10.4) Should the application launch in the Classic environment?",
     )
@@ -296,11 +292,7 @@ class InternetLocationFile(File):
         elements=(),
         responds_to=(),
     )
-    location: str | None = Field(
-        default=None,
-        alias="location",
-        description="the internet location",
-    )
+    location: str = Field(..., alias="location", description="the internet location")
 
 
 class Clipping(File):
@@ -328,8 +320,8 @@ class Clipping(File):
         elements=(),
         responds_to=(),
     )
-    clipping_window: sdef_types.Specifier | None = Field(
-        default=None,
+    clipping_window: sdef_types.Specifier = Field(
+        ...,
         alias="clipping window",
         description="(NOT AVAILABLE YET) the clipping window for this clipping",
     )

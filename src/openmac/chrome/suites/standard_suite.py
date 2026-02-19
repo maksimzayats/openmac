@@ -81,18 +81,14 @@ class Application(MacModel):
             ),
         ),
     )
-    name: str | None = Field(default=None, alias="name", description="The name of the application.")
-    frontmost: bool | None = Field(
-        default=None,
+    name: str = Field(..., alias="name", description="The name of the application.")
+    frontmost: bool = Field(
+        ...,
         alias="frontmost",
         description="Is this the frontmost (active) application?",
         json_schema_extra={"cocoas": [{"key": "isActive"}]},
     )
-    version: str | None = Field(
-        default=None,
-        alias="version",
-        description="The version of the application.",
-    )
+    version: str = Field(..., alias="version", description="The version of the application.")
 
 
 class Window(MacModel):
@@ -258,92 +254,92 @@ class Window(MacModel):
             ),
         ),
     )
-    given_name: str | None = Field(
-        default=None,
+    given_name: str = Field(
+        ...,
         alias="given name",
         description="The given name of the window.",
         json_schema_extra={"cocoas": [{"key": "givenName"}]},
     )
-    name: str | None = Field(
-        default=None,
+    name: str = Field(
+        ...,
         alias="name",
         description="The full title of the window.",
         json_schema_extra={"cocoas": [{"key": "title"}]},
     )
-    id_: str | None = Field(
-        default=None,
+    id_: str = Field(
+        ...,
         alias="id",
         description="The unique identifier of the window.",
         json_schema_extra={"cocoas": [{"key": "uniqueID"}]},
     )
-    index: int | None = Field(
-        default=None,
+    index: int = Field(
+        ...,
         alias="index",
         description="The index of the window, ordered front to back.",
         json_schema_extra={"cocoas": [{"key": "orderedIndex"}]},
     )
-    bounds: sdef_types.Rectangle | None = Field(
-        default=None,
+    bounds: sdef_types.Rectangle = Field(
+        ...,
         alias="bounds",
         description="The bounding rectangle of the window.",
         json_schema_extra={"cocoas": [{"key": "boundsAsQDRect"}]},
     )
-    closeable: bool | None = Field(
-        default=None,
+    closeable: bool = Field(
+        ...,
         alias="closeable",
         description="Whether the window has a close box.",
         json_schema_extra={"cocoas": [{"key": "hasCloseBox"}]},
     )
-    minimizable: bool | None = Field(
-        default=None,
+    minimizable: bool = Field(
+        ...,
         alias="minimizable",
         description="Whether the window can be minimized.",
         json_schema_extra={"cocoas": [{"key": "isMiniaturizable"}]},
     )
-    minimized: bool | None = Field(
-        default=None,
+    minimized: bool = Field(
+        ...,
         alias="minimized",
         description="Whether the window is currently minimized.",
         json_schema_extra={"cocoas": [{"key": "isMiniaturized"}]},
     )
-    resizable: bool | None = Field(
-        default=None,
+    resizable: bool = Field(
+        ...,
         alias="resizable",
         description="Whether the window can be resized.",
         json_schema_extra={"cocoas": [{"key": "isResizable"}]},
     )
-    visible: bool | None = Field(
-        default=None,
+    visible: bool = Field(
+        ...,
         alias="visible",
         description="Whether the window is currently visible.",
         json_schema_extra={"cocoas": [{"key": "isVisible"}]},
     )
-    zoomable: bool | None = Field(
-        default=None,
+    zoomable: bool = Field(
+        ...,
         alias="zoomable",
         description="Whether the window can be zoomed.",
         json_schema_extra={"cocoas": [{"key": "isZoomable"}]},
     )
-    zoomed: bool | None = Field(
-        default=None,
+    zoomed: bool = Field(
+        ...,
         alias="zoomed",
         description="Whether the window is currently zoomed.",
         json_schema_extra={"cocoas": [{"key": "isZoomed"}]},
     )
-    active_tab: sdef_types.Specifier | None = Field(
-        default=None,
+    active_tab: sdef_types.Specifier = Field(
+        ...,
         alias="active tab",
         description="Returns the currently selected tab",
         json_schema_extra={"cocoas": [{"key": "activeTab"}]},
     )
-    mode: str | None = Field(
-        default=None,
+    mode: str = Field(
+        ...,
         alias="mode",
         description="Represents the mode of the window which can be 'normal' or 'incognito', can be set only once during creation of the window.",
         json_schema_extra={"cocoas": [{"key": "mode"}]},
     )
-    active_tab_index: int | None = Field(
-        default=None,
+    active_tab_index: int = Field(
+        ...,
         alias="active tab index",
         description="The index of the active tab.",
     )
@@ -632,7 +628,7 @@ class StandardSuite:
 
     def save(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
         in_: sdef_types.File | None = None,
         as_: str | None = None,
@@ -640,11 +636,11 @@ class StandardSuite:
         """Save an object.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to save, usually a document or window", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "File"}], "code": "kfil", "description": "The file in which to save the object.", "name": "in", "optional": "yes", "type": "file", "type_element": []}, {"cocoa": [{"key": "FileType"}], "code": "fltp", "description": "The file type in which to save the data. Can be \'only html\', \'complete html\', or \'single file\'; default is \'complete html\'.", "name": "as", "optional": "yes", "type": "text", "type_element": []}]}"""
         raise NotImplementedError
 
-    def open_(self, direct_parameter: list[sdef_types.File] | None = None) -> None:
+    def open_(self, direct_parameter: list[sdef_types.File]) -> None:
         """Open a document.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The file(s) to be opened.", "type_element": [{"list": "yes", "type": "file"}]}]}"""
         raise NotImplementedError
 
-    def close(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def close(self, direct_parameter: sdef_types.Specifier) -> None:
         """Close a window.\n\nSDEF extras: {"cocoas": [{"class": "NSCloseCommand"}], "direct_parameters": [{"access_group": [], "description": "the document(s) or window(s) to close.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
@@ -652,22 +648,17 @@ class StandardSuite:
         """Quit the application.\n\nSDEF extras: {"cocoas": [{"class": "NSQuitCommand"}]}"""
         raise NotImplementedError
 
-    def count(
-        self,
-        direct_parameter: sdef_types.Specifier | None = None,
-        *,
-        each: str | None = None,
-    ) -> int:
+    def count(self, direct_parameter: sdef_types.Specifier, *, each: str | None = None) -> int:
         """Return the number of elements of a particular class within an object.\n\nSDEF extras: {"cocoas": [{"class": "NSCountCommand"}], "direct_parameters": [{"access_group": [], "description": "the object whose elements are to be counted", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ObjectClass"}], "code": "kocl", "description": "The class of objects to be counted.", "name": "each", "optional": "yes", "type": "type", "type_element": []}], "results": [{"description": "the number of elements", "type": "integer", "type_element": []}]}"""
         raise NotImplementedError
 
-    def delete(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def delete(self, direct_parameter: sdef_types.Specifier) -> None:
         """Delete an object.\n\nSDEF extras: {"cocoas": [{"class": "NSDeleteCommand"}], "direct_parameters": [{"access_group": [], "description": "the object to delete", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
     def duplicate(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
         to: sdef_types.LocationSpecifier | None = None,
         with_properties: sdef_types.Record | None = None,
@@ -675,14 +666,14 @@ class StandardSuite:
         """Copy object(s) and put the copies at a new location.\n\nSDEF extras: {"cocoas": [{"class": "NSCloneCommand"}], "direct_parameters": [{"access_group": [], "description": "the object(s) to duplicate", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ToLocation"}], "code": "insh", "description": "The location for the new object(s).", "name": "to", "optional": "yes", "type": "location specifier", "type_element": []}, {"cocoa": [{"key": "WithProperties"}], "code": "prdt", "description": "Properties to be set in the new duplicated object(s).", "name": "with properties", "optional": "yes", "type": "record", "type_element": []}], "results": [{"description": "the duplicated object(s)", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def exists(self, direct_parameter: object | None = None) -> bool:
+    def exists(self, direct_parameter: object) -> bool:
         """Verify if an object exists.\n\nSDEF extras: {"cocoas": [{"class": "NSExistsCommand"}], "direct_parameters": [{"access_group": [], "description": "the object in question", "type": "any", "type_element": []}], "results": [{"description": "true if it exists, false if not", "type": "boolean", "type_element": []}]}"""
         raise NotImplementedError
 
     def make(
         self,
         *,
-        new: str | None = None,
+        new: str,
         at: sdef_types.LocationSpecifier | None = None,
         with_data: object | None = None,
         with_properties: sdef_types.Record | None = None,
@@ -692,14 +683,14 @@ class StandardSuite:
 
     def move(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
-        to: sdef_types.LocationSpecifier | None = None,
+        to: sdef_types.LocationSpecifier,
     ) -> sdef_types.Specifier:
         """Move object(s) to a new location.\n\nSDEF extras: {"cocoas": [{"class": "NSMoveCommand"}], "direct_parameters": [{"access_group": [], "description": "the object(s) to move", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ToLocation"}], "code": "insh", "description": "The new location for the object(s).", "name": "to", "type": "location specifier", "type_element": []}], "results": [{"description": "the moved object(s)", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def print_(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def print_(self, direct_parameter: sdef_types.Specifier) -> None:
         """Print an object.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The file(s) or document(s) to be printed.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 

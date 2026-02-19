@@ -190,65 +190,49 @@ class Application(MacModel):
         ),
         responds_to=(),
     )
-    clipboard: sdef_types.Specifier | None = Field(
-        default=None,
+    clipboard: sdef_types.Specifier = Field(
+        ...,
         alias="clipboard",
         description="(NOT AVAILABLE YET) the Finder's clipboard window",
     )
-    name: str | None = Field(default=None, alias="name", description="the Finder's name")
-    visible: bool | None = Field(
-        default=None,
-        alias="visible",
-        description="Is the Finder's layer visible?",
-    )
-    frontmost: bool | None = Field(
-        default=None,
+    name: str = Field(..., alias="name", description="the Finder's name")
+    visible: bool = Field(..., alias="visible", description="Is the Finder's layer visible?")
+    frontmost: bool = Field(
+        ...,
         alias="frontmost",
         description="Is the Finder the frontmost process?",
     )
-    selection: sdef_types.Specifier | None = Field(
-        default=None,
+    selection: sdef_types.Specifier = Field(
+        ...,
         alias="selection",
         description="the selection in the frontmost Finder window",
     )
-    insertion_location: sdef_types.Specifier | None = Field(
-        default=None,
+    insertion_location: sdef_types.Specifier = Field(
+        ...,
         alias="insertion location",
         description='the container in which a new folder would appear if "New Folder" was selected',
     )
-    product_version: str | None = Field(
-        default=None,
+    product_version: str = Field(
+        ...,
         alias="product version",
         description="the version of the System software running on this computer",
     )
-    version: str | None = Field(
-        default=None,
-        alias="version",
-        description="the version of the Finder",
-    )
-    startup_disk: sdef_types.Specifier | None = Field(
-        default=None,
+    version: str = Field(..., alias="version", description="the version of the Finder")
+    startup_disk: sdef_types.Specifier = Field(
+        ...,
         alias="startup disk",
         description="the startup disk",
     )
-    desktop: sdef_types.Specifier | None = Field(
-        default=None,
-        alias="desktop",
-        description="the desktop",
-    )
-    trash: sdef_types.Specifier | None = Field(default=None, alias="trash", description="the trash")
-    home: sdef_types.Specifier | None = Field(
-        default=None,
-        alias="home",
-        description="the home directory",
-    )
-    computer_container: sdef_types.Specifier | None = Field(
-        default=None,
+    desktop: sdef_types.Specifier = Field(..., alias="desktop", description="the desktop")
+    trash: sdef_types.Specifier = Field(..., alias="trash", description="the trash")
+    home: sdef_types.Specifier = Field(..., alias="home", description="the home directory")
+    computer_container: sdef_types.Specifier = Field(
+        ...,
         alias="computer container",
         description="the computer location (as in Go > Computer)",
     )
-    finder_preferences: sdef_types.Specifier | None = Field(
-        default=None,
+    finder_preferences: sdef_types.Specifier = Field(
+        ...,
         alias="Finder preferences",
         description="Various preferences that apply to the Finder as a whole",
     )
@@ -315,7 +299,7 @@ class FinderBasicsSuite:
         ),
     )
 
-    def open_virtual_location(self, direct_parameter: str | None = None) -> None:
+    def open_virtual_location(self, direct_parameter: str) -> None:
         """Private event to open a virtual location\n\nSDEF extras: {"direct_parameters": [{"access_group": [{"identifier": "com.apple.private.siri"}], "description": "the location to open", "type": "text", "type_element": []}]}"""
         raise NotImplementedError
 
@@ -325,9 +309,9 @@ class FinderBasicsSuite:
 
     def sort(
         self,
-        direct_parameter: sdef_types.Specifier | None = None,
+        direct_parameter: sdef_types.Specifier,
         *,
-        by: sdef_types.Specifier | None = None,
+        by: sdef_types.Specifier,
     ) -> sdef_types.Specifier | None:
         """Return the specified object(s) in a sorted list\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "a list of finder objects to sort", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "by  ", "description": "the property to sort the items by (name, index, date, etc.)", "name": "by", "type": "property", "type_element": []}], "results": [{"description": "the sorted items in their new order", "optional": "yes", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError

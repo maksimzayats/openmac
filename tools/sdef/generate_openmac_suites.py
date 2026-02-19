@@ -769,8 +769,12 @@ def value_type_extras(value_type: ValueType) -> dict[str, object] | None:
 def build_parameter_signature(
     name: str,
     annotation: str,
+    *,
+    optional: bool,
 ) -> str:
-    return f"{name}: {annotation} | None = None"
+    if optional:
+        return f"{name}: {annotation} | None = None"
+    return f"{name}: {annotation}"
 
 
 def first_direct_parameter(command: Command) -> DirectParameter | None:
@@ -805,7 +809,13 @@ def command_method_lines(command: Command, module_name: str, lookups: LookupTabl
             module_name,
             lookups,
         )
-        parameter_parts.append(build_parameter_signature("direct_parameter", direct_annotation))
+        parameter_parts.append(
+            build_parameter_signature(
+                "direct_parameter",
+                direct_annotation,
+                optional=direct_parameter.optional == "yes",
+            ),
+        )
         in_use_names.add("direct_parameter")
 
     named_parameters: list[str] = []
@@ -818,7 +828,13 @@ def command_method_lines(command: Command, module_name: str, lookups: LookupTabl
             module_name,
             lookups,
         )
-        named_parameters.append(build_parameter_signature(parameter_name, parameter_annotation))
+        named_parameters.append(
+            build_parameter_signature(
+                parameter_name,
+                parameter_annotation,
+                optional=parameter.optional == "yes",
+            ),
+        )
 
     if named_parameters:
         parameter_parts.append("*")
@@ -842,13 +858,13 @@ def field_line(
     raw_name = property_.name or "property"
     python_name = unique_name(ensure_identifier(raw_name), in_use_names)
     annotation = resolve_annotation(property_.type, property_.type_elements, module_name, lookups)
-    kwargs: list[str] = ["default=None"]
+    kwargs: list[str] = ["..."]
     kwargs.append(f"alias={render_py(sanitize_text(raw_name))}")
     kwargs.append(f"description={render_py(sanitize_optional_text(property_.description))}")
     schema_extra = property_field_extra(property_)
     if schema_extra:
         kwargs.append(f"json_schema_extra={render_py(schema_extra)}")
-    return f"    {python_name}: {annotation} | None = Field({', '.join(kwargs)})"
+    return f"    {python_name}: {annotation} = Field({', '.join(kwargs)})"
 
 
 def class_base_name(

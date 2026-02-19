@@ -132,15 +132,15 @@ class Tab(MacModel):
             ),
         ),
     )
-    id_: str | None = Field(
-        default=None,
+    id_: str = Field(
+        ...,
         alias="id",
         description="Unique ID of the tab.",
         json_schema_extra={"cocoas": [{"key": "uniqueID"}]},
     )
-    title: str | None = Field(default=None, alias="title", description="The title of the tab.")
-    url: str | None = Field(default=None, alias="URL", description="The url visible to the user.")
-    loading: bool | None = Field(default=None, alias="loading", description="Is loading?")
+    title: str = Field(..., alias="title", description="The title of the tab.")
+    url: str = Field(..., alias="URL", description="The url visible to the user.")
+    loading: bool = Field(..., alias="loading", description="Is loading?")
 
 
 class BookmarkFolder(MacModel):
@@ -199,15 +199,15 @@ class BookmarkFolder(MacModel):
         ),
         responds_to=(),
     )
-    id_: str | None = Field(
-        default=None,
+    id_: str = Field(
+        ...,
         alias="id",
         description="Unique ID of the bookmark folder.",
         json_schema_extra={"cocoas": [{"key": "uniqueID"}]},
     )
-    title: str | None = Field(default=None, alias="title", description="The title of the folder.")
-    index: float | None = Field(
-        default=None,
+    title: str = Field(..., alias="title", description="The title of the folder.")
+    index: float = Field(
+        ...,
         alias="index",
         description="Returns the index with respect to its parent bookmark folder.",
         json_schema_extra={"cocoas": [{"key": "index"}]},
@@ -266,20 +266,16 @@ class BookmarkItem(MacModel):
         elements=(),
         responds_to=(),
     )
-    id_: str | None = Field(
-        default=None,
+    id_: str = Field(
+        ...,
         alias="id",
         description="Unique ID of the bookmark item.",
         json_schema_extra={"cocoas": [{"key": "uniqueID"}]},
     )
-    title: str | None = Field(
-        default=None,
-        alias="title",
-        description="The title of the bookmark item.",
-    )
-    url: str | None = Field(default=None, alias="URL", description="The URL of the bookmark.")
-    index: float | None = Field(
-        default=None,
+    title: str = Field(..., alias="title", description="The title of the bookmark item.")
+    url: str = Field(..., alias="URL", description="The URL of the bookmark.")
+    index: float = Field(
+        ...,
         alias="index",
         description="Returns the index with respect to its parent bookmark folder.",
         json_schema_extra={"cocoas": [{"key": "index"}]},
@@ -327,14 +323,14 @@ class Application(standard_suite_module.Application):
         ),
         responds_to=(),
     )
-    bookmarks_bar: BookmarkFolder | None = Field(
-        default=None,
+    bookmarks_bar: BookmarkFolder = Field(
+        ...,
         alias="bookmarks bar",
         description="The bookmarks bar bookmark folder.",
         json_schema_extra={"cocoas": [{"key": "bookmarksBar"}]},
     )
-    other_bookmarks: BookmarkFolder | None = Field(
-        default=None,
+    other_bookmarks: BookmarkFolder = Field(
+        ...,
         alias="other bookmarks",
         description="The other bookmarks bookmark folder.",
         json_schema_extra={"cocoas": [{"key": "otherBookmarks"}]},
@@ -477,56 +473,51 @@ class ChromiumSuite:
         ),
     )
 
-    def reload(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def reload(self, direct_parameter: sdef_types.Specifier) -> None:
         """Reload a tab.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def go_back(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def go_back(self, direct_parameter: sdef_types.Specifier) -> None:
         """Go Back (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def go_forward(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def go_forward(self, direct_parameter: sdef_types.Specifier) -> None:
         """Go Forward (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def select_all(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def select_all(self, direct_parameter: sdef_types.Specifier) -> None:
         """Select all.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def cut_selection(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def cut_selection(self, direct_parameter: sdef_types.Specifier) -> None:
         """Cut selected text (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def copy_selection(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def copy_selection(self, direct_parameter: sdef_types.Specifier) -> None:
         """Copy text.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def paste_selection(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def paste_selection(self, direct_parameter: sdef_types.Specifier) -> None:
         """Paste text (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def undo(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def undo(self, direct_parameter: sdef_types.Specifier) -> None:
         """Undo the last change.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def redo(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def redo(self, direct_parameter: sdef_types.Specifier) -> None:
         """Redo the last change.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def stop(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def stop(self, direct_parameter: sdef_types.Specifier) -> None:
         """Stop the current tab from loading.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def view_source(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
+    def view_source(self, direct_parameter: sdef_types.Specifier) -> None:
         """View the HTML source of the tab.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
         raise NotImplementedError
 
-    def execute(
-        self,
-        direct_parameter: sdef_types.Specifier | None = None,
-        *,
-        javascript: str | None = None,
-    ) -> object:
+    def execute(self, direct_parameter: sdef_types.Specifier, *, javascript: str) -> object:
         """Execute a piece of javascript.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "javascript"}], "code": "JvSc", "description": "The javascript code to execute.", "name": "javascript", "type": "text", "type_element": []}], "results": [{"type": "any", "type_element": []}]}"""
         raise NotImplementedError
 
