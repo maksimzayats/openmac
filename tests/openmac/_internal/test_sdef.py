@@ -5,9 +5,9 @@ from pydantic import BaseModel
 
 from openmac._internal.context import Context
 from openmac._internal.manager import Manager
-from openmac._internal.models import SDEFClass, SDEFCommand
 from openmac._internal.runner import AppleScriptRunner
-from openmac._internal.sdef import (
+from openmac._internal.sdef.base import SDEFClass, SDEFCommand
+from openmac._internal.sdef.types import (
     Date,
     File,
     LocationSpecifier,

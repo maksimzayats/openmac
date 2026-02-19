@@ -1119,9 +1119,9 @@ def generate_suite_module(
         lines.append("from pydantic import Field")
     lines.extend([
         "",
-        "import openmac._internal.sdef as sdef_types",
-        "import openmac._internal.sdef_meta as sdef_meta",
-        "from openmac._internal.models import SDEFClass, SDEFCommand",
+        "import openmac._internal.sdef.types as sdef_types",
+        "from openmac._internal.sdef import meta as sdef_meta",
+        "from openmac._internal.sdef.base import SDEFClass, SDEFCommand",
     ])
 
     for imported_module in sorted(cross_module_imports):

@@ -6,10 +6,10 @@ from typing import ClassVar, Final
 
 from pydantic import Field
 
-import openmac._internal.sdef as sdef_types
+import openmac._internal.sdef.types as sdef_types
 import openmac.chrome.sdef.suites.standard_suite as standard_suite_module
-from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFClass, SDEFCommand
+from openmac._internal.sdef import meta as sdef_meta
+from openmac._internal.sdef.base import SDEFClass, SDEFCommand
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Chromium Suite",

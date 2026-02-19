@@ -5,7 +5,7 @@ from typing import Any, cast
 
 import pytest
 
-from openmac._internal.models import SDEFCommand
+from openmac._internal.sdef.base import SDEFCommand
 from openmac.chrome.sdef.suites import ChromiumSuite, StandardSuite as ChromeStandardSuite
 from openmac.finder.sdef.suites import (
     ContainersAndFoldersSuite,
@@ -20,10 +20,8 @@ from openmac.finder.sdef.suites import (
 )
 
 GENERATED_MODULES = [
-    "openmac.chrome.suites",
     "openmac.chrome.sdef.suites.standard_suite",
     "openmac.chrome.sdef.suites.chromium_suite",
-    "openmac.finder.suites",
     "openmac.finder.sdef.suites.standard_suite",
     "openmac.finder.sdef.suites.finder_basics_suite",
     "openmac.finder.sdef.suites.finder_items_suite",
@@ -72,3 +70,8 @@ def test_generated_suite_commands_raise_not_implemented(suite_class: type[object
         command_instance = cast("Any", command_class).model_construct(**required_values)
         with pytest.raises(NotImplementedError):
             command_instance()
+
+
+def test_chrome_bundle_module_imports() -> None:
+    bundle = importlib.import_module("openmac.chrome.sdef.bundle")
+    assert bundle.BUNDLE_ID == "com.google.Chrome"

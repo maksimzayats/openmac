@@ -8,9 +8,9 @@ from typing import ClassVar, Final
 
 from pydantic import Field
 
-import openmac._internal.sdef as sdef_types
-from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFClass, SDEFCommand
+import openmac._internal.sdef.types as sdef_types
+from openmac._internal.sdef import meta as sdef_meta
+from openmac._internal.sdef.base import SDEFClass, SDEFCommand
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Containers and folders",
