@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import cast
+from typing import Generic, TypeVar, cast
 
 import pytest
 from pydantic import BaseModel, Field, ValidationError
@@ -42,6 +42,13 @@ class AliasModel(BaseModel):
 class WindowPayload(BaseModel):
     target: Specifier = Field(alias="target object")
     frame: Rectangle
+
+
+_PayloadT = TypeVar("_PayloadT")
+
+
+class GenericPayload(BaseModel, Generic[_PayloadT]):
+    items: list[_PayloadT]
 
 
 def test_dumps_primitives() -> None:
@@ -108,6 +115,16 @@ def test_dumps_pydantic_model_uses_aliases() -> None:
     value = AliasModel.model_validate({"given name": "x"})
 
     assert dumps(value) == '{|given name|:"x"}'
+
+
+def test_dumps_pydantic_model_generics() -> None:
+    first = AliasModel.model_validate({"given name": "a"})
+    second = AliasModel.model_validate({"given name": "b"})
+    payload = GenericPayload[AliasModel](items=[first, second])
+
+    assert dumps([first, second]) == '{{|given name|:"a"}, {|given name|:"b"}}'
+    assert dumps({"b": second, "a": first}) == '{a:{|given name|:"a"}, b:{|given name|:"b"}}'
+    assert dumps(payload) == '{items:{{|given name|:"a"}, {|given name|:"b"}}}'
 
 
 def test_dumps_dataclass() -> None:
