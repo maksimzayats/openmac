@@ -8,6 +8,12 @@ from tools.sdef.models import Command
 from tools.sdef.parser import load_sdef
 
 FIXTURE_PATH = Path(__file__).resolve().parents[3] / "tools" / "sdef" / "suite.sdef"
+CHROME_SDEF_PATH = (
+    Path(__file__).resolve().parents[3] / "src" / "openmac" / "chrome" / "chrome.sdef"
+)
+FINDER_SDEF_PATH = (
+    Path(__file__).resolve().parents[3] / "src" / "openmac" / "finder" / "finder.sdef"
+)
 APP_SDEF_DIR = Path(__file__).resolve().parent / "captured_apps_sdef"
 APP_SDEF_PATHS = sorted(APP_SDEF_DIR.glob("*.sdef"))
 CHROMIUM_APP_SDEF_NAMES = {"google_chrome.sdef", "google_chrome_beta.sdef", "microsoft_edge.sdef"}
@@ -101,6 +107,20 @@ def test_load_sdef_parses_xcode_requires_access_and_documentation() -> None:
     )
     assert any(command.documentation for suite in dictionary.suites for command in suite.commands)
     assert any(class_.documentation for suite in dictionary.suites for class_ in suite.classes)
+
+
+def test_load_sdef_parses_repository_chrome_sdef() -> None:
+    dictionary = load_sdef(CHROME_SDEF_PATH)
+
+    assert dictionary.suites
+    assert [suite.name for suite in dictionary.suites if suite.name]
+
+
+def test_load_sdef_parses_repository_finder_sdef() -> None:
+    dictionary = load_sdef(FINDER_SDEF_PATH)
+
+    assert dictionary.suites
+    assert [suite.name for suite in dictionary.suites if suite.name]
 
 
 def test_load_sdef_rejects_unknown_fields_in_strict_mode(tmp_path: Path) -> None:

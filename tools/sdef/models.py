@@ -80,6 +80,7 @@ class DirectParameter(BaseModel):
     optional: YesNo | None = None
     requires_access: AccessType | None = None
 
+    access_groups: list[AccessGroup] = Field(default_factory=list, alias="access_group")
     type_elements: list[TypeElement] = Field(default_factory=list, alias="type_element")
 
 
@@ -162,6 +163,7 @@ class Enumeration(BaseModel):
     name: str | None = None
     code: str | None = None
     description: str | None = None
+    hidden: YesNo | None = None
 
     enumerators: list[Enumerator] = Field(default_factory=list, alias="enumerator")
 

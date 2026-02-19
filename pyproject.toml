@@ -111,7 +111,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source = ["src/achrome"]
+source = ["openmac"]
 branch = true
 parallel = true
 
