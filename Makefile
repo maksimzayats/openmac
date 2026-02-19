@@ -1,4 +1,6 @@
-.PHONY: format lint test docs
+.PHONY: format lint test docs generate-suites
+
+SDEF_APP ?= all
 
 format:
 	uv run ruff format .
@@ -11,6 +13,11 @@ lint:
 
 test:
 	uv run pytest tests/ --cov=openmac --cov-report=term-missing
+
+generate-suites:
+	uv run python tools/sdef/generate_openmac_suites.py --app $(SDEF_APP)
+	make format
+	make format
 
 docs:
 	rm -rf docs/_build
