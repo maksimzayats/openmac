@@ -47,6 +47,11 @@ SUITE_CLASSES = [
     EnumerationsSuite,
 ]
 
+BUNDLE_MODULES = [
+    ("openmac.chrome.sdef.bundle", "com.google.Chrome"),
+    ("openmac.finder.sdef.bundle", "com.apple.finder"),
+]
+
 
 @pytest.mark.parametrize("module_name", GENERATED_MODULES)
 def test_generated_suite_modules_import(module_name: str) -> None:
@@ -72,6 +77,7 @@ def test_generated_suite_commands_raise_not_implemented(suite_class: type[object
             command_instance()
 
 
-def test_chrome_bundle_module_imports() -> None:
-    bundle = importlib.import_module("openmac.chrome.sdef.bundle")
-    assert bundle.BUNDLE_ID == "com.google.Chrome"
+@pytest.mark.parametrize(("module_name", "bundle_id"), BUNDLE_MODULES)
+def test_bundle_module_imports(module_name: str, bundle_id: str) -> None:
+    bundle = importlib.import_module(module_name)
+    assert bundle_id == bundle.BUNDLE_ID
