@@ -30,9 +30,6 @@ class ReloadCommand(SDEFCommand):
         description="The tab to execute the command in.",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class GoBackCommand(SDEFCommand):
     """Go Back (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
@@ -52,9 +49,6 @@ class GoBackCommand(SDEFCommand):
         ...,
         description="The tab to execute the command in.",
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class GoForwardCommand(SDEFCommand):
@@ -76,9 +70,6 @@ class GoForwardCommand(SDEFCommand):
         description="The tab to execute the command in.",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class SelectAllCommand(SDEFCommand):
     """Select all.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
@@ -98,9 +89,6 @@ class SelectAllCommand(SDEFCommand):
         ...,
         description="The tab to execute the command in.",
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class CutSelectionCommand(SDEFCommand):
@@ -122,9 +110,6 @@ class CutSelectionCommand(SDEFCommand):
         description="The tab to execute the command in.",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class CopySelectionCommand(SDEFCommand):
     """Copy text.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
@@ -144,9 +129,6 @@ class CopySelectionCommand(SDEFCommand):
         ...,
         description="The tab to execute the command in.",
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class PasteSelectionCommand(SDEFCommand):
@@ -168,9 +150,6 @@ class PasteSelectionCommand(SDEFCommand):
         description="The tab to execute the command in.",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class UndoCommand(SDEFCommand):
     """Undo the last change.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
@@ -190,9 +169,6 @@ class UndoCommand(SDEFCommand):
         ...,
         description="The tab to execute the command in.",
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class RedoCommand(SDEFCommand):
@@ -214,9 +190,6 @@ class RedoCommand(SDEFCommand):
         description="The tab to execute the command in.",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class StopCommand(SDEFCommand):
     """Stop the current tab from loading.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
@@ -237,9 +210,6 @@ class StopCommand(SDEFCommand):
         description="The tab to execute the command in.",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class ViewSourceCommand(SDEFCommand):
     """View the HTML source of the tab.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
@@ -259,9 +229,6 @@ class ViewSourceCommand(SDEFCommand):
         ...,
         description="The tab to execute the command in.",
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class ExecuteCommand(SDEFCommand):
@@ -298,6 +265,3 @@ class ExecuteCommand(SDEFCommand):
         description="The javascript code to execute.",
         json_schema_extra={"cocoas": [{"key": "javascript"}]},
     )
-
-    def __call__(self) -> object:
-        raise NotImplementedError

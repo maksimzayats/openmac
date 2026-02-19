@@ -102,6 +102,7 @@ def test_generated_suite_commands_raise_not_implemented(module_name: str) -> Non
     for command_class in command_classes:
         assert issubclass(command_class, SDEFCommand)
         assert cast("Any", command_class).SDEF_META.bundle_id == expected_bundle_id
+        assert "__call__" not in command_class.__dict__
         required_values = {
             field_name: object()
             for field_name, field_info in command_class.model_fields.items()

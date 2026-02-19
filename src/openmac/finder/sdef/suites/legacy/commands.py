@@ -23,9 +23,6 @@ class RestartCommand(SDEFCommand):
         access_groups=(),
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class ShutDownCommand(SDEFCommand):
     """Shut Down the computer"""
@@ -42,9 +39,6 @@ class ShutDownCommand(SDEFCommand):
         access_groups=(),
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class SleepCommand(SDEFCommand):
     """Put the computer to sleep"""
@@ -60,6 +54,3 @@ class SleepCommand(SDEFCommand):
         results=(),
         access_groups=(),
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError

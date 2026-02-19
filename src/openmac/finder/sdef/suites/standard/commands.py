@@ -56,9 +56,6 @@ class OpenCommand(SDEFCommand):
         description="the initial values for the properties, to be included with the open command sent to the application that opens the direct object",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class PrintCommand(SDEFCommand):
     """Print the specified object(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "list of objects to print", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "prdt", "description": "optional properties to be included with the print command sent to the application that prints the direct object", "name": "with properties", "optional": "yes", "type": "record", "type_element": []}]}"""
@@ -91,9 +88,6 @@ class PrintCommand(SDEFCommand):
         description="optional properties to be included with the print command sent to the application that prints the direct object",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class QuitCommand(SDEFCommand):
     """Quit the Finder"""
@@ -109,9 +103,6 @@ class QuitCommand(SDEFCommand):
         results=(),
         access_groups=(),
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class ActivateCommand(SDEFCommand):
@@ -133,9 +124,6 @@ class ActivateCommand(SDEFCommand):
         description="the window to activate (if not specified, activates the Finder)",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class CloseCommand(SDEFCommand):
     """Close an object\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to close", "type": "specifier", "type_element": []}]}"""
@@ -152,9 +140,6 @@ class CloseCommand(SDEFCommand):
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the object to close")
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class CountCommand(SDEFCommand):
@@ -192,9 +177,6 @@ class CountCommand(SDEFCommand):
         description="the object whose elements are to be counted",
     )
     each: str = Field(..., alias="each", description="the class of the elements to be counted")
-
-    def __call__(self) -> int:
-        raise NotImplementedError
 
 
 class DataSizeCommand(SDEFCommand):
@@ -237,9 +219,6 @@ class DataSizeCommand(SDEFCommand):
         description="the data type for which the size is calculated",
     )
 
-    def __call__(self) -> int:
-        raise NotImplementedError
-
 
 class DeleteCommand(SDEFCommand):
     """Move an item from its container to the trash\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the item to delete", "type": "specifier", "type_element": []}], "results": [{"description": "to the item that was just deleted", "type": "specifier", "type_element": []}]}"""
@@ -262,9 +241,6 @@ class DeleteCommand(SDEFCommand):
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the item to delete")
-
-    def __call__(self) -> sdef_types.Specifier:
-        raise NotImplementedError
 
 
 class DuplicateCommand(SDEFCommand):
@@ -346,9 +322,6 @@ class DuplicateCommand(SDEFCommand):
         description="Specifies whether or not to copy permissions/ownership as is",
     )
 
-    def __call__(self) -> sdef_types.Specifier:
-        raise NotImplementedError
-
 
 class ExistsCommand(SDEFCommand):
     """Verify if an object exists\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object in question", "type": "specifier", "type_element": []}], "results": [{"description": "true if it exists, false if not", "type": "boolean", "type_element": []}]}"""
@@ -371,9 +344,6 @@ class ExistsCommand(SDEFCommand):
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the object in question")
-
-    def __call__(self) -> bool:
-        raise NotImplementedError
 
 
 class MakeCommand(SDEFCommand):
@@ -449,9 +419,6 @@ class MakeCommand(SDEFCommand):
         alias="with properties",
         description="the initial values for the properties of the element",
     )
-
-    def __call__(self) -> sdef_types.Specifier:
-        raise NotImplementedError
 
 
 class MoveCommand(SDEFCommand):
@@ -533,9 +500,6 @@ class MoveCommand(SDEFCommand):
         description="Specifies whether or not to autoroute items (default is false). Only applies when moving to the system folder.",
     )
 
-    def __call__(self) -> sdef_types.Specifier:
-        raise NotImplementedError
-
 
 class SelectCommand(SDEFCommand):
     """Select the specified object(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to select", "type": "specifier", "type_element": []}]}"""
@@ -552,6 +516,3 @@ class SelectCommand(SDEFCommand):
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the object to select")
-
-    def __call__(self) -> None:
-        raise NotImplementedError

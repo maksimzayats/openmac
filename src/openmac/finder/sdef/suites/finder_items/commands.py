@@ -42,9 +42,6 @@ class CleanUpCommand(SDEFCommand):
         description="the order in which to clean up the objects (name, index, date, etc.)",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class EjectCommand(SDEFCommand):
     """Eject the specified disk(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the disk(s) to eject", "optional": "yes", "type": "specifier", "type_element": []}]}"""
@@ -64,9 +61,6 @@ class EjectCommand(SDEFCommand):
         default=None,
         description="the disk(s) to eject",
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class EmptyCommand(SDEFCommand):
@@ -104,9 +98,6 @@ class EmptyCommand(SDEFCommand):
     )
     security: bool | None = Field(default=None, alias="security", description="(obsolete)")
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class EraseCommand(SDEFCommand):
     """(NOT AVAILABLE) Erase the specified disk(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the items to erase", "type": "specifier", "type_element": []}]}"""
@@ -124,9 +115,6 @@ class EraseCommand(SDEFCommand):
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the items to erase")
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class RevealCommand(SDEFCommand):
     """Bring the specified object(s) into view\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to be made visible", "type": "specifier", "type_element": []}]}"""
@@ -143,9 +131,6 @@ class RevealCommand(SDEFCommand):
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the object to be made visible")
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class UpdateCommand(SDEFCommand):
@@ -192,6 +177,3 @@ class UpdateCommand(SDEFCommand):
         alias="registering applications",
         description="register applications. default is true",
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError

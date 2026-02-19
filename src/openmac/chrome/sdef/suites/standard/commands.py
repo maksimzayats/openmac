@@ -66,9 +66,6 @@ class SaveCommand(SDEFCommand):
         json_schema_extra={"cocoas": [{"key": "FileType"}]},
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class OpenCommand(SDEFCommand):
     """Open a document.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The file(s) to be opened.", "type_element": [{"list": "yes", "type": "file"}]}]}"""
@@ -89,9 +86,6 @@ class OpenCommand(SDEFCommand):
         description="The file(s) to be opened.",
         json_schema_extra={"type_elements": [{"list": "yes", "type": "file"}]},
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class CloseCommand(SDEFCommand):
@@ -118,9 +112,6 @@ class CloseCommand(SDEFCommand):
         description="the document(s) or window(s) to close.",
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class QuitCommand(SDEFCommand):
     """Quit the application.\n\nSDEF extras: {"cocoas": [{"class": "NSQuitCommand"}]}"""
@@ -136,9 +127,6 @@ class QuitCommand(SDEFCommand):
         results=(),
         access_groups=(),
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class CountCommand(SDEFCommand):
@@ -187,9 +175,6 @@ class CountCommand(SDEFCommand):
         json_schema_extra={"cocoas": [{"key": "ObjectClass"}]},
     )
 
-    def __call__(self) -> int:
-        raise NotImplementedError
-
 
 class DeleteCommand(SDEFCommand):
     """Delete an object.\n\nSDEF extras: {"cocoas": [{"class": "NSDeleteCommand"}], "direct_parameters": [{"access_group": [], "description": "the object to delete", "type": "specifier", "type_element": []}]}"""
@@ -211,9 +196,6 @@ class DeleteCommand(SDEFCommand):
         ),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the object to delete")
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class DuplicateCommand(SDEFCommand):
@@ -274,9 +256,6 @@ class DuplicateCommand(SDEFCommand):
         json_schema_extra={"cocoas": [{"key": "WithProperties"}]},
     )
 
-    def __call__(self) -> sdef_types.Specifier:
-        raise NotImplementedError
-
 
 class ExistsCommand(SDEFCommand):
     """Verify if an object exists.\n\nSDEF extras: {"cocoas": [{"class": "NSExistsCommand"}], "direct_parameters": [{"access_group": [], "description": "the object in question", "type": "any", "type_element": []}], "results": [{"description": "true if it exists, false if not", "type": "boolean", "type_element": []}]}"""
@@ -304,9 +283,6 @@ class ExistsCommand(SDEFCommand):
         ),
     )
     direct_parameter: object = Field(..., description="the object in question")
-
-    def __call__(self) -> bool:
-        raise NotImplementedError
 
 
 class MakeCommand(SDEFCommand):
@@ -392,9 +368,6 @@ class MakeCommand(SDEFCommand):
         json_schema_extra={"cocoas": [{"key": "KeyDictionary"}]},
     )
 
-    def __call__(self) -> sdef_types.Specifier:
-        raise NotImplementedError
-
 
 class MoveCommand(SDEFCommand):
     """Move object(s) to a new location.\n\nSDEF extras: {"cocoas": [{"class": "NSMoveCommand"}], "direct_parameters": [{"access_group": [], "description": "the object(s) to move", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ToLocation"}], "code": "insh", "description": "The new location for the object(s).", "name": "to", "type": "location specifier", "type_element": []}], "results": [{"description": "the moved object(s)", "type": "specifier", "type_element": []}]}"""
@@ -439,9 +412,6 @@ class MoveCommand(SDEFCommand):
         json_schema_extra={"cocoas": [{"key": "ToLocation"}]},
     )
 
-    def __call__(self) -> sdef_types.Specifier:
-        raise NotImplementedError
-
 
 class PrintCommand(SDEFCommand):
     """Print an object.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The file(s) or document(s) to be printed.", "type": "specifier", "type_element": []}]}"""
@@ -461,6 +431,3 @@ class PrintCommand(SDEFCommand):
         ...,
         description="The file(s) or document(s) to be printed.",
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError

@@ -837,18 +837,6 @@ def first_direct_parameter(command: Command) -> DirectParameter | None:
     return None
 
 
-def command_return_annotation(command: Command, module_name: str, lookups: LookupTables) -> str:
-    if not command.results:
-        return "None"
-    if len(command.results) > 1:
-        return "object"
-    result = command.results[0]
-    annotation = resolve_annotation(result.type, result.type_elements, module_name, lookups)
-    if result.optional == "yes":
-        return f"{annotation} | None"
-    return annotation
-
-
 def command_class_lines(
     command: Command,
     module_name: str,
@@ -902,10 +890,6 @@ def command_class_lines(
             ),
         )
 
-    lines.append("")
-    return_annotation = command_return_annotation(command, module_name, lookups)
-    lines.append(f"    def __call__(self) -> {return_annotation}:")
-    lines.append("        raise NotImplementedError")
     lines.append("")
     return lines
 
@@ -1076,10 +1060,6 @@ def type_annotation_expressions(lines: list[str]) -> list[str]:
         field_match = re.match(r"^\s+[A-Za-z_][A-Za-z0-9_]*: (.+) = Field\(", line)
         if field_match is not None:
             expressions.append(field_match.group(1))
-            continue
-        return_match = re.match(r"^\s+def __call__\(self\) -> (.+):$", line)
-        if return_match is not None:
-            expressions.append(return_match.group(1))
     return expressions
 
 

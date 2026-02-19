@@ -40,9 +40,6 @@ class OpenVirtualLocationCommand(SDEFCommand):
         json_schema_extra={"access_groups": [{"identifier": "com.apple.private.siri"}]},
     )
 
-    def __call__(self) -> None:
-        raise NotImplementedError
-
 
 class CopyCommand(SDEFCommand):
     """(NOT AVAILABLE YET) Copy the selected items to the clipboard (the Finder must be the front application)"""
@@ -58,9 +55,6 @@ class CopyCommand(SDEFCommand):
         results=(),
         access_groups=(),
     )
-
-    def __call__(self) -> None:
-        raise NotImplementedError
 
 
 class SortCommand(SDEFCommand):
@@ -102,6 +96,3 @@ class SortCommand(SDEFCommand):
         alias="by",
         description="the property to sort the items by (name, index, date, etc.)",
     )
-
-    def __call__(self) -> sdef_types.Specifier | None:
-        raise NotImplementedError
