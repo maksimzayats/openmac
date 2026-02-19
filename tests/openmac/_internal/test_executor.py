@@ -15,7 +15,7 @@ def test_run_rejects_empty_script() -> None:
     executor = AppleScriptExecutor()
 
     with pytest.raises(ValueError, match=r"AppleScript cannot be empty\."):
-        executor.run("   ")
+        executor.execute("   ")
 
 
 def test_run_raises_runtime_error_when_subprocess_fails() -> None:
@@ -23,7 +23,7 @@ def test_run_raises_runtime_error_when_subprocess_fails() -> None:
 
     with patch(SUBPROCESS_RUN_PATH, side_effect=OSError):
         with pytest.raises(RuntimeError, match="Failed to execute AppleScript"):
-            executor.run("return 1")
+            executor.execute("return 1")
 
 
 def test_run_raises_runtime_error_on_non_zero_exit_with_stderr() -> None:
@@ -36,7 +36,7 @@ def test_run_raises_runtime_error_on_non_zero_exit_with_stderr() -> None:
 
     with patch(SUBPROCESS_RUN_PATH, return_value=completed_process):
         with pytest.raises(RuntimeError, match="script failed"):
-            executor.run("return 1")
+            executor.execute("return 1")
 
 
 def test_run_raises_runtime_error_on_non_zero_exit_without_stderr() -> None:
@@ -49,7 +49,7 @@ def test_run_raises_runtime_error_on_non_zero_exit_without_stderr() -> None:
 
     with patch(SUBPROCESS_RUN_PATH, return_value=completed_process):
         with pytest.raises(RuntimeError, match=r"AppleScript execution failed with exit code 1\."):
-            executor.run("return 1")
+            executor.execute("return 1")
 
 
 def test_run_returns_stdout_without_trailing_newline() -> None:
@@ -61,4 +61,4 @@ def test_run_returns_stdout_without_trailing_newline() -> None:
     )
 
     with patch(SUBPROCESS_RUN_PATH, return_value=completed_process):
-        assert executor.run("return 1") == "ok"
+        assert executor.execute("return 1") == "ok"

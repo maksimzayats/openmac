@@ -12,7 +12,7 @@ OSASCRIPT_EXECUTE_FLAG: Final[str] = "-e"
 class AppleScriptExecutor:
     executable: str = OSASCRIPT_EXECUTABLE
 
-    def run(self, script: str) -> str:
+    def execute(self, script: str) -> str:
         if not script.strip():
             raise ValueError("AppleScript cannot be empty.")
 
