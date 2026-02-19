@@ -5,9 +5,9 @@ import math
 import re
 from collections.abc import Mapping
 from operator import itemgetter
-from typing import Protocol, cast, runtime_checkable
+from typing import Final, Protocol, TypeAlias, TypeVar, cast, overload, runtime_checkable
 
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from openmac._internal.sdef.types import (
     Date,
@@ -21,6 +21,11 @@ from openmac._internal.sdef.types import (
 
 RECORD_IDENTIFIER_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 CYCLE_ERROR_MESSAGE = "Cycle detected while serializing AppleScript value."
+_NUMBER_PATTERN = re.compile(r"-?(?:[0-9]+\.[0-9]+|[0-9]+)(?:[eE][+-]?[0-9]+)?")
+_COLLECTION_DELIMITERS: Final[frozenset[str]] = frozenset({",", "}"})
+_UNSET: Final = object()
+_NO_MATCH: Final = object()
+_T = TypeVar("_T")
 
 
 @runtime_checkable
@@ -30,6 +35,40 @@ class AppleScriptExpression(Protocol):
 
 def dumps(value: object) -> str:
     return _serialize(value, seen_container_ids=set())
+
+
+@overload
+def loads(source: str) -> object: ...
+
+
+@overload
+def loads(source: str, *, expected: type[_T]) -> _T: ...
+
+
+@overload
+def loads(source: str, *, expected: object) -> object: ...
+
+
+def loads(source: object, *, expected: object = _UNSET) -> object:
+    if not isinstance(source, str):
+        msg = "AppleScript source must be str."
+        raise TypeError(msg)
+
+    parser = _ExpressionParser(source=source, allow_raw_expression=expected is not _UNSET)
+    parsed = parser.parse()
+
+    if expected is _UNSET:
+        return _materialize_untyped(parsed)
+
+    try:
+        return TypeAdapter(expected).validate_python(
+            _materialize_typed_input(parsed),
+            by_alias=True,
+            by_name=False,
+        )
+    except ValidationError as exc:
+        msg = "AppleScript value does not match expected type."
+        raise TypeError(msg) from exc
 
 
 def _serialize(value: object, seen_container_ids: set[int]) -> str:
@@ -200,3 +239,338 @@ def _track_container(value: object, seen_container_ids: set[int]) -> int:
         raise ValueError(CYCLE_ERROR_MESSAGE)
     seen_container_ids.add(container_id)
     return container_id
+
+
+@dataclasses.dataclass(frozen=True)
+class _PosixFileLiteral:
+    path: str
+
+
+ParsedAppleScriptValue: TypeAlias = (
+    bool
+    | int
+    | float
+    | str
+    | list["ParsedAppleScriptValue"]
+    | dict[str, "ParsedAppleScriptValue"]
+    | _PosixFileLiteral
+    | None
+)
+
+
+@dataclasses.dataclass(slots=True)
+class _ExpressionParser:
+    source: str
+    allow_raw_expression: bool
+    index: int = 0
+
+    def parse(self) -> ParsedAppleScriptValue:
+        self._skip_whitespace()
+        value = self._parse_value(delimiters=frozenset())
+        self._skip_whitespace()
+        if not self._is_end():
+            raise self._value_error("Unexpected trailing content.")
+        return value
+
+    def _parse_value(self, *, delimiters: frozenset[str]) -> ParsedAppleScriptValue:
+        self._skip_whitespace()
+        if self._is_end():
+            raise self._value_error("Unexpected end of input.")
+
+        current_char = self._peek_char()
+        if current_char == "{":
+            return self._parse_braced_value()
+        if current_char == '"':
+            return self._parse_string_expression()
+
+        literal_parsers = (
+            self._try_parse_posix_file,
+            self._try_parse_missing_value,
+            self._try_parse_boolean,
+            self._try_parse_number,
+        )
+        parsed_value: object = _NO_MATCH
+        for parse_literal in literal_parsers:
+            parsed_value = parse_literal(delimiters=delimiters)
+            if parsed_value is not _NO_MATCH:
+                break
+        if parsed_value is not _NO_MATCH:
+            return cast("ParsedAppleScriptValue", parsed_value)
+
+        if self.allow_raw_expression:
+            return self._parse_raw_expression(delimiters=delimiters)
+
+        if current_char in delimiters:
+            raise self._value_error("Expected AppleScript value.")
+
+        msg = "Raw AppleScript expression requires 'expected'."
+        raise self._value_error(msg)
+
+    def _parse_braced_value(self) -> ParsedAppleScriptValue:
+        self._consume_character("{")
+        self._skip_whitespace()
+
+        if self._is_end():
+            raise self._value_error("Unexpected end of input.")
+
+        if self._consume_if("}"):
+            return []
+
+        if self._looks_like_record():
+            return self._parse_record()
+        return self._parse_list()
+
+    def _parse_list(self) -> list[ParsedAppleScriptValue]:
+        items: list[ParsedAppleScriptValue] = []
+        while True:
+            items.append(self._parse_value(delimiters=_COLLECTION_DELIMITERS))
+            self._skip_whitespace()
+
+            if self._consume_if("}"):
+                return items
+            if not self._consume_if(","):
+                raise self._value_error("Expected ',' or '}' after list item.")
+
+            self._skip_whitespace()
+            if self._is_end() or self._peek_char() == "}":
+                raise self._value_error("Trailing comma in list.")
+
+    def _parse_record(self) -> dict[str, ParsedAppleScriptValue]:
+        items: dict[str, ParsedAppleScriptValue] = {}
+        item_index = 0
+
+        while True:
+            key = self._parse_record_key(item_index=item_index)
+            self._skip_whitespace()
+            if not self._consume_if(":"):
+                msg = f"Expected ':' after record key at item {item_index}."
+                raise self._value_error(msg)
+
+            self._skip_whitespace()
+            items[key] = self._parse_value(delimiters=_COLLECTION_DELIMITERS)
+            item_index += 1
+            self._skip_whitespace()
+
+            if self._consume_if("}"):
+                return items
+            if not self._consume_if(","):
+                raise self._value_error("Expected ',' or '}' after record item.")
+
+            self._skip_whitespace()
+            if self._is_end() or self._peek_char() == "}":
+                raise self._value_error("Trailing comma in record.")
+
+    def _looks_like_record(self) -> bool:
+        current_char = self._peek_char()
+        if current_char == "|":
+            closing_index = self.source.find("|", self.index + 1)
+            if closing_index == -1:
+                raise self._value_error("Unterminated pipe label in record key.")
+            probe_index = self._skip_whitespace_from(closing_index + 1)
+            return probe_index < len(self.source) and self.source[probe_index] == ":"
+
+        if not _is_identifier_start_char(current_char):
+            return False
+
+        probe_index = self.index + 1
+        while probe_index < len(self.source) and _is_identifier_part_char(self.source[probe_index]):
+            probe_index += 1
+        probe_index = self._skip_whitespace_from(probe_index)
+        return probe_index < len(self.source) and self.source[probe_index] == ":"
+
+    def _parse_record_key(self, *, item_index: int) -> str:
+        key_position = self.index
+        if self._is_end():
+            msg = f"Invalid record key at item {item_index}."
+            raise self._value_error(msg, position=key_position)
+
+        current_char = self._peek_char()
+        if current_char == "|":
+            self.index += 1
+            key_start = self.index
+            closing_index = self.source.find("|", key_start)
+            if closing_index == -1:
+                msg = f"Invalid record key at item {item_index}: missing closing '|'."
+                raise self._value_error(msg, position=key_position)
+            key = self.source[key_start:closing_index]
+            self.index = closing_index + 1
+            return key
+
+        if not _is_identifier_start_char(current_char):
+            msg = f"Invalid record key at item {item_index}: expected identifier or pipe label."
+            raise self._value_error(msg, position=key_position)
+
+        start = self.index
+        self.index += 1
+        while self.index < len(self.source) and _is_identifier_part_char(self.source[self.index]):
+            self.index += 1
+        return self.source[start : self.index]
+
+    def _parse_string_expression(self) -> str:
+        parts = [self._parse_string_literal()]
+
+        while True:
+            self._skip_whitespace()
+            if not self._consume_if("&"):
+                return '"'.join(parts)
+
+            self._skip_whitespace()
+            if not self.source.startswith("quote", self.index):
+                raise self._value_error("Expected 'quote' in string concatenation.")
+            self.index += len("quote")
+            self._skip_whitespace()
+            if not self._consume_if("&"):
+                raise self._value_error("Expected '&' after 'quote' in string concatenation.")
+            self._skip_whitespace()
+            parts.append(self._parse_string_literal())
+
+    def _parse_string_literal(self) -> str:
+        self._consume_character('"')
+        literal_start = self.index
+        closing_index = self.source.find('"', literal_start)
+        if closing_index == -1:
+            raise self._value_error("Unterminated string literal.", position=literal_start - 1)
+
+        self.index = closing_index + 1
+        return self.source[literal_start:closing_index]
+
+    def _try_parse_missing_value(self, *, delimiters: frozenset[str]) -> object:
+        keyword = "missing value"
+        if not self.source.startswith(keyword, self.index):
+            return _NO_MATCH
+
+        token_end = self.index + len(keyword)
+        if not self._is_value_terminated(token_end, delimiters):
+            return _NO_MATCH
+
+        self.index = token_end
+        return None
+
+    def _try_parse_boolean(self, *, delimiters: frozenset[str]) -> object:
+        if self.source.startswith("true", self.index):
+            token_end = self.index + len("true")
+            if self._is_value_terminated(token_end, delimiters):
+                self.index = token_end
+                return True
+
+        if self.source.startswith("false", self.index):
+            token_end = self.index + len("false")
+            if self._is_value_terminated(token_end, delimiters):
+                self.index = token_end
+                return False
+
+        return _NO_MATCH
+
+    def _try_parse_number(self, *, delimiters: frozenset[str]) -> object:
+        match = _NUMBER_PATTERN.match(self.source, self.index)
+        if match is None:
+            return _NO_MATCH
+
+        token_end = match.end()
+        if not self._is_value_terminated(token_end, delimiters):
+            return _NO_MATCH
+
+        token = match.group(0)
+        self.index = token_end
+        if "." in token or "e" in token or "E" in token:
+            return float(token)
+        return int(token)
+
+    def _try_parse_posix_file(self, *, delimiters: frozenset[str]) -> object:
+        keyword = "POSIX file"
+        if not self.source.startswith(keyword, self.index):
+            return _NO_MATCH
+
+        token_end = self.index + len(keyword)
+        if token_end >= len(self.source) or not self.source[token_end].isspace():
+            return _NO_MATCH
+
+        self.index = self._skip_whitespace_from(token_end)
+        if self._is_end() or self._peek_char() != '"':
+            raise self._value_error("Expected string expression after 'POSIX file'.")
+
+        path = self._parse_string_expression()
+        if not self._is_value_terminated(self.index, delimiters):
+            raise self._value_error("Unexpected content after POSIX file literal.")
+        return _PosixFileLiteral(path=path)
+
+    def _parse_raw_expression(self, *, delimiters: frozenset[str]) -> str:
+        expression_start = self.index
+        while not self._is_end():
+            current_char = self._peek_char()
+            if current_char in delimiters:
+                break
+            if current_char == '"':
+                self._parse_string_literal()
+                continue
+            self.index += 1
+
+        expression = self.source[expression_start : self.index].strip()
+        if not expression:
+            raise self._value_error("Expected AppleScript expression.")
+        return expression
+
+    def _is_value_terminated(self, token_end: int, delimiters: frozenset[str]) -> bool:
+        probe_index = self._skip_whitespace_from(token_end)
+        if probe_index >= len(self.source):
+            return True
+        return self.source[probe_index] in delimiters
+
+    def _consume_if(self, token: str) -> bool:
+        if self.source.startswith(token, self.index):
+            self.index += len(token)
+            return True
+        return False
+
+    def _consume_character(self, token: str) -> None:
+        if self._consume_if(token):
+            return
+        msg = f"Expected {token!r}."
+        raise self._value_error(msg)
+
+    def _peek_char(self) -> str:
+        return self.source[self.index]
+
+    def _skip_whitespace(self) -> None:
+        self.index = self._skip_whitespace_from(self.index)
+
+    def _skip_whitespace_from(self, start: int) -> int:
+        index = start
+        while index < len(self.source) and self.source[index].isspace():
+            index += 1
+        return index
+
+    def _is_end(self) -> bool:
+        return self.index >= len(self.source)
+
+    def _value_error(self, message: str, *, position: int | None = None) -> ValueError:
+        cursor = self.index if position is None else position
+        return ValueError(f"{message} (position {cursor}).")
+
+
+def _materialize_untyped(value: ParsedAppleScriptValue) -> object:
+    if isinstance(value, _PosixFileLiteral):
+        return File(value.path)
+    if isinstance(value, list):
+        return [_materialize_untyped(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _materialize_untyped(item) for key, item in value.items()}
+    return value
+
+
+def _materialize_typed_input(value: ParsedAppleScriptValue) -> object:
+    if isinstance(value, _PosixFileLiteral):
+        return value.path
+    if isinstance(value, list):
+        return [_materialize_typed_input(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _materialize_typed_input(item) for key, item in value.items()}
+    return value
+
+
+def _is_identifier_start_char(char: str) -> bool:
+    return char == "_" or "A" <= char <= "Z" or "a" <= char <= "z"
+
+
+def _is_identifier_part_char(char: str) -> bool:
+    return _is_identifier_start_char(char) or "0" <= char <= "9"
