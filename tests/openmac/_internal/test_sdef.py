@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from openmac._internal.context import Context
 from openmac._internal.manager import Manager
-from openmac._internal.models import SDEFCommand, SDEFModel
+from openmac._internal.models import SDEFClass, SDEFCommand
 from openmac._internal.runner import AppleScriptRunner
 from openmac._internal.sdef import (
     Date,
@@ -28,7 +28,7 @@ class SdefPayload(BaseModel):
     rectangle: Rectangle
 
 
-class DemoSdefModel(SDEFModel):
+class DemoSdefClass(SDEFClass):
     value: int
 
 
@@ -57,7 +57,7 @@ def test_sdef_custom_types_validate_with_pydantic() -> None:
 
 
 def test_sdef_model_accepts_context_assignment() -> None:
-    model = DemoSdefModel.model_validate({"value": 7})
+    model = DemoSdefClass.model_validate({"value": 7})
     context = Context(runner=AppleScriptRunner())
 
     model._context = context

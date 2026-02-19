@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from openmac._internal.context import Context
 
 
-class SDEFModel(BaseModel):
+class SDEFClass(BaseModel):
     _context: Context
 
 

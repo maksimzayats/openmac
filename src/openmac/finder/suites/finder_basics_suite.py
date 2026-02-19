@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef as sdef_types
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFCommand, SDEFModel
+from openmac._internal.models import SDEFClass, SDEFCommand
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Finder Basics",
@@ -18,7 +18,7 @@ SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
 )
 
 
-class Application(SDEFModel):
+class Application(SDEFClass):
     """The Finder"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(

@@ -10,7 +10,7 @@ from pydantic import Field
 
 import openmac._internal.sdef as sdef_types
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFCommand, SDEFModel
+from openmac._internal.models import SDEFClass, SDEFCommand
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Type Definitions",
@@ -20,7 +20,7 @@ SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
 )
 
 
-class Preferences(SDEFModel):
+class Preferences(SDEFClass):
     """The Finder Preferences"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -248,7 +248,7 @@ class Preferences(SDEFModel):
     )
 
 
-class Label(SDEFModel):
+class Label(SDEFClass):
     """(NOT AVAILABLE YET) A Finder label (name and color)"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -304,7 +304,7 @@ class Label(SDEFModel):
     )
 
 
-class IconFamily(SDEFModel):
+class IconFamily(SDEFClass):
     """(NOT AVAILABLE YET) A family of icons"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -462,7 +462,7 @@ class IconFamily(SDEFModel):
     )
 
 
-class IconViewOptions(SDEFModel):
+class IconViewOptions(SDEFClass):
     """the icon view options"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -592,7 +592,7 @@ class IconViewOptions(SDEFModel):
     )
 
 
-class ColumnViewOptions(SDEFModel):
+class ColumnViewOptions(SDEFClass):
     """the column view options"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -680,7 +680,7 @@ class ColumnViewOptions(SDEFModel):
     )
 
 
-class ListViewOptions(SDEFModel):
+class ListViewOptions(SDEFClass):
     """the list view options"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -784,7 +784,7 @@ class ListViewOptions(SDEFModel):
     )
 
 
-class Column(SDEFModel):
+class Column(SDEFClass):
     """a column of a list view"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -888,7 +888,7 @@ class Column(SDEFModel):
     visible: bool = Field(..., alias="visible", description="is this column visible")
 
 
-class AliasList(SDEFModel):
+class AliasList(SDEFClass):
     """A list of aliases. Use 'as alias list' when a list of aliases is needed (instead of a list of file system item references)."""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(

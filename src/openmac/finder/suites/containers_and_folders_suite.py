@@ -10,7 +10,7 @@ from pydantic import Field
 
 import openmac._internal.sdef as sdef_types
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFCommand, SDEFModel
+from openmac._internal.models import SDEFClass, SDEFCommand
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Containers and folders",
@@ -20,7 +20,7 @@ SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
 )
 
 
-class Container(SDEFModel):
+class Container(SDEFClass):
     """An item that contains other items"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -129,7 +129,7 @@ class Container(SDEFModel):
     )
 
 
-class ComputerObject(SDEFModel):
+class ComputerObject(SDEFClass):
     """the Computer location (as in Go > Computer)"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(

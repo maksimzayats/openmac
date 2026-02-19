@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef as sdef_types
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFCommand, SDEFModel
+from openmac._internal.models import SDEFClass, SDEFCommand
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Standard Suite",
@@ -18,7 +18,7 @@ SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
 )
 
 
-class Application(SDEFModel):
+class Application(SDEFClass):
     """The application\'s top-level scripting object.\n\nSDEF extras: {"cocoas": [{"class": "BrowserCrApplication"}]}"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -91,7 +91,7 @@ class Application(SDEFModel):
     version: str = Field(..., alias="version", description="The version of the application.")
 
 
-class Window(SDEFModel):
+class Window(SDEFClass):
     """A window.\n\nSDEF extras: {"cocoas": [{"class": "WindowAppleScript"}]}"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(

@@ -923,13 +923,13 @@ def class_base_name(
     lookups: LookupTables,
 ) -> str:
     if class_definition.inherits is None:
-        return "SDEFModel"
+        return "SDEFClass"
     inherited_name = normalize_name(class_definition.inherits)
     inherited_definition = lookups.class_by_name.get(inherited_name)
     if inherited_definition is None:
-        return "SDEFModel"
+        return "SDEFClass"
     if inherited_definition.module_name != module_name:
-        return "SDEFModel"
+        return "SDEFClass"
     return inherited_definition.python_name
 
 
@@ -966,7 +966,7 @@ def class_extension_lines(
         return ([], None)
 
     python_class_name = class_name(class_extension.extends)
-    parent_class_name = "SDEFModel"
+    parent_class_name = "SDEFClass"
     import_module: str | None = None
     parent_definition = lookups.class_by_name.get(normalize_name(class_extension.extends))
     if parent_definition is not None:
@@ -1121,7 +1121,7 @@ def generate_suite_module(
         "",
         "import openmac._internal.sdef as sdef_types",
         "import openmac._internal.sdef_meta as sdef_meta",
-        "from openmac._internal.models import SDEFCommand, SDEFModel",
+        "from openmac._internal.models import SDEFClass, SDEFCommand",
     ])
 
     for imported_module in sorted(cross_module_imports):
