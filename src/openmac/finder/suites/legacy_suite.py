@@ -9,7 +9,7 @@ from pydantic import Field
 import openmac._internal.sdef as sdef_types
 import openmac.finder.suites.finder_basics_suite as finder_basics_suite_module
 from openmac._internal import sdef_meta
-from openmac._internal.models import MacModel
+from openmac._internal.models import SDEFModel
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Legacy suite",
@@ -19,7 +19,7 @@ SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
 )
 
 
-class Process(MacModel):
+class Process(SDEFModel):
     """A process running on this computer"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(

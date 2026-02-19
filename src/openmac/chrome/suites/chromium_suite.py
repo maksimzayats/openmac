@@ -9,7 +9,7 @@ from pydantic import Field
 import openmac._internal.sdef as sdef_types
 import openmac.chrome.suites.standard_suite as standard_suite_module
 from openmac._internal import sdef_meta
-from openmac._internal.models import MacModel
+from openmac._internal.models import SDEFModel
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Chromium Suite",
@@ -19,7 +19,7 @@ SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
 )
 
 
-class Tab(MacModel):
+class Tab(SDEFModel):
     """A tab.\n\nSDEF extras: {"cocoas": [{"class": "TabAppleScript"}]}"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -143,7 +143,7 @@ class Tab(MacModel):
     loading: bool = Field(..., alias="loading", description="Is loading?")
 
 
-class BookmarkFolder(MacModel):
+class BookmarkFolder(SDEFModel):
     """A bookmarks folder that contains other bookmarks folder and bookmark items.\n\nSDEF extras: {"cocoas": [{"class": "BookmarkFolderAppleScript"}]}"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
@@ -214,7 +214,7 @@ class BookmarkFolder(MacModel):
     )
 
 
-class BookmarkItem(MacModel):
+class BookmarkItem(SDEFModel):
     """An item consists of an URL and the title of a bookmark\n\nSDEF extras: {"cocoas": [{"class": "BookmarkItemAppleScript"}]}"""
 
     SDEF_META: ClassVar[sdef_meta.ClassMeta] = sdef_meta.ClassMeta(
