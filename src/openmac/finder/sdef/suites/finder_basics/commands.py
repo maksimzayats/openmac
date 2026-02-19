@@ -21,6 +21,8 @@ class OpenVirtualLocationCommand(SDEFCommand):
         hidden=True,
         bundle_id="com.apple.finder",
         direct_parameter_type="text",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(
@@ -51,6 +53,8 @@ class CopyCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type=None,
+        has_direct_parameter=False,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(),
@@ -67,6 +71,8 @@ class SortCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="by",
@@ -76,6 +82,7 @@ class SortCommand(SDEFCommand):
                 optional=None,
                 hidden=None,
                 requires_access=None,
+                field_name="by",
             ),
         ),
         result=sdef_meta.ResultMeta(

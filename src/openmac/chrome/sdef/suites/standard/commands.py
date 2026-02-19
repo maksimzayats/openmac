@@ -21,6 +21,8 @@ class SaveCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="in",
@@ -30,6 +32,7 @@ class SaveCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="in_",
             ),
             sdef_meta.ParameterMeta(
                 name="as",
@@ -39,6 +42,7 @@ class SaveCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="as_",
             ),
         ),
         result=None,
@@ -77,6 +81,8 @@ class OpenCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type="file",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(),
@@ -98,6 +104,8 @@ class CloseCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(
@@ -123,6 +131,8 @@ class QuitCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type=None,
+        has_direct_parameter=False,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(),
@@ -139,6 +149,8 @@ class CountCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="each",
@@ -148,6 +160,7 @@ class CountCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="each",
             ),
         ),
         result=sdef_meta.ResultMeta(
@@ -166,7 +179,7 @@ class CountCommand(SDEFCommand):
         ...,
         description="the object whose elements are to be counted",
     )
-    each: str | None = Field(
+    each: sdef_types.Specifier | None = Field(
         default=None,
         alias="each",
         description="The class of objects to be counted.",
@@ -184,6 +197,8 @@ class DeleteCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(
@@ -206,6 +221,8 @@ class DuplicateCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="to",
@@ -215,6 +232,7 @@ class DuplicateCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="to",
             ),
             sdef_meta.ParameterMeta(
                 name="with properties",
@@ -224,6 +242,7 @@ class DuplicateCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="with_properties",
             ),
         ),
         result=sdef_meta.ResultMeta(
@@ -263,6 +282,8 @@ class ExistsCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type="any",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=sdef_meta.ResultMeta(
             type="boolean",
@@ -289,6 +310,8 @@ class MakeCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type=None,
+        has_direct_parameter=False,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="new",
@@ -298,6 +321,7 @@ class MakeCommand(SDEFCommand):
                 optional=None,
                 hidden=None,
                 requires_access=None,
+                field_name="new",
             ),
             sdef_meta.ParameterMeta(
                 name="at",
@@ -307,6 +331,7 @@ class MakeCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="at",
             ),
             sdef_meta.ParameterMeta(
                 name="with data",
@@ -316,6 +341,7 @@ class MakeCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="with_data",
             ),
             sdef_meta.ParameterMeta(
                 name="with properties",
@@ -325,6 +351,7 @@ class MakeCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="with_properties",
             ),
         ),
         result=sdef_meta.ResultMeta(
@@ -339,7 +366,7 @@ class MakeCommand(SDEFCommand):
             ),
         ),
     )
-    new: str = Field(
+    new: sdef_types.Specifier = Field(
         ...,
         alias="new",
         description="The class of the new object.",
@@ -375,6 +402,8 @@ class MoveCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="to",
@@ -384,6 +413,7 @@ class MoveCommand(SDEFCommand):
                 optional=None,
                 hidden=None,
                 requires_access=None,
+                field_name="to",
             ),
         ),
         result=sdef_meta.ResultMeta(
@@ -417,6 +447,8 @@ class PrintCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(),

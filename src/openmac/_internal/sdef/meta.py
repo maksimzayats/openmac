@@ -23,6 +23,7 @@ class ParameterMeta:
     optional: bool | None
     hidden: bool | None
     requires_access: str | None
+    field_name: str | None = None
 
 
 @dataclass(slots=True, frozen=True)
@@ -40,6 +41,8 @@ class CommandMeta:
     hidden: bool | None
     bundle_id: str
     direct_parameter_type: str | None
+    has_direct_parameter: bool = False
+    direct_parameter_optional: bool | None = None
     parameters: tuple[ParameterMeta, ...] = field(default_factory=tuple)
     result: ResultMeta | None = None
     access_groups: tuple[AccessGroupMeta, ...] = field(default_factory=tuple)

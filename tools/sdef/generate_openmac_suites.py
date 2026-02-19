@@ -10,6 +10,7 @@ import re
 import shutil
 import sys
 from dataclasses import dataclass
+from itertools import starmap
 from pathlib import Path
 from typing import Final, cast
 
@@ -125,6 +126,13 @@ class LookupTables:
     class_by_name: dict[str, NamedDefinition]
     enum_by_name: dict[str, NamedDefinition]
     value_type_by_name: dict[str, NamedDefinition]
+
+
+@dataclass(frozen=True, slots=True)
+class CommandParameterSpec:
+    parameter: Parameter
+    field_name: str
+    annotation: str
 
 
 def parse_args() -> argparse.Namespace:
@@ -332,6 +340,8 @@ def resolve_annotation(
     type_elements: list[TypeElement],
     current_suite_module: str,
     lookups: LookupTables,
+    *,
+    map_command_type_to_specifier: bool = False,
 ) -> str:
     selected_type = raw_type
     list_type = False
@@ -341,7 +351,14 @@ def resolve_annotation(
         selected_type = selected_element.type
         list_type = selected_element.list == "yes"
 
-    base_type = resolve_base_type(selected_type, current_suite_module, lookups)
+    if map_command_type_to_specifier and selected_type is not None:
+        normalized_selected_type = normalize_name(selected_type)
+        if normalized_selected_type == "type":
+            base_type = "sdef_types.Specifier"
+        else:
+            base_type = resolve_base_type(selected_type, current_suite_module, lookups)
+    else:
+        base_type = resolve_base_type(selected_type, current_suite_module, lookups)
     if list_type:
         return f"list[{base_type}]"
     return base_type
@@ -461,7 +478,7 @@ def command_direct_parameter_type(command: Command) -> str | None:
     return sanitize_optional_text(selected_type)
 
 
-def parameter_meta_expr(parameter: Parameter) -> str:
+def parameter_meta_expr(parameter: Parameter, field_name: str) -> str:
     parameter_name = sanitize_optional_text(parameter.name) or "parameter"
     return (
         "sdef_meta.ParameterMeta("
@@ -471,7 +488,8 @@ def parameter_meta_expr(parameter: Parameter) -> str:
         f"description={render_py(sanitize_optional_text(parameter.description))}, "
         f"optional={render_py(to_bool(parameter.optional))}, "
         f"hidden={render_py(to_bool(parameter.hidden))}, "
-        f"requires_access={render_py(parameter.requires_access)}"
+        f"requires_access={render_py(parameter.requires_access)}, "
+        f"field_name={render_py(field_name)}"
         ")"
     )
 
@@ -575,11 +593,20 @@ def class_extension_meta_expr(class_extension: ClassExtension) -> str:
     )
 
 
-def command_meta_expr(command: Command, bundle_id: str) -> str:
+def command_meta_expr(
+    command: Command,
+    bundle_id: str,
+    parameter_field_names: list[str],
+    *,
+    has_direct_parameter: bool,
+    direct_parameter_optional: bool | None,
+) -> str:
     command_name_value = sanitize_optional_text(command.name) or "command"
-    parameter_expr = tuple_expression([
-        parameter_meta_expr(parameter) for parameter in command.parameters
-    ])
+    if len(command.parameters) != len(parameter_field_names):
+        msg = f"Metadata generation mismatch for command {command_name_value!r}: parameter count mismatch."
+        raise ValueError(msg)
+    parameter_pairs = zip(command.parameters, parameter_field_names, strict=True)
+    parameter_expr = tuple_expression(list(starmap(parameter_meta_expr, parameter_pairs)))
     result_expr = result_meta_expr(command.result) if command.result is not None else "None"
     access_groups = access_group_tuples_from_command(command)
     return (
@@ -590,6 +617,8 @@ def command_meta_expr(command: Command, bundle_id: str) -> str:
         f"hidden={render_py(to_bool(command.hidden))}, "
         f"bundle_id={render_py(bundle_id)}, "
         f"direct_parameter_type={render_py(command_direct_parameter_type(command))}, "
+        f"has_direct_parameter={render_py(has_direct_parameter)}, "
+        f"direct_parameter_optional={render_py(direct_parameter_optional)}, "
         f"parameters={parameter_expr}, "
         f"result={result_expr}, "
         f"access_groups={render_py(access_groups)}"
@@ -841,6 +870,33 @@ def first_direct_parameter(command: Command) -> DirectParameter | None:
     return None
 
 
+def command_parameter_specs(
+    command: Command,
+    module_name: str,
+    lookups: LookupTables,
+    in_use_names: set[str],
+) -> list[CommandParameterSpec]:
+    specs: list[CommandParameterSpec] = []
+    for parameter in command.parameters:
+        raw_name = parameter.name or "parameter"
+        field_name = unique_name(ensure_identifier(raw_name), in_use_names)
+        annotation = resolve_annotation(
+            parameter.type,
+            parameter.type_elements,
+            module_name,
+            lookups,
+            map_command_type_to_specifier=True,
+        )
+        specs.append(
+            CommandParameterSpec(
+                parameter=parameter,
+                field_name=field_name,
+                annotation=annotation,
+            ),
+        )
+    return specs
+
+
 def command_class_lines(
     command: Command,
     module_name: str,
@@ -850,18 +906,24 @@ def command_class_lines(
 ) -> list[str]:
     lines = [f"class {command_class}(SDEFCommand):"]
     lines.append(f"    {render_py(build_docstring(command.description, command_extras(command)))}")
-    lines.append(
-        f"    SDEF_META: ClassVar[sdef_meta.CommandMeta] = {command_meta_expr(command, bundle_id)}",
-    )
 
     in_use_names: set[str] = set()
     direct_parameter = first_direct_parameter(command)
+    if direct_parameter is not None:
+        in_use_names.add("direct_parameter")
+    parameter_specs = command_parameter_specs(command, module_name, lookups, in_use_names)
+    lines.append(
+        "    SDEF_META: ClassVar[sdef_meta.CommandMeta] = "
+        f"{command_meta_expr(command, bundle_id, [spec.field_name for spec in parameter_specs], has_direct_parameter=direct_parameter is not None, direct_parameter_optional=to_bool(direct_parameter.optional) if direct_parameter is not None else None)}",
+    )
+
     if direct_parameter is not None:
         direct_annotation = resolve_annotation(
             direct_parameter.type,
             direct_parameter.type_elements,
             module_name,
             lookups,
+            map_command_type_to_specifier=True,
         )
         lines.append(
             command_field_line(
@@ -872,25 +934,17 @@ def command_class_lines(
                 schema_extra=direct_parameter_field_extra(direct_parameter),
             ),
         )
-        in_use_names.add("direct_parameter")
 
-    for parameter in command.parameters:
-        raw_name = parameter.name or "parameter"
-        parameter_name = unique_name(ensure_identifier(raw_name), in_use_names)
-        parameter_annotation = resolve_annotation(
-            parameter.type,
-            parameter.type_elements,
-            module_name,
-            lookups,
-        )
+    for parameter_spec in parameter_specs:
+        raw_name = parameter_spec.parameter.name or "parameter"
         lines.append(
             command_field_line(
-                name=parameter_name,
-                annotation=parameter_annotation,
-                description=sanitize_optional_text(parameter.description),
-                optional=parameter.optional == "yes",
+                name=parameter_spec.field_name,
+                annotation=parameter_spec.annotation,
+                description=sanitize_optional_text(parameter_spec.parameter.description),
+                optional=parameter_spec.parameter.optional == "yes",
                 alias=sanitize_text(raw_name),
-                schema_extra=parameter_field_extra(parameter),
+                schema_extra=parameter_field_extra(parameter_spec.parameter),
             ),
         )
 

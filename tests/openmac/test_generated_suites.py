@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import importlib
-from typing import Any, Final, cast
+from typing import Any, Final, cast, get_args, get_origin
 
 import pytest
 
+import openmac._internal.sdef.types as sdef_types
 from openmac._internal.sdef.base import SDEFCommand
 
 SUITE_PACKAGES: Final[tuple[tuple[str, str], ...]] = (
@@ -80,6 +81,26 @@ SUITE_PACKAGE_MODULES_WITH_REMOVED_EXPORTS: Final[tuple[tuple[str, str], ...]] =
 )
 
 
+def command_classes_from_module(module_name: str) -> list[type[SDEFCommand]]:
+    module = importlib.import_module(module_name)
+    return [
+        candidate
+        for candidate in module.__dict__.values()
+        if isinstance(candidate, type)
+        and issubclass(candidate, SDEFCommand)
+        and candidate is not SDEFCommand
+    ]
+
+
+def annotation_contains_specifier(annotation: object) -> bool:
+    if annotation is sdef_types.Specifier:
+        return True
+    origin = get_origin(annotation)
+    if origin is None:
+        return False
+    return any(annotation_contains_specifier(argument) for argument in get_args(annotation))
+
+
 @pytest.mark.parametrize("module_name", GENERATED_MODULES)
 def test_generated_suite_submodules_import(module_name: str) -> None:
     module = importlib.import_module(module_name)
@@ -88,17 +109,10 @@ def test_generated_suite_submodules_import(module_name: str) -> None:
 
 @pytest.mark.parametrize("module_name", COMMAND_MODULES)
 def test_generated_suite_commands_are_not_callable(module_name: str) -> None:
-    module = importlib.import_module(module_name)
     expected_bundle_id = (
         "com.google.Chrome" if module_name.startswith("openmac.chrome.") else "com.apple.finder"
     )
-    command_classes = [
-        candidate
-        for candidate in module.__dict__.values()
-        if isinstance(candidate, type)
-        and issubclass(candidate, SDEFCommand)
-        and candidate is not SDEFCommand
-    ]
+    command_classes = command_classes_from_module(module_name)
     for command_class in command_classes:
         assert issubclass(command_class, SDEFCommand)
         assert cast("Any", command_class).SDEF_META.bundle_id == expected_bundle_id
@@ -110,6 +124,25 @@ def test_generated_suite_commands_are_not_callable(module_name: str) -> None:
         }
         command_instance = cast("Any", command_class).model_construct(**required_values)
         assert not callable(command_instance)
+
+
+@pytest.mark.parametrize("module_name", COMMAND_MODULES)
+def test_generated_command_parameter_meta_field_names_match_model_fields(module_name: str) -> None:
+    for command_class in command_classes_from_module(module_name):
+        for parameter_meta in cast("Any", command_class).SDEF_META.parameters:
+            assert parameter_meta.field_name is not None
+            assert parameter_meta.field_name in command_class.model_fields
+
+
+@pytest.mark.parametrize("module_name", COMMAND_MODULES)
+def test_generated_type_parameters_are_typed_as_specifier(module_name: str) -> None:
+    for command_class in command_classes_from_module(module_name):
+        for parameter_meta in cast("Any", command_class).SDEF_META.parameters:
+            if parameter_meta.type != "type":
+                continue
+            assert parameter_meta.field_name is not None
+            annotation = command_class.model_fields[parameter_meta.field_name].annotation
+            assert annotation_contains_specifier(annotation)
 
 
 @pytest.mark.parametrize(

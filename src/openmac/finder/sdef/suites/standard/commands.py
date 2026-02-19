@@ -21,6 +21,8 @@ class OpenCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="using",
@@ -30,6 +32,7 @@ class OpenCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="using",
             ),
             sdef_meta.ParameterMeta(
                 name="with properties",
@@ -39,6 +42,7 @@ class OpenCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="with_properties",
             ),
         ),
         result=None,
@@ -67,6 +71,8 @@ class PrintCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="with properties",
@@ -76,6 +82,7 @@ class PrintCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="with_properties",
             ),
         ),
         result=None,
@@ -99,6 +106,8 @@ class QuitCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type=None,
+        has_direct_parameter=False,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(),
@@ -115,6 +124,8 @@ class ActivateCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=True,
         parameters=(),
         result=None,
         access_groups=(),
@@ -135,6 +146,8 @@ class CloseCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(),
@@ -152,6 +165,8 @@ class CountCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="each",
@@ -161,6 +176,7 @@ class CountCommand(SDEFCommand):
                 optional=None,
                 hidden=None,
                 requires_access=None,
+                field_name="each",
             ),
         ),
         result=sdef_meta.ResultMeta(
@@ -174,7 +190,11 @@ class CountCommand(SDEFCommand):
         ...,
         description="the object whose elements are to be counted",
     )
-    each: str = Field(..., alias="each", description="the class of the elements to be counted")
+    each: sdef_types.Specifier = Field(
+        ...,
+        alias="each",
+        description="the class of the elements to be counted",
+    )
 
 
 class DataSizeCommand(SDEFCommand):
@@ -187,6 +207,8 @@ class DataSizeCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="as",
@@ -196,6 +218,7 @@ class DataSizeCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="as_",
             ),
         ),
         result=sdef_meta.ResultMeta(
@@ -209,7 +232,7 @@ class DataSizeCommand(SDEFCommand):
         ...,
         description="the object whose data size is to be returned",
     )
-    as_: str | None = Field(
+    as_: sdef_types.Specifier | None = Field(
         default=None,
         alias="as",
         description="the data type for which the size is calculated",
@@ -226,6 +249,8 @@ class DeleteCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=sdef_meta.ResultMeta(
             type="specifier",
@@ -247,6 +272,8 @@ class DuplicateCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="to",
@@ -256,6 +283,7 @@ class DuplicateCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="to",
             ),
             sdef_meta.ParameterMeta(
                 name="replacing",
@@ -265,6 +293,7 @@ class DuplicateCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="replacing",
             ),
             sdef_meta.ParameterMeta(
                 name="routing suppressed",
@@ -274,6 +303,7 @@ class DuplicateCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="routing_suppressed",
             ),
             sdef_meta.ParameterMeta(
                 name="exact copy",
@@ -283,6 +313,7 @@ class DuplicateCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="exact_copy",
             ),
         ),
         result=sdef_meta.ResultMeta(
@@ -325,6 +356,8 @@ class ExistsCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=sdef_meta.ResultMeta(
             type="boolean",
@@ -346,6 +379,8 @@ class MakeCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type=None,
+        has_direct_parameter=False,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="new",
@@ -355,6 +390,7 @@ class MakeCommand(SDEFCommand):
                 optional=None,
                 hidden=None,
                 requires_access=None,
+                field_name="new",
             ),
             sdef_meta.ParameterMeta(
                 name="at",
@@ -364,6 +400,7 @@ class MakeCommand(SDEFCommand):
                 optional=None,
                 hidden=None,
                 requires_access=None,
+                field_name="at",
             ),
             sdef_meta.ParameterMeta(
                 name="to",
@@ -373,6 +410,7 @@ class MakeCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="to",
             ),
             sdef_meta.ParameterMeta(
                 name="with properties",
@@ -382,6 +420,7 @@ class MakeCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="with_properties",
             ),
         ),
         result=sdef_meta.ResultMeta(
@@ -391,7 +430,7 @@ class MakeCommand(SDEFCommand):
         ),
         access_groups=(),
     )
-    new: str = Field(..., alias="new", description="the class of the new element")
+    new: sdef_types.Specifier = Field(..., alias="new", description="the class of the new element")
     at: sdef_types.LocationSpecifier = Field(
         ...,
         alias="at",
@@ -419,6 +458,8 @@ class MoveCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="to",
@@ -428,6 +469,7 @@ class MoveCommand(SDEFCommand):
                 optional=None,
                 hidden=None,
                 requires_access=None,
+                field_name="to",
             ),
             sdef_meta.ParameterMeta(
                 name="replacing",
@@ -437,6 +479,7 @@ class MoveCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="replacing",
             ),
             sdef_meta.ParameterMeta(
                 name="positioned at",
@@ -446,6 +489,7 @@ class MoveCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="positioned_at",
             ),
             sdef_meta.ParameterMeta(
                 name="routing suppressed",
@@ -455,6 +499,7 @@ class MoveCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="routing_suppressed",
             ),
         ),
         result=sdef_meta.ResultMeta(
@@ -497,6 +542,8 @@ class SelectCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(),

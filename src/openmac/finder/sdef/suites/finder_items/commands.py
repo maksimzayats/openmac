@@ -21,6 +21,8 @@ class CleanUpCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="by",
@@ -30,6 +32,7 @@ class CleanUpCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="by",
             ),
         ),
         result=None,
@@ -53,6 +56,8 @@ class EjectCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=True,
         parameters=(),
         result=None,
         access_groups=(),
@@ -73,6 +78,8 @@ class EmptyCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=True,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="security",
@@ -82,6 +89,7 @@ class EmptyCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="security",
             ),
         ),
         result=None,
@@ -109,6 +117,8 @@ class EraseCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(),
@@ -126,6 +136,8 @@ class RevealCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(),
         result=None,
         access_groups=(),
@@ -143,6 +155,8 @@ class UpdateCommand(SDEFCommand):
         hidden=None,
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
+        has_direct_parameter=True,
+        direct_parameter_optional=None,
         parameters=(
             sdef_meta.ParameterMeta(
                 name="necessity",
@@ -152,6 +166,7 @@ class UpdateCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="necessity",
             ),
             sdef_meta.ParameterMeta(
                 name="registering applications",
@@ -161,6 +176,7 @@ class UpdateCommand(SDEFCommand):
                 optional=True,
                 hidden=None,
                 requires_access=None,
+                field_name="registering_applications",
             ),
         ),
         result=None,
