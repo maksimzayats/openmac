@@ -19,6 +19,7 @@ class OpenCommand(SDEFCommand):
         code="aevtodoc",
         description="Open the specified object(s)",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -67,6 +68,7 @@ class PrintCommand(SDEFCommand):
         code="aevtpdoc",
         description="Print the specified object(s)",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -101,6 +103,7 @@ class QuitCommand(SDEFCommand):
         code="aevtquit",
         description="Quit the Finder",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type=None,
         parameters=(),
         results=(),
@@ -119,6 +122,7 @@ class ActivateCommand(SDEFCommand):
         code="miscactv",
         description="Activate the specified window (or the Finder)",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
         results=(),
@@ -141,6 +145,7 @@ class CloseCommand(SDEFCommand):
         code="coreclos",
         description="Close an object",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
         results=(),
@@ -160,6 +165,7 @@ class CountCommand(SDEFCommand):
         code="corecnte",
         description="Return the number of elements of a particular class within an object",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -199,6 +205,7 @@ class DataSizeCommand(SDEFCommand):
         code="coredsiz",
         description="Return the size in bytes of an object",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -242,6 +249,7 @@ class DeleteCommand(SDEFCommand):
         code="coredelo",
         description="Move an item from its container to the trash",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
         results=(
@@ -267,6 +275,7 @@ class DuplicateCommand(SDEFCommand):
         code="coreclon",
         description="Duplicate one or more object(s)",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -349,6 +358,7 @@ class ExistsCommand(SDEFCommand):
         code="coredoex",
         description="Verify if an object exists",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
         results=(
@@ -374,6 +384,7 @@ class MakeCommand(SDEFCommand):
         code="corecrel",
         description="Make a new element",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type=None,
         parameters=(
             sdef_meta.ParameterMeta(
@@ -451,6 +462,7 @@ class MoveCommand(SDEFCommand):
         code="coremove",
         description="Move object(s) to a new location",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -533,6 +545,7 @@ class SelectCommand(SDEFCommand):
         code="miscslct",
         description="Select the specified object(s)",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
         results=(),

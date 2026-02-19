@@ -19,6 +19,7 @@ class CleanUpCommand(SDEFCommand):
         code="fndrfclu",
         description="Arrange items in window nicely (only applies to open windows in icon view that are not kept arranged)",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -53,6 +54,7 @@ class EjectCommand(SDEFCommand):
         code="fndrejct",
         description="Eject the specified disk(s)",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
         results=(),
@@ -75,6 +77,7 @@ class EmptyCommand(SDEFCommand):
         code="fndrempt",
         description="Empty the trash",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -113,6 +116,7 @@ class EraseCommand(SDEFCommand):
         code="fndrfera",
         description="(NOT AVAILABLE) Erase the specified disk(s)",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
         results=(),
@@ -132,6 +136,7 @@ class RevealCommand(SDEFCommand):
         code="miscmvis",
         description="Bring the specified object(s) into view",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
         results=(),
@@ -151,6 +156,7 @@ class UpdateCommand(SDEFCommand):
         code="fndrfupd",
         description="Update the display of the specified object(s) to match their on-disk representation",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(

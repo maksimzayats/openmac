@@ -19,6 +19,7 @@ class OpenVirtualLocationCommand(SDEFCommand):
         code="fndrovir",
         description="Private event to open a virtual location",
         hidden=True,
+        bundle_id="com.apple.finder",
         direct_parameter_type="text",
         parameters=(),
         results=(),
@@ -51,6 +52,7 @@ class CopyCommand(SDEFCommand):
         code="misccopy",
         description="(NOT AVAILABLE YET) Copy the selected items to the clipboard (the Finder must be the front application)",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type=None,
         parameters=(),
         results=(),
@@ -69,6 +71,7 @@ class SortCommand(SDEFCommand):
         code="DATASORT",
         description="Return the specified object(s) in a sorted list",
         hidden=None,
+        bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(

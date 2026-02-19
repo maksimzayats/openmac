@@ -38,6 +38,7 @@ class CommandMeta:
     code: str | None
     description: str | None
     hidden: bool | None
+    bundle_id: str
     direct_parameter_type: str | None
     parameters: tuple[ParameterMeta, ...] = field(default_factory=tuple)
     results: tuple[ResultMeta, ...] = field(default_factory=tuple)

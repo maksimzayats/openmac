@@ -19,6 +19,7 @@ class SaveCommand(SDEFCommand):
         code="coresave",
         description="Save an object.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -77,6 +78,7 @@ class OpenCommand(SDEFCommand):
         code="aevtodoc",
         description="Open a document.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type="file",
         parameters=(),
         results=(),
@@ -100,6 +102,7 @@ class CloseCommand(SDEFCommand):
         code="coreclos",
         description="Close a window.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
         results=(),
@@ -127,6 +130,7 @@ class QuitCommand(SDEFCommand):
         code="aevtquit",
         description="Quit the application.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type=None,
         parameters=(),
         results=(),
@@ -145,6 +149,7 @@ class CountCommand(SDEFCommand):
         code="corecnte",
         description="Return the number of elements of a particular class within an object.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -194,6 +199,7 @@ class DeleteCommand(SDEFCommand):
         code="coredelo",
         description="Delete an object.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
         results=(),
@@ -218,6 +224,7 @@ class DuplicateCommand(SDEFCommand):
         code="coreclon",
         description="Copy object(s) and put the copies at a new location.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -279,6 +286,7 @@ class ExistsCommand(SDEFCommand):
         code="coredoex",
         description="Verify if an object exists.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type="any",
         parameters=(),
         results=(
@@ -309,6 +317,7 @@ class MakeCommand(SDEFCommand):
         code="corecrel",
         description="Make a new object.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type=None,
         parameters=(
             sdef_meta.ParameterMeta(
@@ -395,6 +404,7 @@ class MoveCommand(SDEFCommand):
         code="coremove",
         description="Move object(s) to a new location.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(
             sdef_meta.ParameterMeta(
@@ -441,6 +451,7 @@ class PrintCommand(SDEFCommand):
         code="aevtpdoc",
         description="Print an object.",
         hidden=None,
+        bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
         results=(),

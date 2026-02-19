@@ -44,11 +44,6 @@ COMMAND_MODULES: Final[list[str]] = [
     f"{package_root}.{suite_name}.commands" for package_root, suite_name in SUITE_PACKAGES
 ]
 
-BUNDLE_MODULES = [
-    ("openmac.chrome.sdef.bundle", "com.google.Chrome"),
-    ("openmac.finder.sdef.bundle", "com.apple.finder"),
-]
-
 ROOT_SUITES_MODULES_WITH_REMOVED_EXPORTS: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
     (
         "openmac.chrome.sdef.suites",
@@ -94,6 +89,9 @@ def test_generated_suite_submodules_import(module_name: str) -> None:
 @pytest.mark.parametrize("module_name", COMMAND_MODULES)
 def test_generated_suite_commands_raise_not_implemented(module_name: str) -> None:
     module = importlib.import_module(module_name)
+    expected_bundle_id = (
+        "com.google.Chrome" if module_name.startswith("openmac.chrome.") else "com.apple.finder"
+    )
     command_classes = [
         candidate
         for candidate in module.__dict__.values()
@@ -103,6 +101,7 @@ def test_generated_suite_commands_raise_not_implemented(module_name: str) -> Non
     ]
     for command_class in command_classes:
         assert issubclass(command_class, SDEFCommand)
+        assert cast("Any", command_class).SDEF_META.bundle_id == expected_bundle_id
         required_values = {
             field_name: object()
             for field_name, field_info in command_class.model_fields.items()
@@ -135,9 +134,3 @@ def test_suite_package_inits_do_not_reexport(module_name: str, removed_export: s
     module = importlib.import_module(module_name)
     assert "__all__" not in module.__dict__
     assert not hasattr(module, removed_export)
-
-
-@pytest.mark.parametrize(("module_name", "bundle_id"), BUNDLE_MODULES)
-def test_bundle_module_imports(module_name: str, bundle_id: str) -> None:
-    bundle = importlib.import_module(module_name)
-    assert bundle_id == bundle.BUNDLE_ID
