@@ -6,8 +6,8 @@ from typing import Any, cast
 import pytest
 
 from openmac._internal.models import SDEFCommand
-from openmac.chrome.suites import ChromiumSuite, StandardSuite as ChromeStandardSuite
-from openmac.finder.suites import (
+from openmac.chrome.sdef.suites import ChromiumSuite, StandardSuite as ChromeStandardSuite
+from openmac.finder.sdef.suites import (
     ContainersAndFoldersSuite,
     EnumerationsSuite,
     FilesSuite,
@@ -20,17 +20,19 @@ from openmac.finder.suites import (
 )
 
 GENERATED_MODULES = [
-    "openmac.chrome.suites.standard_suite",
-    "openmac.chrome.suites.chromium_suite",
-    "openmac.finder.suites.standard_suite",
-    "openmac.finder.suites.finder_basics_suite",
-    "openmac.finder.suites.finder_items_suite",
-    "openmac.finder.suites.containers_and_folders_suite",
-    "openmac.finder.suites.files_suite",
-    "openmac.finder.suites.window_classes_suite",
-    "openmac.finder.suites.legacy_suite",
-    "openmac.finder.suites.type_definitions_suite",
-    "openmac.finder.suites.enumerations_suite",
+    "openmac.chrome.suites",
+    "openmac.chrome.sdef.suites.standard_suite",
+    "openmac.chrome.sdef.suites.chromium_suite",
+    "openmac.finder.suites",
+    "openmac.finder.sdef.suites.standard_suite",
+    "openmac.finder.sdef.suites.finder_basics_suite",
+    "openmac.finder.sdef.suites.finder_items_suite",
+    "openmac.finder.sdef.suites.containers_and_folders_suite",
+    "openmac.finder.sdef.suites.files_suite",
+    "openmac.finder.sdef.suites.window_classes_suite",
+    "openmac.finder.sdef.suites.legacy_suite",
+    "openmac.finder.sdef.suites.type_definitions_suite",
+    "openmac.finder.sdef.suites.enumerations_suite",
 ]
 
 SUITE_CLASSES = [
@@ -51,7 +53,10 @@ SUITE_CLASSES = [
 @pytest.mark.parametrize("module_name", GENERATED_MODULES)
 def test_generated_suite_modules_import(module_name: str) -> None:
     module = importlib.import_module(module_name)
-    assert hasattr(module, "SUITE_META")
+    if module_name.endswith(".suites"):
+        assert hasattr(module, "__all__")
+    else:
+        assert hasattr(module, "SUITE_META")
 
 
 @pytest.mark.parametrize("suite_class", SUITE_CLASSES)

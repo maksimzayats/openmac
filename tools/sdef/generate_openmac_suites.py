@@ -50,15 +50,15 @@ class AppTarget:
 APP_TARGETS: Final[dict[str, AppTarget]] = {
     "chrome": AppTarget(
         app="chrome",
-        package="openmac.chrome.suites",
+        package="openmac.chrome.sdef.suites",
         sdef_path=ROOT / "src" / "openmac" / "chrome" / "chrome.sdef",
-        suites_dir=ROOT / "src" / "openmac" / "chrome" / "suites",
+        suites_dir=ROOT / "src" / "openmac" / "chrome" / "sdef" / "suites",
     ),
     "finder": AppTarget(
         app="finder",
-        package="openmac.finder.suites",
+        package="openmac.finder.sdef.suites",
         sdef_path=ROOT / "src" / "openmac" / "finder" / "finder.sdef",
-        suites_dir=ROOT / "src" / "openmac" / "finder" / "suites",
+        suites_dir=ROOT / "src" / "openmac" / "finder" / "sdef" / "suites",
     ),
 }
 
@@ -1126,7 +1126,7 @@ def generate_suite_module(
 
     for imported_module in sorted(cross_module_imports):
         lines.append(
-            f"import openmac.{target.app}.suites.{imported_module} as {imported_module}_module",
+            f"import openmac.{target.app}.sdef.suites.{imported_module} as {imported_module}_module",
         )
 
     lines.extend(["", f"SUITE_META: Final[sdef_meta.SuiteMeta] = {suite_meta_expr(suite)}", ""])
