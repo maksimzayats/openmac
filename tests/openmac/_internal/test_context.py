@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from openmac._internal.context import Context
-from openmac._internal.runner import AppleScriptRunner
+from openmac._internal.applescript.runner import AppleScriptRunner
 
 
 def test_context_stores_runner() -> None:

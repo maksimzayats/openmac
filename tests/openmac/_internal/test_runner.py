@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from openmac._internal.runner import AppleScriptRunner
+from openmac._internal.applescript.runner import AppleScriptRunner
 
 
 def test_run_rejects_empty_script() -> None:
