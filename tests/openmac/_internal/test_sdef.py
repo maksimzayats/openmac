@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import pytest
 from pydantic import BaseModel
 
-from openmac._internal.context import Context
 from openmac._internal.manager import Manager
-from openmac._internal.runner import AppleScriptRunner
 from openmac._internal.sdef.base import SDEFClass, SDEFCommand
 from openmac._internal.sdef.types import (
     Date,
@@ -56,14 +53,10 @@ def test_sdef_custom_types_validate_with_pydantic() -> None:
     assert isinstance(payload.rectangle, Rectangle)
 
 
-def test_sdef_model_accepts_context_assignment() -> None:
+def test_sdef_model_validates_without_context() -> None:
     model = DemoSdefClass.model_validate({"value": 7})
-    context = Context(runner=AppleScriptRunner())
-
-    model._context = context
 
     assert model.value == 7
-    assert model._context is context
 
 
 def test_manager_can_be_specialized() -> None:
@@ -73,8 +66,7 @@ def test_manager_can_be_specialized() -> None:
     assert issubclass(StringManager, Manager)
 
 
-def test_sdef_command_call_raises_not_implemented() -> None:
+def test_sdef_command_is_not_callable() -> None:
     command = DemoSdefCommand.model_validate({"argument": 3})
 
-    with pytest.raises(NotImplementedError):
-        command()
+    assert not callable(command)

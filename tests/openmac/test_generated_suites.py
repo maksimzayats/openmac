@@ -87,7 +87,7 @@ def test_generated_suite_submodules_import(module_name: str) -> None:
 
 
 @pytest.mark.parametrize("module_name", COMMAND_MODULES)
-def test_generated_suite_commands_raise_not_implemented(module_name: str) -> None:
+def test_generated_suite_commands_are_not_callable(module_name: str) -> None:
     module = importlib.import_module(module_name)
     expected_bundle_id = (
         "com.google.Chrome" if module_name.startswith("openmac.chrome.") else "com.apple.finder"
@@ -109,8 +109,7 @@ def test_generated_suite_commands_raise_not_implemented(module_name: str) -> Non
             if field_info.is_required()
         }
         command_instance = cast("Any", command_class).model_construct(**required_values)
-        with pytest.raises(NotImplementedError):
-            command_instance()
+        assert not callable(command_instance)
 
 
 @pytest.mark.parametrize(
