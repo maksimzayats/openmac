@@ -7,6 +7,7 @@ from enum import Enum
 from typing import ClassVar, Final
 
 from openmac._internal import sdef_meta
+from openmac._internal.models import SDEFCommand
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Enumerations",
@@ -236,7 +237,7 @@ S8MK_VALUE_TYPE_META: Final[sdef_meta.ValueTypeMeta] = sdef_meta.ValueTypeMeta(
 class EnumerationsSuite:
     """Enumerations for the Finder"""
 
-    COMMANDS: ClassVar[tuple[sdef_meta.CommandMeta, ...]] = ()
+    COMMANDS: ClassVar[tuple[type[SDEFCommand], ...]] = ()
 
 
 __all__ = [

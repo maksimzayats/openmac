@@ -9,7 +9,7 @@ from pydantic import Field
 import openmac._internal.sdef as sdef_types
 import openmac.finder.suites.finder_basics_suite as finder_basics_suite_module
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFModel
+from openmac._internal.models import SDEFCommand, SDEFModel
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Legacy suite",
@@ -279,53 +279,77 @@ class Application(finder_basics_suite_module.Application):
     )
 
 
+class RestartCommand(SDEFCommand):
+    """Restart the computer"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="restart",
+        code="fndrrest",
+        description="Restart the computer",
+        hidden=None,
+        direct_parameter_type=None,
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class ShutDownCommand(SDEFCommand):
+    """Shut Down the computer"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="shut down",
+        code="fndrshut",
+        description="Shut Down the computer",
+        hidden=None,
+        direct_parameter_type=None,
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class SleepCommand(SDEFCommand):
+    """Put the computer to sleep"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="sleep",
+        code="fndrslep",
+        description="Put the computer to sleep",
+        hidden=None,
+        direct_parameter_type=None,
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
 class LegacySuite:
     """Operations formerly handled by the Finder, but now automatically delegated to other applications"""
 
-    COMMANDS: ClassVar[tuple[sdef_meta.CommandMeta, ...]] = (
-        sdef_meta.CommandMeta(
-            name="restart",
-            code="fndrrest",
-            description="Restart the computer",
-            hidden=None,
-            direct_parameter_type=None,
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="shut down",
-            code="fndrshut",
-            description="Shut Down the computer",
-            hidden=None,
-            direct_parameter_type=None,
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="sleep",
-            code="fndrslep",
-            description="Put the computer to sleep",
-            hidden=None,
-            direct_parameter_type=None,
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
+    COMMANDS: ClassVar[tuple[type[SDEFCommand], ...]] = (
+        RestartCommand,
+        ShutDownCommand,
+        SleepCommand,
     )
 
-    def restart(self) -> None:
-        """Restart the computer"""
-        raise NotImplementedError
 
-    def shut_down(self) -> None:
-        """Shut Down the computer"""
-        raise NotImplementedError
-
-    def sleep(self) -> None:
-        """Put the computer to sleep"""
-        raise NotImplementedError
-
-
-__all__ = ["Application", "ApplicationProcess", "DeskAccessoryProcess", "LegacySuite", "Process"]
+__all__ = [
+    "Application",
+    "ApplicationProcess",
+    "DeskAccessoryProcess",
+    "LegacySuite",
+    "Process",
+    "RestartCommand",
+    "ShutDownCommand",
+    "SleepCommand",
+]

@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef as sdef_types
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFModel
+from openmac._internal.models import SDEFCommand, SDEFModel
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Files",
@@ -347,7 +347,7 @@ class Package(SDEFModel):
 class FilesSuite:
     """Classes representing files"""
 
-    COMMANDS: ClassVar[tuple[sdef_meta.CommandMeta, ...]] = ()
+    COMMANDS: ClassVar[tuple[type[SDEFCommand], ...]] = ()
 
 
 __all__ = [

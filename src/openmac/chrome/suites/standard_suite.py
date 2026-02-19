@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef as sdef_types
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFModel
+from openmac._internal.models import SDEFCommand, SDEFModel
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Standard Suite",
@@ -345,354 +345,481 @@ class Window(SDEFModel):
     )
 
 
+class SaveCommand(SDEFCommand):
+    """Save an object.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to save, usually a document or window", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "File"}], "code": "kfil", "description": "The file in which to save the object.", "name": "in", "optional": "yes", "type": "file", "type_element": []}, {"cocoa": [{"key": "FileType"}], "code": "fltp", "description": "The file type in which to save the data. Can be \'only html\', \'complete html\', or \'single file\'; default is \'complete html\'.", "name": "as", "optional": "yes", "type": "text", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="save",
+        code="coresave",
+        description="Save an object.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="in",
+                code="kfil",
+                type="file",
+                description="The file in which to save the object.",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+            sdef_meta.ParameterMeta(
+                name="as",
+                code="fltp",
+                type="text",
+                description="The file type in which to save the data. Can be 'only html', 'complete html', or 'single file'; default is 'complete html'.",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(),
+        access_groups=(
+            (
+                "*",
+                None,
+            ),
+        ),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="the object to save, usually a document or window",
+    )
+    in_: sdef_types.File | None = Field(
+        default=None,
+        alias="in",
+        description="The file in which to save the object.",
+        json_schema_extra={"cocoas": [{"key": "File"}]},
+    )
+    as_: str | None = Field(
+        default=None,
+        alias="as",
+        description="The file type in which to save the data. Can be 'only html', 'complete html', or 'single file'; default is 'complete html'.",
+        json_schema_extra={"cocoas": [{"key": "FileType"}]},
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class OpenCommand(SDEFCommand):
+    """Open a document.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The file(s) to be opened.", "type_element": [{"list": "yes", "type": "file"}]}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="open",
+        code="aevtodoc",
+        description="Open a document.",
+        hidden=None,
+        direct_parameter_type="file",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: list[sdef_types.File] = Field(
+        ...,
+        description="The file(s) to be opened.",
+        json_schema_extra={"type_elements": [{"list": "yes", "type": "file"}]},
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class CloseCommand(SDEFCommand):
+    """Close a window.\n\nSDEF extras: {"cocoas": [{"class": "NSCloseCommand"}], "direct_parameters": [{"access_group": [], "description": "the document(s) or window(s) to close.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="close",
+        code="coreclos",
+        description="Close a window.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(
+            (
+                "*",
+                None,
+            ),
+        ),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="the document(s) or window(s) to close.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class QuitCommand(SDEFCommand):
+    """Quit the application.\n\nSDEF extras: {"cocoas": [{"class": "NSQuitCommand"}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="quit",
+        code="aevtquit",
+        description="Quit the application.",
+        hidden=None,
+        direct_parameter_type=None,
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class CountCommand(SDEFCommand):
+    """Return the number of elements of a particular class within an object.\n\nSDEF extras: {"cocoas": [{"class": "NSCountCommand"}], "direct_parameters": [{"access_group": [], "description": "the object whose elements are to be counted", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ObjectClass"}], "code": "kocl", "description": "The class of objects to be counted.", "name": "each", "optional": "yes", "type": "type", "type_element": []}], "results": [{"description": "the number of elements", "type": "integer", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="count",
+        code="corecnte",
+        description="Return the number of elements of a particular class within an object.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="each",
+                code="kocl",
+                type="type",
+                description="The class of objects to be counted.",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(
+            sdef_meta.ResultMeta(
+                type="integer",
+                description="the number of elements",
+                optional=None,
+            ),
+        ),
+        access_groups=(
+            (
+                "*",
+                None,
+            ),
+        ),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="the object whose elements are to be counted",
+    )
+    each: str | None = Field(
+        default=None,
+        alias="each",
+        description="The class of objects to be counted.",
+        json_schema_extra={"cocoas": [{"key": "ObjectClass"}]},
+    )
+
+    def __call__(self) -> int:
+        raise NotImplementedError
+
+
+class DeleteCommand(SDEFCommand):
+    """Delete an object.\n\nSDEF extras: {"cocoas": [{"class": "NSDeleteCommand"}], "direct_parameters": [{"access_group": [], "description": "the object to delete", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="delete",
+        code="coredelo",
+        description="Delete an object.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(
+            (
+                "*",
+                None,
+            ),
+        ),
+    )
+    direct_parameter: sdef_types.Specifier = Field(..., description="the object to delete")
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class DuplicateCommand(SDEFCommand):
+    """Copy object(s) and put the copies at a new location.\n\nSDEF extras: {"cocoas": [{"class": "NSCloneCommand"}], "direct_parameters": [{"access_group": [], "description": "the object(s) to duplicate", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ToLocation"}], "code": "insh", "description": "The location for the new object(s).", "name": "to", "optional": "yes", "type": "location specifier", "type_element": []}, {"cocoa": [{"key": "WithProperties"}], "code": "prdt", "description": "Properties to be set in the new duplicated object(s).", "name": "with properties", "optional": "yes", "type": "record", "type_element": []}], "results": [{"description": "the duplicated object(s)", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="duplicate",
+        code="coreclon",
+        description="Copy object(s) and put the copies at a new location.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="to",
+                code="insh",
+                type="location specifier",
+                description="The location for the new object(s).",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+            sdef_meta.ParameterMeta(
+                name="with properties",
+                code="prdt",
+                type="record",
+                description="Properties to be set in the new duplicated object(s).",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(
+            sdef_meta.ResultMeta(
+                type="specifier",
+                description="the duplicated object(s)",
+                optional=None,
+            ),
+        ),
+        access_groups=(
+            (
+                "*",
+                None,
+            ),
+        ),
+    )
+    direct_parameter: sdef_types.Specifier = Field(..., description="the object(s) to duplicate")
+    to: sdef_types.LocationSpecifier | None = Field(
+        default=None,
+        alias="to",
+        description="The location for the new object(s).",
+        json_schema_extra={"cocoas": [{"key": "ToLocation"}]},
+    )
+    with_properties: sdef_types.Record | None = Field(
+        default=None,
+        alias="with properties",
+        description="Properties to be set in the new duplicated object(s).",
+        json_schema_extra={"cocoas": [{"key": "WithProperties"}]},
+    )
+
+    def __call__(self) -> sdef_types.Specifier:
+        raise NotImplementedError
+
+
+class ExistsCommand(SDEFCommand):
+    """Verify if an object exists.\n\nSDEF extras: {"cocoas": [{"class": "NSExistsCommand"}], "direct_parameters": [{"access_group": [], "description": "the object in question", "type": "any", "type_element": []}], "results": [{"description": "true if it exists, false if not", "type": "boolean", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="exists",
+        code="coredoex",
+        description="Verify if an object exists.",
+        hidden=None,
+        direct_parameter_type="any",
+        parameters=(),
+        results=(
+            sdef_meta.ResultMeta(
+                type="boolean",
+                description="true if it exists, false if not",
+                optional=None,
+            ),
+        ),
+        access_groups=(
+            (
+                "*",
+                None,
+            ),
+        ),
+    )
+    direct_parameter: object = Field(..., description="the object in question")
+
+    def __call__(self) -> bool:
+        raise NotImplementedError
+
+
+class MakeCommand(SDEFCommand):
+    """Make a new object.\n\nSDEF extras: {"cocoas": [{"class": "NSCreateCommand"}], "parameters": [{"cocoa": [{"key": "ObjectClass"}], "code": "kocl", "description": "The class of the new object.", "name": "new", "type": "type", "type_element": []}, {"cocoa": [{"key": "Location"}], "code": "insh", "description": "The location at which to insert the object.", "name": "at", "optional": "yes", "type": "location specifier", "type_element": []}, {"cocoa": [{"key": "ObjectData"}], "code": "data", "description": "The initial contents of the object.", "name": "with data", "optional": "yes", "type": "any", "type_element": []}, {"cocoa": [{"key": "KeyDictionary"}], "code": "prdt", "description": "The initial values for properties of the object.", "name": "with properties", "optional": "yes", "type": "record", "type_element": []}], "results": [{"description": "to the new object", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="make",
+        code="corecrel",
+        description="Make a new object.",
+        hidden=None,
+        direct_parameter_type=None,
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="new",
+                code="kocl",
+                type="type",
+                description="The class of the new object.",
+                optional=None,
+                hidden=None,
+                requires_access=None,
+            ),
+            sdef_meta.ParameterMeta(
+                name="at",
+                code="insh",
+                type="location specifier",
+                description="The location at which to insert the object.",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+            sdef_meta.ParameterMeta(
+                name="with data",
+                code="data",
+                type="any",
+                description="The initial contents of the object.",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+            sdef_meta.ParameterMeta(
+                name="with properties",
+                code="prdt",
+                type="record",
+                description="The initial values for properties of the object.",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(
+            sdef_meta.ResultMeta(type="specifier", description="to the new object", optional=None),
+        ),
+        access_groups=(
+            (
+                "*",
+                None,
+            ),
+        ),
+    )
+    new: str = Field(
+        ...,
+        alias="new",
+        description="The class of the new object.",
+        json_schema_extra={"cocoas": [{"key": "ObjectClass"}]},
+    )
+    at: sdef_types.LocationSpecifier | None = Field(
+        default=None,
+        alias="at",
+        description="The location at which to insert the object.",
+        json_schema_extra={"cocoas": [{"key": "Location"}]},
+    )
+    with_data: object | None = Field(
+        default=None,
+        alias="with data",
+        description="The initial contents of the object.",
+        json_schema_extra={"cocoas": [{"key": "ObjectData"}]},
+    )
+    with_properties: sdef_types.Record | None = Field(
+        default=None,
+        alias="with properties",
+        description="The initial values for properties of the object.",
+        json_schema_extra={"cocoas": [{"key": "KeyDictionary"}]},
+    )
+
+    def __call__(self) -> sdef_types.Specifier:
+        raise NotImplementedError
+
+
+class MoveCommand(SDEFCommand):
+    """Move object(s) to a new location.\n\nSDEF extras: {"cocoas": [{"class": "NSMoveCommand"}], "direct_parameters": [{"access_group": [], "description": "the object(s) to move", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ToLocation"}], "code": "insh", "description": "The new location for the object(s).", "name": "to", "type": "location specifier", "type_element": []}], "results": [{"description": "the moved object(s)", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="move",
+        code="coremove",
+        description="Move object(s) to a new location.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="to",
+                code="insh",
+                type="location specifier",
+                description="The new location for the object(s).",
+                optional=None,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(
+            sdef_meta.ResultMeta(
+                type="specifier",
+                description="the moved object(s)",
+                optional=None,
+            ),
+        ),
+        access_groups=(
+            (
+                "*",
+                None,
+            ),
+        ),
+    )
+    direct_parameter: sdef_types.Specifier = Field(..., description="the object(s) to move")
+    to: sdef_types.LocationSpecifier = Field(
+        ...,
+        alias="to",
+        description="The new location for the object(s).",
+        json_schema_extra={"cocoas": [{"key": "ToLocation"}]},
+    )
+
+    def __call__(self) -> sdef_types.Specifier:
+        raise NotImplementedError
+
+
+class PrintCommand(SDEFCommand):
+    """Print an object.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The file(s) or document(s) to be printed.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="print",
+        code="aevtpdoc",
+        description="Print an object.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The file(s) or document(s) to be printed.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
 class StandardSuite:
     """Common classes and commands for all applications."""
 
-    COMMANDS: ClassVar[tuple[sdef_meta.CommandMeta, ...]] = (
-        sdef_meta.CommandMeta(
-            name="save",
-            code="coresave",
-            description="Save an object.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="in",
-                    code="kfil",
-                    type="file",
-                    description="The file in which to save the object.",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-                sdef_meta.ParameterMeta(
-                    name="as",
-                    code="fltp",
-                    type="text",
-                    description="The file type in which to save the data. Can be 'only html', 'complete html', or 'single file'; default is 'complete html'.",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(),
-            access_groups=(
-                (
-                    "*",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="open",
-            code="aevtodoc",
-            description="Open a document.",
-            hidden=None,
-            direct_parameter_type="file",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="close",
-            code="coreclos",
-            description="Close a window.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(
-                (
-                    "*",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="quit",
-            code="aevtquit",
-            description="Quit the application.",
-            hidden=None,
-            direct_parameter_type=None,
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="count",
-            code="corecnte",
-            description="Return the number of elements of a particular class within an object.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="each",
-                    code="kocl",
-                    type="type",
-                    description="The class of objects to be counted.",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(
-                sdef_meta.ResultMeta(
-                    type="integer",
-                    description="the number of elements",
-                    optional=None,
-                ),
-            ),
-            access_groups=(
-                (
-                    "*",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="delete",
-            code="coredelo",
-            description="Delete an object.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(
-                (
-                    "*",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="duplicate",
-            code="coreclon",
-            description="Copy object(s) and put the copies at a new location.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="to",
-                    code="insh",
-                    type="location specifier",
-                    description="The location for the new object(s).",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-                sdef_meta.ParameterMeta(
-                    name="with properties",
-                    code="prdt",
-                    type="record",
-                    description="Properties to be set in the new duplicated object(s).",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(
-                sdef_meta.ResultMeta(
-                    type="specifier",
-                    description="the duplicated object(s)",
-                    optional=None,
-                ),
-            ),
-            access_groups=(
-                (
-                    "*",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="exists",
-            code="coredoex",
-            description="Verify if an object exists.",
-            hidden=None,
-            direct_parameter_type="any",
-            parameters=(),
-            results=(
-                sdef_meta.ResultMeta(
-                    type="boolean",
-                    description="true if it exists, false if not",
-                    optional=None,
-                ),
-            ),
-            access_groups=(
-                (
-                    "*",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="make",
-            code="corecrel",
-            description="Make a new object.",
-            hidden=None,
-            direct_parameter_type=None,
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="new",
-                    code="kocl",
-                    type="type",
-                    description="The class of the new object.",
-                    optional=None,
-                    hidden=None,
-                    requires_access=None,
-                ),
-                sdef_meta.ParameterMeta(
-                    name="at",
-                    code="insh",
-                    type="location specifier",
-                    description="The location at which to insert the object.",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-                sdef_meta.ParameterMeta(
-                    name="with data",
-                    code="data",
-                    type="any",
-                    description="The initial contents of the object.",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-                sdef_meta.ParameterMeta(
-                    name="with properties",
-                    code="prdt",
-                    type="record",
-                    description="The initial values for properties of the object.",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(
-                sdef_meta.ResultMeta(
-                    type="specifier",
-                    description="to the new object",
-                    optional=None,
-                ),
-            ),
-            access_groups=(
-                (
-                    "*",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="move",
-            code="coremove",
-            description="Move object(s) to a new location.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="to",
-                    code="insh",
-                    type="location specifier",
-                    description="The new location for the object(s).",
-                    optional=None,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(
-                sdef_meta.ResultMeta(
-                    type="specifier",
-                    description="the moved object(s)",
-                    optional=None,
-                ),
-            ),
-            access_groups=(
-                (
-                    "*",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="print",
-            code="aevtpdoc",
-            description="Print an object.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
+    COMMANDS: ClassVar[tuple[type[SDEFCommand], ...]] = (
+        SaveCommand,
+        OpenCommand,
+        CloseCommand,
+        QuitCommand,
+        CountCommand,
+        DeleteCommand,
+        DuplicateCommand,
+        ExistsCommand,
+        MakeCommand,
+        MoveCommand,
+        PrintCommand,
     )
 
-    def save(
-        self,
-        direct_parameter: sdef_types.Specifier,
-        *,
-        in_: sdef_types.File | None = None,
-        as_: str | None = None,
-    ) -> None:
-        """Save an object.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to save, usually a document or window", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "File"}], "code": "kfil", "description": "The file in which to save the object.", "name": "in", "optional": "yes", "type": "file", "type_element": []}, {"cocoa": [{"key": "FileType"}], "code": "fltp", "description": "The file type in which to save the data. Can be \'only html\', \'complete html\', or \'single file\'; default is \'complete html\'.", "name": "as", "optional": "yes", "type": "text", "type_element": []}]}"""
-        raise NotImplementedError
 
-    def open_(self, direct_parameter: list[sdef_types.File]) -> None:
-        """Open a document.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The file(s) to be opened.", "type_element": [{"list": "yes", "type": "file"}]}]}"""
-        raise NotImplementedError
-
-    def close(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Close a window.\n\nSDEF extras: {"cocoas": [{"class": "NSCloseCommand"}], "direct_parameters": [{"access_group": [], "description": "the document(s) or window(s) to close.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def quit_(self) -> None:
-        """Quit the application.\n\nSDEF extras: {"cocoas": [{"class": "NSQuitCommand"}]}"""
-        raise NotImplementedError
-
-    def count(self, direct_parameter: sdef_types.Specifier, *, each: str | None = None) -> int:
-        """Return the number of elements of a particular class within an object.\n\nSDEF extras: {"cocoas": [{"class": "NSCountCommand"}], "direct_parameters": [{"access_group": [], "description": "the object whose elements are to be counted", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ObjectClass"}], "code": "kocl", "description": "The class of objects to be counted.", "name": "each", "optional": "yes", "type": "type", "type_element": []}], "results": [{"description": "the number of elements", "type": "integer", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def delete(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Delete an object.\n\nSDEF extras: {"cocoas": [{"class": "NSDeleteCommand"}], "direct_parameters": [{"access_group": [], "description": "the object to delete", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def duplicate(
-        self,
-        direct_parameter: sdef_types.Specifier,
-        *,
-        to: sdef_types.LocationSpecifier | None = None,
-        with_properties: sdef_types.Record | None = None,
-    ) -> sdef_types.Specifier:
-        """Copy object(s) and put the copies at a new location.\n\nSDEF extras: {"cocoas": [{"class": "NSCloneCommand"}], "direct_parameters": [{"access_group": [], "description": "the object(s) to duplicate", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ToLocation"}], "code": "insh", "description": "The location for the new object(s).", "name": "to", "optional": "yes", "type": "location specifier", "type_element": []}, {"cocoa": [{"key": "WithProperties"}], "code": "prdt", "description": "Properties to be set in the new duplicated object(s).", "name": "with properties", "optional": "yes", "type": "record", "type_element": []}], "results": [{"description": "the duplicated object(s)", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def exists(self, direct_parameter: object) -> bool:
-        """Verify if an object exists.\n\nSDEF extras: {"cocoas": [{"class": "NSExistsCommand"}], "direct_parameters": [{"access_group": [], "description": "the object in question", "type": "any", "type_element": []}], "results": [{"description": "true if it exists, false if not", "type": "boolean", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def make(
-        self,
-        *,
-        new: str,
-        at: sdef_types.LocationSpecifier | None = None,
-        with_data: object | None = None,
-        with_properties: sdef_types.Record | None = None,
-    ) -> sdef_types.Specifier:
-        """Make a new object.\n\nSDEF extras: {"cocoas": [{"class": "NSCreateCommand"}], "parameters": [{"cocoa": [{"key": "ObjectClass"}], "code": "kocl", "description": "The class of the new object.", "name": "new", "type": "type", "type_element": []}, {"cocoa": [{"key": "Location"}], "code": "insh", "description": "The location at which to insert the object.", "name": "at", "optional": "yes", "type": "location specifier", "type_element": []}, {"cocoa": [{"key": "ObjectData"}], "code": "data", "description": "The initial contents of the object.", "name": "with data", "optional": "yes", "type": "any", "type_element": []}, {"cocoa": [{"key": "KeyDictionary"}], "code": "prdt", "description": "The initial values for properties of the object.", "name": "with properties", "optional": "yes", "type": "record", "type_element": []}], "results": [{"description": "to the new object", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def move(
-        self,
-        direct_parameter: sdef_types.Specifier,
-        *,
-        to: sdef_types.LocationSpecifier,
-    ) -> sdef_types.Specifier:
-        """Move object(s) to a new location.\n\nSDEF extras: {"cocoas": [{"class": "NSMoveCommand"}], "direct_parameters": [{"access_group": [], "description": "the object(s) to move", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "ToLocation"}], "code": "insh", "description": "The new location for the object(s).", "name": "to", "type": "location specifier", "type_element": []}], "results": [{"description": "the moved object(s)", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def print_(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Print an object.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The file(s) or document(s) to be printed.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-
-__all__ = ["Application", "StandardSuite", "Window"]
+__all__ = [
+    "Application",
+    "CloseCommand",
+    "CountCommand",
+    "DeleteCommand",
+    "DuplicateCommand",
+    "ExistsCommand",
+    "MakeCommand",
+    "MoveCommand",
+    "OpenCommand",
+    "PrintCommand",
+    "QuitCommand",
+    "SaveCommand",
+    "StandardSuite",
+    "Window",
+]

@@ -10,7 +10,7 @@ from pydantic import Field
 
 import openmac._internal.sdef as sdef_types
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFModel
+from openmac._internal.models import SDEFCommand, SDEFModel
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Type Definitions",
@@ -1031,7 +1031,7 @@ LVIC_ENUMERATION_META: Final[sdef_meta.EnumerationMeta] = sdef_meta.EnumerationM
 class TypeDefinitionsSuite:
     """Definitions of records used in scripting the Finder"""
 
-    COMMANDS: ClassVar[tuple[sdef_meta.CommandMeta, ...]] = ()
+    COMMANDS: ClassVar[tuple[type[SDEFCommand], ...]] = ()
 
 
 __all__ = [

@@ -7,3 +7,8 @@ from openmac._internal.context import Context
 
 class SDEFModel(BaseModel):
     _context: Context
+
+
+class SDEFCommand(BaseModel):
+    def __call__(self) -> object:
+        raise NotImplementedError

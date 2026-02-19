@@ -10,7 +10,7 @@ from pydantic import Field
 
 import openmac._internal.sdef as sdef_types
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFModel
+from openmac._internal.models import SDEFCommand, SDEFModel
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Finder items",
@@ -415,155 +415,207 @@ PRIV_ENUMERATION_META: Final[sdef_meta.EnumerationMeta] = sdef_meta.EnumerationM
 )
 
 
+class CleanUpCommand(SDEFCommand):
+    """Arrange items in window nicely (only applies to open windows in icon view that are not kept arranged)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the window to clean up", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "by  ", "description": "the order in which to clean up the objects (name, index, date, etc.)", "name": "by", "optional": "yes", "type": "property", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="clean up",
+        code="fndrfclu",
+        description="Arrange items in window nicely (only applies to open windows in icon view that are not kept arranged)",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="by",
+                code="by  ",
+                type="property",
+                description="the order in which to clean up the objects (name, index, date, etc.)",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(..., description="the window to clean up")
+    by: sdef_types.Specifier | None = Field(
+        default=None,
+        alias="by",
+        description="the order in which to clean up the objects (name, index, date, etc.)",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class EjectCommand(SDEFCommand):
+    """Eject the specified disk(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the disk(s) to eject", "optional": "yes", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="eject",
+        code="fndrejct",
+        description="Eject the specified disk(s)",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier | None = Field(
+        default=None,
+        description="the disk(s) to eject",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class EmptyCommand(SDEFCommand):
+    """Empty the trash\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "\\"empty\\" and \\"empty trash\\" both do the same thing", "optional": "yes", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "sec?", "description": "(obsolete)", "name": "security", "optional": "yes", "type": "boolean", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="empty",
+        code="fndrempt",
+        description="Empty the trash",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="security",
+                code="sec?",
+                type="boolean",
+                description="(obsolete)",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(),
+        access_groups=(
+            (
+                "com.apple.finder.trash",
+                None,
+            ),
+        ),
+    )
+    direct_parameter: sdef_types.Specifier | None = Field(
+        default=None,
+        description='"empty" and "empty trash" both do the same thing',
+    )
+    security: bool | None = Field(default=None, alias="security", description="(obsolete)")
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class EraseCommand(SDEFCommand):
+    """(NOT AVAILABLE) Erase the specified disk(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the items to erase", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="erase",
+        code="fndrfera",
+        description="(NOT AVAILABLE) Erase the specified disk(s)",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(..., description="the items to erase")
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class RevealCommand(SDEFCommand):
+    """Bring the specified object(s) into view\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to be made visible", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="reveal",
+        code="miscmvis",
+        description="Bring the specified object(s) into view",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(..., description="the object to be made visible")
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class UpdateCommand(SDEFCommand):
+    """Update the display of the specified object(s) to match their on-disk representation\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the item to update", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "nec?", "description": "only update if necessary (i.e. a finder window is open). default is false", "name": "necessity", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "reg?", "description": "register applications. default is true", "name": "registering applications", "optional": "yes", "type": "boolean", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="update",
+        code="fndrfupd",
+        description="Update the display of the specified object(s) to match their on-disk representation",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="necessity",
+                code="nec?",
+                type="boolean",
+                description="only update if necessary (i.e. a finder window is open). default is false",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+            sdef_meta.ParameterMeta(
+                name="registering applications",
+                code="reg?",
+                type="boolean",
+                description="register applications. default is true",
+                optional=True,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(..., description="the item to update")
+    necessity: bool | None = Field(
+        default=None,
+        alias="necessity",
+        description="only update if necessary (i.e. a finder window is open). default is false",
+    )
+    registering_applications: bool | None = Field(
+        default=None,
+        alias="registering applications",
+        description="register applications. default is true",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
 class FinderItemsSuite:
     """Commands used with file system items, and basic item definition"""
 
-    COMMANDS: ClassVar[tuple[sdef_meta.CommandMeta, ...]] = (
-        sdef_meta.CommandMeta(
-            name="clean up",
-            code="fndrfclu",
-            description="Arrange items in window nicely (only applies to open windows in icon view that are not kept arranged)",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="by",
-                    code="by  ",
-                    type="property",
-                    description="the order in which to clean up the objects (name, index, date, etc.)",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="eject",
-            code="fndrejct",
-            description="Eject the specified disk(s)",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="empty",
-            code="fndrempt",
-            description="Empty the trash",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="security",
-                    code="sec?",
-                    type="boolean",
-                    description="(obsolete)",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(),
-            access_groups=(
-                (
-                    "com.apple.finder.trash",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="erase",
-            code="fndrfera",
-            description="(NOT AVAILABLE) Erase the specified disk(s)",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="reveal",
-            code="miscmvis",
-            description="Bring the specified object(s) into view",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="update",
-            code="fndrfupd",
-            description="Update the display of the specified object(s) to match their on-disk representation",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="necessity",
-                    code="nec?",
-                    type="boolean",
-                    description="only update if necessary (i.e. a finder window is open). default is false",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-                sdef_meta.ParameterMeta(
-                    name="registering applications",
-                    code="reg?",
-                    type="boolean",
-                    description="register applications. default is true",
-                    optional=True,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(),
-            access_groups=(),
-        ),
+    COMMANDS: ClassVar[tuple[type[SDEFCommand], ...]] = (
+        CleanUpCommand,
+        EjectCommand,
+        EmptyCommand,
+        EraseCommand,
+        RevealCommand,
+        UpdateCommand,
     )
 
-    def clean_up(
-        self,
-        direct_parameter: sdef_types.Specifier,
-        *,
-        by: sdef_types.Specifier | None = None,
-    ) -> None:
-        """Arrange items in window nicely (only applies to open windows in icon view that are not kept arranged)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the window to clean up", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "by  ", "description": "the order in which to clean up the objects (name, index, date, etc.)", "name": "by", "optional": "yes", "type": "property", "type_element": []}]}"""
-        raise NotImplementedError
 
-    def eject(self, direct_parameter: sdef_types.Specifier | None = None) -> None:
-        """Eject the specified disk(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the disk(s) to eject", "optional": "yes", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def empty(
-        self,
-        direct_parameter: sdef_types.Specifier | None = None,
-        *,
-        security: bool | None = None,
-    ) -> None:
-        """Empty the trash\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "\\"empty\\" and \\"empty trash\\" both do the same thing", "optional": "yes", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "sec?", "description": "(obsolete)", "name": "security", "optional": "yes", "type": "boolean", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def erase(self, direct_parameter: sdef_types.Specifier) -> None:
-        """(NOT AVAILABLE) Erase the specified disk(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the items to erase", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def reveal(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Bring the specified object(s) into view\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object to be made visible", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def update(
-        self,
-        direct_parameter: sdef_types.Specifier,
-        *,
-        necessity: bool | None = None,
-        registering_applications: bool | None = None,
-    ) -> None:
-        """Update the display of the specified object(s) to match their on-disk representation\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the item to update", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "nec?", "description": "only update if necessary (i.e. a finder window is open). default is false", "name": "necessity", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "reg?", "description": "register applications. default is true", "name": "registering applications", "optional": "yes", "type": "boolean", "type_element": []}]}"""
-        raise NotImplementedError
-
-
-__all__ = ["FinderItemsSuite", "Item", "Priv"]
+__all__ = [
+    "CleanUpCommand",
+    "EjectCommand",
+    "EmptyCommand",
+    "EraseCommand",
+    "FinderItemsSuite",
+    "Item",
+    "Priv",
+    "RevealCommand",
+    "UpdateCommand",
+]

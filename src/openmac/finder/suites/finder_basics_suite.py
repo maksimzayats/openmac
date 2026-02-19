@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef as sdef_types
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFModel
+from openmac._internal.models import SDEFCommand, SDEFModel
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Finder Basics",
@@ -238,83 +238,113 @@ class Application(SDEFModel):
     )
 
 
+class OpenVirtualLocationCommand(SDEFCommand):
+    """Private event to open a virtual location\n\nSDEF extras: {"direct_parameters": [{"access_group": [{"identifier": "com.apple.private.siri"}], "description": "the location to open", "type": "text", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="openVirtualLocation",
+        code="fndrovir",
+        description="Private event to open a virtual location",
+        hidden=True,
+        direct_parameter_type="text",
+        parameters=(),
+        results=(),
+        access_groups=(
+            (
+                "com.apple.private.siri",
+                None,
+            ),
+            (
+                "com.apple.private.siri",
+                None,
+            ),
+        ),
+    )
+    direct_parameter: str = Field(
+        ...,
+        description="the location to open",
+        json_schema_extra={"access_groups": [{"identifier": "com.apple.private.siri"}]},
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class CopyCommand(SDEFCommand):
+    """(NOT AVAILABLE YET) Copy the selected items to the clipboard (the Finder must be the front application)"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="copy",
+        code="misccopy",
+        description="(NOT AVAILABLE YET) Copy the selected items to the clipboard (the Finder must be the front application)",
+        hidden=None,
+        direct_parameter_type=None,
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class SortCommand(SDEFCommand):
+    """Return the specified object(s) in a sorted list\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "a list of finder objects to sort", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "by  ", "description": "the property to sort the items by (name, index, date, etc.)", "name": "by", "type": "property", "type_element": []}], "results": [{"description": "the sorted items in their new order", "optional": "yes", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="sort",
+        code="DATASORT",
+        description="Return the specified object(s) in a sorted list",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="by",
+                code="by  ",
+                type="property",
+                description="the property to sort the items by (name, index, date, etc.)",
+                optional=None,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(
+            sdef_meta.ResultMeta(
+                type="specifier",
+                description="the sorted items in their new order",
+                optional=True,
+            ),
+        ),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="a list of finder objects to sort",
+    )
+    by: sdef_types.Specifier = Field(
+        ...,
+        alias="by",
+        description="the property to sort the items by (name, index, date, etc.)",
+    )
+
+    def __call__(self) -> sdef_types.Specifier | None:
+        raise NotImplementedError
+
+
 class FinderBasicsSuite:
     """Commonly-used Finder commands and object classes"""
 
-    COMMANDS: ClassVar[tuple[sdef_meta.CommandMeta, ...]] = (
-        sdef_meta.CommandMeta(
-            name="openVirtualLocation",
-            code="fndrovir",
-            description="Private event to open a virtual location",
-            hidden=True,
-            direct_parameter_type="text",
-            parameters=(),
-            results=(),
-            access_groups=(
-                (
-                    "com.apple.private.siri",
-                    None,
-                ),
-                (
-                    "com.apple.private.siri",
-                    None,
-                ),
-            ),
-        ),
-        sdef_meta.CommandMeta(
-            name="copy",
-            code="misccopy",
-            description="(NOT AVAILABLE YET) Copy the selected items to the clipboard (the Finder must be the front application)",
-            hidden=None,
-            direct_parameter_type=None,
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="sort",
-            code="DATASORT",
-            description="Return the specified object(s) in a sorted list",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="by",
-                    code="by  ",
-                    type="property",
-                    description="the property to sort the items by (name, index, date, etc.)",
-                    optional=None,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(
-                sdef_meta.ResultMeta(
-                    type="specifier",
-                    description="the sorted items in their new order",
-                    optional=True,
-                ),
-            ),
-            access_groups=(),
-        ),
+    COMMANDS: ClassVar[tuple[type[SDEFCommand], ...]] = (
+        OpenVirtualLocationCommand,
+        CopyCommand,
+        SortCommand,
     )
 
-    def open_virtual_location(self, direct_parameter: str) -> None:
-        """Private event to open a virtual location\n\nSDEF extras: {"direct_parameters": [{"access_group": [{"identifier": "com.apple.private.siri"}], "description": "the location to open", "type": "text", "type_element": []}]}"""
-        raise NotImplementedError
 
-    def copy(self) -> None:
-        """(NOT AVAILABLE YET) Copy the selected items to the clipboard (the Finder must be the front application)"""
-        raise NotImplementedError
-
-    def sort(
-        self,
-        direct_parameter: sdef_types.Specifier,
-        *,
-        by: sdef_types.Specifier,
-    ) -> sdef_types.Specifier | None:
-        """Return the specified object(s) in a sorted list\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "a list of finder objects to sort", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "by  ", "description": "the property to sort the items by (name, index, date, etc.)", "name": "by", "type": "property", "type_element": []}], "results": [{"description": "the sorted items in their new order", "optional": "yes", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-
-__all__ = ["Application", "FinderBasicsSuite"]
+__all__ = [
+    "Application",
+    "CopyCommand",
+    "FinderBasicsSuite",
+    "OpenVirtualLocationCommand",
+    "SortCommand",
+]

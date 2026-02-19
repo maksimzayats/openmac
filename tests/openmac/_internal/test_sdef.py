@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import pytest
 from pydantic import BaseModel
 
 from openmac._internal.context import Context
 from openmac._internal.manager import Manager
-from openmac._internal.models import SDEFModel
+from openmac._internal.models import SDEFCommand, SDEFModel
 from openmac._internal.runner import AppleScriptRunner
 from openmac._internal.sdef import (
     Date,
@@ -29,6 +30,10 @@ class SdefPayload(BaseModel):
 
 class DemoSdefModel(SDEFModel):
     value: int
+
+
+class DemoSdefCommand(SDEFCommand):
+    argument: int
 
 
 def test_sdef_custom_types_validate_with_pydantic() -> None:
@@ -66,3 +71,10 @@ def test_manager_can_be_specialized() -> None:
         pass
 
     assert issubclass(StringManager, Manager)
+
+
+def test_sdef_command_call_raises_not_implemented() -> None:
+    command = DemoSdefCommand.model_validate({"argument": 3})
+
+    with pytest.raises(NotImplementedError):
+        command()

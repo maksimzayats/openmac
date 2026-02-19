@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import importlib
-import inspect
 from typing import Any, cast
 
 import pytest
 
+from openmac._internal.models import SDEFCommand
 from openmac.chrome.suites import ChromiumSuite, StandardSuite as ChromeStandardSuite
 from openmac.finder.suites import (
     ContainersAndFoldersSuite,
@@ -48,26 +48,6 @@ SUITE_CLASSES = [
 ]
 
 
-def _required_arguments(method: Any) -> tuple[list[object], dict[str, object]]:
-    positional_args: list[object] = []
-    keyword_args: dict[str, object] = {}
-    signature = inspect.signature(method)
-
-    for parameter in signature.parameters.values():
-        if parameter.name == "self" or parameter.default is not inspect.Signature.empty:
-            continue
-        if parameter.kind in {
-            inspect.Parameter.POSITIONAL_ONLY,
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
-        }:
-            positional_args.append(object())
-            continue
-        if parameter.kind is inspect.Parameter.KEYWORD_ONLY:
-            keyword_args[parameter.name] = object()
-
-    return (positional_args, keyword_args)
-
-
 @pytest.mark.parametrize("module_name", GENERATED_MODULES)
 def test_generated_suite_modules_import(module_name: str) -> None:
     module = importlib.import_module(module_name)
@@ -75,17 +55,15 @@ def test_generated_suite_modules_import(module_name: str) -> None:
 
 
 @pytest.mark.parametrize("suite_class", SUITE_CLASSES)
-def test_generated_suite_command_methods_raise_not_implemented(suite_class: type[object]) -> None:
-    suite_instance = suite_class()
-    command_methods = [
-        method
-        for _, method in inspect.getmembers(suite_class, predicate=inspect.isfunction)
-        if not method.__name__.startswith("_")
-    ]
-
-    commands = cast("tuple[object, ...]", cast("Any", suite_class).COMMANDS)
-    assert len(command_methods) == len(commands)
-    for method in command_methods:
-        positional_args, keyword_args = _required_arguments(method)
+def test_generated_suite_commands_raise_not_implemented(suite_class: type[object]) -> None:
+    commands = cast("tuple[type[SDEFCommand], ...]", cast("Any", suite_class).COMMANDS)
+    for command_class in commands:
+        assert issubclass(command_class, SDEFCommand)
+        required_values = {
+            field_name: object()
+            for field_name, field_info in command_class.model_fields.items()
+            if field_info.is_required()
+        }
+        command_instance = cast("Any", command_class).model_construct(**required_values)
         with pytest.raises(NotImplementedError):
-            method(suite_instance, *positional_args, **keyword_args)
+            command_instance()

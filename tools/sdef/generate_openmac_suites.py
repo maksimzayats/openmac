@@ -1,4 +1,4 @@
-# ruff: noqa: C901, FURB113, PERF401, PLR0911, PLR0912, PLR0914, PLR0915, PLR0917
+# ruff: noqa: C901, FURB113, PERF401, PLR0911, PLR0912, PLR0913, PLR0914, PLR0915, PLR0917
 
 from __future__ import annotations
 
@@ -211,6 +211,13 @@ def class_name(sdef_name: str) -> str:
 
 def command_method_name(command_name: str) -> str:
     return ensure_identifier(command_name)
+
+
+def command_class_name(command_name: str) -> str:
+    class_name_value = pascal_case(command_name)
+    if not class_name_value.endswith("Command"):
+        class_name_value = f"{class_name_value}Command"
+    return class_name_value
 
 
 def tuple_expression(expressions: list[str]) -> str:
@@ -766,15 +773,54 @@ def value_type_extras(value_type: ValueType) -> dict[str, object] | None:
     return non_empty_dict(extras)
 
 
-def build_parameter_signature(
+def command_field_line(
+    *,
     name: str,
     annotation: str,
-    *,
+    description: str | None,
     optional: bool,
+    alias: str | None = None,
+    schema_extra: dict[str, object] | None = None,
 ) -> str:
+    field_annotation = annotation
+    kwargs: list[str] = []
     if optional:
-        return f"{name}: {annotation} | None = None"
-    return f"{name}: {annotation}"
+        field_annotation = f"{annotation} | None"
+        kwargs.append("default=None")
+    else:
+        kwargs.append("...")
+    if alias is not None:
+        kwargs.append(f"alias={render_py(alias)}")
+    kwargs.append(f"description={render_py(description)}")
+    if schema_extra:
+        kwargs.append(f"json_schema_extra={render_py(schema_extra)}")
+    return f"    {name}: {field_annotation} = Field({', '.join(kwargs)})"
+
+
+def direct_parameter_field_extra(direct_parameter: DirectParameter) -> dict[str, object] | None:
+    extras: dict[str, object] = {}
+    if direct_parameter.type_elements:
+        extras["type_elements"] = serialize_models([
+            cast("BaseModel", type_element) for type_element in direct_parameter.type_elements
+        ])
+    if direct_parameter.access_groups:
+        extras["access_groups"] = serialize_models([
+            cast("BaseModel", access_group) for access_group in direct_parameter.access_groups
+        ])
+    return non_empty_dict(extras)
+
+
+def parameter_field_extra(parameter: Parameter) -> dict[str, object] | None:
+    extras: dict[str, object] = {}
+    if parameter.type_elements:
+        extras["type_elements"] = serialize_models([
+            cast("BaseModel", type_element) for type_element in parameter.type_elements
+        ])
+    if parameter.cocoas:
+        extras["cocoas"] = serialize_models([
+            cast("BaseModel", cocoa) for cocoa in parameter.cocoas
+        ])
+    return non_empty_dict(extras)
 
 
 def first_direct_parameter(command: Command) -> DirectParameter | None:
@@ -795,12 +841,17 @@ def command_return_annotation(command: Command, module_name: str, lookups: Looku
     return annotation
 
 
-def command_method_lines(command: Command, module_name: str, lookups: LookupTables) -> list[str]:
-    command_name_value = command.name or "command"
-    method_name = command_method_name(command_name_value)
-    parameter_parts: list[str] = ["self"]
-    in_use_names = {"self"}
+def command_class_lines(
+    command: Command,
+    module_name: str,
+    lookups: LookupTables,
+    command_class: str,
+) -> list[str]:
+    lines = [f"class {command_class}(SDEFCommand):"]
+    lines.append(f"    {render_py(build_docstring(command.description, command_extras(command)))}")
+    lines.append(f"    SDEF_META: ClassVar[sdef_meta.CommandMeta] = {command_meta_expr(command)}")
 
+    in_use_names: set[str] = set()
     direct_parameter = first_direct_parameter(command)
     if direct_parameter is not None:
         direct_annotation = resolve_annotation(
@@ -809,16 +860,17 @@ def command_method_lines(command: Command, module_name: str, lookups: LookupTabl
             module_name,
             lookups,
         )
-        parameter_parts.append(
-            build_parameter_signature(
-                "direct_parameter",
-                direct_annotation,
+        lines.append(
+            command_field_line(
+                name="direct_parameter",
+                annotation=direct_annotation,
+                description=sanitize_optional_text(direct_parameter.description),
                 optional=direct_parameter.optional == "yes",
+                schema_extra=direct_parameter_field_extra(direct_parameter),
             ),
         )
         in_use_names.add("direct_parameter")
 
-    named_parameters: list[str] = []
     for parameter in command.parameters:
         raw_name = parameter.name or "parameter"
         parameter_name = unique_name(ensure_identifier(raw_name), in_use_names)
@@ -828,25 +880,23 @@ def command_method_lines(command: Command, module_name: str, lookups: LookupTabl
             module_name,
             lookups,
         )
-        named_parameters.append(
-            build_parameter_signature(
-                parameter_name,
-                parameter_annotation,
+        lines.append(
+            command_field_line(
+                name=parameter_name,
+                annotation=parameter_annotation,
+                description=sanitize_optional_text(parameter.description),
                 optional=parameter.optional == "yes",
+                alias=sanitize_text(raw_name),
+                schema_extra=parameter_field_extra(parameter),
             ),
         )
 
-    if named_parameters:
-        parameter_parts.append("*")
-        parameter_parts.extend(named_parameters)
-
-    signature = ", ".join(parameter_parts)
+    lines.append("")
     return_annotation = command_return_annotation(command, module_name, lookups)
-    method_lines = [f"    def {method_name}({signature}) -> {return_annotation}:"]
-    method_docstring = build_docstring(command.description, command_extras(command))
-    method_lines.append(f"        {render_py(method_docstring)}")
-    method_lines.append("        raise NotImplementedError")
-    return method_lines
+    lines.append(f"    def __call__(self) -> {return_annotation}:")
+    lines.append("        raise NotImplementedError")
+    lines.append("")
+    return lines
 
 
 def field_line(
@@ -1005,8 +1055,13 @@ def generate_suite_module(
     module_name = suite_module_name(suite_name_value)
     suite_class = suite_class_name(suite_name_value)
 
-    needs_field = any(class_definition.properties for class_definition in suite.classes) or any(
-        class_extension.properties for class_extension in suite.class_extensions
+    needs_command_fields = any(
+        command.direct_parameters or command.parameters for command in suite.commands
+    )
+    needs_field = (
+        any(class_definition.properties for class_definition in suite.classes)
+        or any(class_extension.properties for class_extension in suite.class_extensions)
+        or needs_command_fields
     )
     needs_enum = bool(suite.enumerations)
 
@@ -1031,6 +1086,25 @@ def generate_suite_module(
         if import_module is not None:
             cross_module_imports.add(import_module)
 
+    command_class_names: list[str] = []
+    command_class_blocks: list[list[str]] = []
+    in_use_command_class_names: set[str] = set()
+    for command in suite.commands:
+        command_name_value = command.name or "command"
+        generated_command_class_name = unique_name(
+            command_class_name(command_name_value),
+            in_use_command_class_names,
+        )
+        command_class_names.append(generated_command_class_name)
+        command_class_blocks.append(
+            command_class_lines(
+                command,
+                module_name,
+                lookups,
+                generated_command_class_name,
+            ),
+        )
+
     lines: list[str] = [
         "from __future__ import annotations",
         "# ruff: noqa: D301, D400, D415, PIE796",
@@ -1047,7 +1121,7 @@ def generate_suite_module(
         "",
         "import openmac._internal.sdef as sdef_types",
         "import openmac._internal.sdef_meta as sdef_meta",
-        "from openmac._internal.models import SDEFModel",
+        "from openmac._internal.models import SDEFCommand, SDEFModel",
     ])
 
     for imported_module in sorted(cross_module_imports):
@@ -1069,17 +1143,14 @@ def generate_suite_module(
     for value_type in suite.value_types:
         lines.extend(value_type_lines(value_type))
 
+    for command_class_block in command_class_blocks:
+        lines.extend(command_class_block)
+
     lines.append(f"class {suite_class}:")
     lines.append(f"    {render_py(build_docstring(suite.description, suite_extras(suite)))}")
-    command_expr = tuple_expression([command_meta_expr(command) for command in suite.commands])
-    lines.append(f"    COMMANDS: ClassVar[tuple[sdef_meta.CommandMeta, ...]] = {command_expr}")
+    command_expr = tuple_expression(command_class_names)
+    lines.append(f"    COMMANDS: ClassVar[tuple[type[SDEFCommand], ...]] = {command_expr}")
     lines.append("")
-    if not suite.commands:
-        lines.append("    pass")
-    else:
-        for command in suite.commands:
-            lines.extend(command_method_lines(command, module_name, lookups))
-            lines.append("")
 
     exported_names: list[str] = []
     for class_definition in suite.classes:
@@ -1094,6 +1165,7 @@ def generate_suite_module(
     for value_type in suite.value_types:
         if value_type.name is not None:
             exported_names.append(class_name(value_type.name))
+    exported_names.extend(command_class_names)
     exported_names.append(suite_class)
 
     deduped_exports: list[str] = []

@@ -9,7 +9,7 @@ from pydantic import Field
 import openmac._internal.sdef as sdef_types
 import openmac.chrome.suites.standard_suite as standard_suite_module
 from openmac._internal import sdef_meta
-from openmac._internal.models import SDEFModel
+from openmac._internal.models import SDEFCommand, SDEFModel
 
 SUITE_META: Final[sdef_meta.SuiteMeta] = sdef_meta.SuiteMeta(
     name="Chromium Suite",
@@ -337,189 +337,321 @@ class Application(standard_suite_module.Application):
     )
 
 
+class ReloadCommand(SDEFCommand):
+    """Reload a tab.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="reload",
+        code="CrSuRlod",
+        description="Reload a tab.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class GoBackCommand(SDEFCommand):
+    """Go Back (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="go back",
+        code="CrSuBack",
+        description="Go Back (If Possible).",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class GoForwardCommand(SDEFCommand):
+    """Go Forward (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="go forward",
+        code="CrSuFwd ",
+        description="Go Forward (If Possible).",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class SelectAllCommand(SDEFCommand):
+    """Select all.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="select all",
+        code="CrSuSlAl",
+        description="Select all.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class CutSelectionCommand(SDEFCommand):
+    """Cut selected text (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="cut selection",
+        code="CrSuCut ",
+        description="Cut selected text (If Possible).",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class CopySelectionCommand(SDEFCommand):
+    """Copy text.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="copy selection",
+        code="CrSuCop ",
+        description="Copy text.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class PasteSelectionCommand(SDEFCommand):
+    """Paste text (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="paste selection",
+        code="CrSuPast",
+        description="Paste text (If Possible).",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class UndoCommand(SDEFCommand):
+    """Undo the last change.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="undo",
+        code="CrSuUndo",
+        description="Undo the last change.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class RedoCommand(SDEFCommand):
+    """Redo the last change.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="redo",
+        code="CrSuRedo",
+        description="Redo the last change.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class StopCommand(SDEFCommand):
+    """Stop the current tab from loading.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="stop",
+        code="CrSustop",
+        description="Stop the current tab from loading.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class ViewSourceCommand(SDEFCommand):
+    """View the HTML source of the tab.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="view source",
+        code="CrSuVSrc",
+        description="View the HTML source of the tab.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(),
+        results=(),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+
+    def __call__(self) -> None:
+        raise NotImplementedError
+
+
+class ExecuteCommand(SDEFCommand):
+    """Execute a piece of javascript.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "javascript"}], "code": "JvSc", "description": "The javascript code to execute.", "name": "javascript", "type": "text", "type_element": []}], "results": [{"type": "any", "type_element": []}]}"""
+
+    SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
+        name="execute",
+        code="CrSuExJa",
+        description="Execute a piece of javascript.",
+        hidden=None,
+        direct_parameter_type="specifier",
+        parameters=(
+            sdef_meta.ParameterMeta(
+                name="javascript",
+                code="JvSc",
+                type="text",
+                description="The javascript code to execute.",
+                optional=None,
+                hidden=None,
+                requires_access=None,
+            ),
+        ),
+        results=(sdef_meta.ResultMeta(type="any", description=None, optional=None),),
+        access_groups=(),
+    )
+    direct_parameter: sdef_types.Specifier = Field(
+        ...,
+        description="The tab to execute the command in.",
+    )
+    javascript: str = Field(
+        ...,
+        alias="javascript",
+        description="The javascript code to execute.",
+        json_schema_extra={"cocoas": [{"key": "javascript"}]},
+    )
+
+    def __call__(self) -> object:
+        raise NotImplementedError
+
+
 class ChromiumSuite:
     """Common classes and commands for Chrome."""
 
-    COMMANDS: ClassVar[tuple[sdef_meta.CommandMeta, ...]] = (
-        sdef_meta.CommandMeta(
-            name="reload",
-            code="CrSuRlod",
-            description="Reload a tab.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="go back",
-            code="CrSuBack",
-            description="Go Back (If Possible).",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="go forward",
-            code="CrSuFwd ",
-            description="Go Forward (If Possible).",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="select all",
-            code="CrSuSlAl",
-            description="Select all.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="cut selection",
-            code="CrSuCut ",
-            description="Cut selected text (If Possible).",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="copy selection",
-            code="CrSuCop ",
-            description="Copy text.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="paste selection",
-            code="CrSuPast",
-            description="Paste text (If Possible).",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="undo",
-            code="CrSuUndo",
-            description="Undo the last change.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="redo",
-            code="CrSuRedo",
-            description="Redo the last change.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="stop",
-            code="CrSustop",
-            description="Stop the current tab from loading.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="view source",
-            code="CrSuVSrc",
-            description="View the HTML source of the tab.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(),
-            results=(),
-            access_groups=(),
-        ),
-        sdef_meta.CommandMeta(
-            name="execute",
-            code="CrSuExJa",
-            description="Execute a piece of javascript.",
-            hidden=None,
-            direct_parameter_type="specifier",
-            parameters=(
-                sdef_meta.ParameterMeta(
-                    name="javascript",
-                    code="JvSc",
-                    type="text",
-                    description="The javascript code to execute.",
-                    optional=None,
-                    hidden=None,
-                    requires_access=None,
-                ),
-            ),
-            results=(sdef_meta.ResultMeta(type="any", description=None, optional=None),),
-            access_groups=(),
-        ),
+    COMMANDS: ClassVar[tuple[type[SDEFCommand], ...]] = (
+        ReloadCommand,
+        GoBackCommand,
+        GoForwardCommand,
+        SelectAllCommand,
+        CutSelectionCommand,
+        CopySelectionCommand,
+        PasteSelectionCommand,
+        UndoCommand,
+        RedoCommand,
+        StopCommand,
+        ViewSourceCommand,
+        ExecuteCommand,
     )
 
-    def reload(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Reload a tab.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
 
-    def go_back(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Go Back (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def go_forward(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Go Forward (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def select_all(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Select all.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def cut_selection(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Cut selected text (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def copy_selection(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Copy text.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def paste_selection(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Paste text (If Possible).\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def undo(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Undo the last change.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def redo(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Redo the last change.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def stop(self, direct_parameter: sdef_types.Specifier) -> None:
-        """Stop the current tab from loading.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def view_source(self, direct_parameter: sdef_types.Specifier) -> None:
-        """View the HTML source of the tab.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}]}"""
-        raise NotImplementedError
-
-    def execute(self, direct_parameter: sdef_types.Specifier, *, javascript: str) -> object:
-        """Execute a piece of javascript.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "javascript"}], "code": "JvSc", "description": "The javascript code to execute.", "name": "javascript", "type": "text", "type_element": []}], "results": [{"type": "any", "type_element": []}]}"""
-        raise NotImplementedError
-
-
-__all__ = ["Application", "BookmarkFolder", "BookmarkItem", "ChromiumSuite", "Tab"]
+__all__ = [
+    "Application",
+    "BookmarkFolder",
+    "BookmarkItem",
+    "ChromiumSuite",
+    "CopySelectionCommand",
+    "CutSelectionCommand",
+    "ExecuteCommand",
+    "GoBackCommand",
+    "GoForwardCommand",
+    "PasteSelectionCommand",
+    "RedoCommand",
+    "ReloadCommand",
+    "SelectAllCommand",
+    "StopCommand",
+    "Tab",
+    "UndoCommand",
+    "ViewSourceCommand",
+]
