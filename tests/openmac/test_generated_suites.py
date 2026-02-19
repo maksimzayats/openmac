@@ -1,50 +1,47 @@
 from __future__ import annotations
 
 import importlib
-from typing import Any, cast
+from typing import Any, Final, cast
 
 import pytest
 
 from openmac._internal.sdef.base import SDEFCommand
-from openmac.chrome.sdef.suites import ChromiumSuite, StandardSuite as ChromeStandardSuite
-from openmac.finder.sdef.suites import (
-    ContainersAndFoldersSuite,
-    EnumerationsSuite,
-    FilesSuite,
-    FinderBasicsSuite,
-    FinderItemsSuite,
-    LegacySuite,
-    StandardSuite as FinderStandardSuite,
-    TypeDefinitionsSuite,
-    WindowClassesSuite,
+
+SUITE_PACKAGES: Final[tuple[tuple[str, str], ...]] = (
+    ("openmac.chrome.sdef.suites", "standard"),
+    ("openmac.chrome.sdef.suites", "chromium"),
+    ("openmac.finder.sdef.suites", "standard"),
+    ("openmac.finder.sdef.suites", "finder_basics"),
+    ("openmac.finder.sdef.suites", "finder_items"),
+    ("openmac.finder.sdef.suites", "containers_and_folders"),
+    ("openmac.finder.sdef.suites", "files"),
+    ("openmac.finder.sdef.suites", "window_classes"),
+    ("openmac.finder.sdef.suites", "legacy"),
+    ("openmac.finder.sdef.suites", "type_definitions"),
+    ("openmac.finder.sdef.suites", "enumerations"),
 )
 
-GENERATED_MODULES = [
-    "openmac.chrome.sdef.suites.standard_suite",
-    "openmac.chrome.sdef.suites.chromium_suite",
-    "openmac.finder.sdef.suites.standard_suite",
-    "openmac.finder.sdef.suites.finder_basics_suite",
-    "openmac.finder.sdef.suites.finder_items_suite",
-    "openmac.finder.sdef.suites.containers_and_folders_suite",
-    "openmac.finder.sdef.suites.files_suite",
-    "openmac.finder.sdef.suites.window_classes_suite",
-    "openmac.finder.sdef.suites.legacy_suite",
-    "openmac.finder.sdef.suites.type_definitions_suite",
-    "openmac.finder.sdef.suites.enumerations_suite",
-]
+BASE_SUBMODULES: Final[tuple[str, ...]] = (
+    "meta",
+    "classes",
+    "enumerations",
+    "value_types",
+    "commands",
+)
 
-SUITE_CLASSES = [
-    ChromeStandardSuite,
-    ChromiumSuite,
-    FinderStandardSuite,
-    FinderBasicsSuite,
-    FinderItemsSuite,
-    ContainersAndFoldersSuite,
-    FilesSuite,
-    WindowClassesSuite,
-    LegacySuite,
-    TypeDefinitionsSuite,
-    EnumerationsSuite,
+CLASS_EXTENSION_MODULES: Final[tuple[str, ...]] = (
+    "openmac.chrome.sdef.suites.chromium.class_extensions",
+    "openmac.finder.sdef.suites.legacy.class_extensions",
+)
+
+GENERATED_MODULES: Final[list[str]] = [
+    f"{package_root}.{suite_name}.{submodule_name}"
+    for package_root, suite_name in SUITE_PACKAGES
+    for submodule_name in BASE_SUBMODULES
+] + list(CLASS_EXTENSION_MODULES)
+
+COMMAND_MODULES: Final[list[str]] = [
+    f"{package_root}.{suite_name}.commands" for package_root, suite_name in SUITE_PACKAGES
 ]
 
 BUNDLE_MODULES = [
@@ -52,20 +49,59 @@ BUNDLE_MODULES = [
     ("openmac.finder.sdef.bundle", "com.apple.finder"),
 ]
 
+ROOT_SUITES_MODULES_WITH_REMOVED_EXPORTS: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
+    (
+        "openmac.chrome.sdef.suites",
+        ("StandardSuite", "ChromiumSuite"),
+    ),
+    (
+        "openmac.finder.sdef.suites",
+        (
+            "StandardSuite",
+            "FinderBasicsSuite",
+            "FinderItemsSuite",
+            "ContainersAndFoldersSuite",
+            "FilesSuite",
+            "WindowClassesSuite",
+            "LegacySuite",
+            "TypeDefinitionsSuite",
+            "EnumerationsSuite",
+        ),
+    ),
+)
+
+SUITE_PACKAGE_MODULES_WITH_REMOVED_EXPORTS: Final[tuple[tuple[str, str], ...]] = (
+    ("openmac.chrome.sdef.suites.standard", "StandardSuite"),
+    ("openmac.chrome.sdef.suites.chromium", "ChromiumSuite"),
+    ("openmac.finder.sdef.suites.standard", "StandardSuite"),
+    ("openmac.finder.sdef.suites.finder_basics", "FinderBasicsSuite"),
+    ("openmac.finder.sdef.suites.finder_items", "FinderItemsSuite"),
+    ("openmac.finder.sdef.suites.containers_and_folders", "ContainersAndFoldersSuite"),
+    ("openmac.finder.sdef.suites.files", "FilesSuite"),
+    ("openmac.finder.sdef.suites.window_classes", "WindowClassesSuite"),
+    ("openmac.finder.sdef.suites.legacy", "LegacySuite"),
+    ("openmac.finder.sdef.suites.type_definitions", "TypeDefinitionsSuite"),
+    ("openmac.finder.sdef.suites.enumerations", "EnumerationsSuite"),
+)
+
 
 @pytest.mark.parametrize("module_name", GENERATED_MODULES)
-def test_generated_suite_modules_import(module_name: str) -> None:
+def test_generated_suite_submodules_import(module_name: str) -> None:
     module = importlib.import_module(module_name)
-    if module_name.endswith(".suites"):
-        assert hasattr(module, "__all__")
-    else:
-        assert hasattr(module, "SUITE_META")
+    assert module is not None
 
 
-@pytest.mark.parametrize("suite_class", SUITE_CLASSES)
-def test_generated_suite_commands_raise_not_implemented(suite_class: type[object]) -> None:
-    commands = cast("tuple[type[SDEFCommand], ...]", cast("Any", suite_class).COMMANDS)
-    for command_class in commands:
+@pytest.mark.parametrize("module_name", COMMAND_MODULES)
+def test_generated_suite_commands_raise_not_implemented(module_name: str) -> None:
+    module = importlib.import_module(module_name)
+    command_classes = [
+        candidate
+        for candidate in module.__dict__.values()
+        if isinstance(candidate, type)
+        and issubclass(candidate, SDEFCommand)
+        and candidate is not SDEFCommand
+    ]
+    for command_class in command_classes:
         assert issubclass(command_class, SDEFCommand)
         required_values = {
             field_name: object()
@@ -75,6 +111,30 @@ def test_generated_suite_commands_raise_not_implemented(suite_class: type[object
         command_instance = cast("Any", command_class).model_construct(**required_values)
         with pytest.raises(NotImplementedError):
             command_instance()
+
+
+@pytest.mark.parametrize(
+    ("module_name", "removed_exports"),
+    ROOT_SUITES_MODULES_WITH_REMOVED_EXPORTS,
+)
+def test_root_suite_package_inits_do_not_reexport(
+    module_name: str,
+    removed_exports: tuple[str, ...],
+) -> None:
+    module = importlib.import_module(module_name)
+    assert "__all__" not in module.__dict__
+    for removed_export in removed_exports:
+        assert not hasattr(module, removed_export)
+
+
+@pytest.mark.parametrize(
+    ("module_name", "removed_export"),
+    SUITE_PACKAGE_MODULES_WITH_REMOVED_EXPORTS,
+)
+def test_suite_package_inits_do_not_reexport(module_name: str, removed_export: str) -> None:
+    module = importlib.import_module(module_name)
+    assert "__all__" not in module.__dict__
+    assert not hasattr(module, removed_export)
 
 
 @pytest.mark.parametrize(("module_name", "bundle_id"), BUNDLE_MODULES)
