@@ -12,7 +12,7 @@ class AppleScriptSDEFCommandRunner:
 
     def run(self, command: SDEFCommand) -> Any:
         script = self._generate_applescript(command)
-        result = self._executor.execute(script)
+        return self._executor.execute(script)
 
     def _generate_applescript(self, command: SDEFCommand) -> str:
         raise NotImplementedError

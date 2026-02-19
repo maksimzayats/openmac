@@ -580,7 +580,7 @@ def command_meta_expr(command: Command, bundle_id: str) -> str:
     parameter_expr = tuple_expression([
         parameter_meta_expr(parameter) for parameter in command.parameters
     ])
-    result_expr = tuple_expression([result_meta_expr(result) for result in command.results])
+    result_expr = result_meta_expr(command.result) if command.result is not None else "None"
     access_groups = access_group_tuples_from_command(command)
     return (
         "sdef_meta.CommandMeta("
@@ -591,7 +591,7 @@ def command_meta_expr(command: Command, bundle_id: str) -> str:
         f"bundle_id={render_py(bundle_id)}, "
         f"direct_parameter_type={render_py(command_direct_parameter_type(command))}, "
         f"parameters={parameter_expr}, "
-        f"results={result_expr}, "
+        f"result={result_expr}, "
         f"access_groups={render_py(access_groups)}"
         ")"
     )
@@ -655,13 +655,17 @@ def command_extras(command: Command) -> dict[str, object] | None:
     parameter_payload = serialize_models([
         cast("BaseModel", parameter) for parameter in command.parameters
     ])
-    result_payload = serialize_models([cast("BaseModel", result) for result in command.results])
+    result_payload = (
+        serialize_models([cast("BaseModel", command.result)])[0]
+        if command.result is not None
+        else None
+    )
     if direct_parameter_payload:
         extras["direct_parameters"] = direct_parameter_payload
     if parameter_payload:
         extras["parameters"] = parameter_payload
-    if result_payload:
-        extras["results"] = result_payload
+    if result_payload is not None:
+        extras["result"] = result_payload
     if command.cocoas:
         extras["cocoas"] = serialize_models([cast("BaseModel", cocoa) for cocoa in command.cocoas])
     if command.documentation:

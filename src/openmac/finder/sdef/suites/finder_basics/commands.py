@@ -22,7 +22,7 @@ class OpenVirtualLocationCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type="text",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(
             (
                 "com.apple.private.siri",
@@ -52,13 +52,13 @@ class CopyCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type=None,
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
 
 
 class SortCommand(SDEFCommand):
-    """Return the specified object(s) in a sorted list\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "a list of finder objects to sort", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "by  ", "description": "the property to sort the items by (name, index, date, etc.)", "name": "by", "type": "property", "type_element": []}], "results": [{"description": "the sorted items in their new order", "optional": "yes", "type": "specifier", "type_element": []}]}"""
+    """Return the specified object(s) in a sorted list\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "a list of finder objects to sort", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "by  ", "description": "the property to sort the items by (name, index, date, etc.)", "name": "by", "type": "property", "type_element": []}], "result": {"description": "the sorted items in their new order", "optional": "yes", "type": "specifier", "type_element": []}}"""
 
     SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
         name="sort",
@@ -78,12 +78,10 @@ class SortCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(
-            sdef_meta.ResultMeta(
-                type="specifier",
-                description="the sorted items in their new order",
-                optional=True,
-            ),
+        result=sdef_meta.ResultMeta(
+            type="specifier",
+            description="the sorted items in their new order",
+            optional=True,
         ),
         access_groups=(),
     )

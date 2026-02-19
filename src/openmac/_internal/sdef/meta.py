@@ -41,7 +41,7 @@ class CommandMeta:
     bundle_id: str
     direct_parameter_type: str | None
     parameters: tuple[ParameterMeta, ...] = field(default_factory=tuple)
-    results: tuple[ResultMeta, ...] = field(default_factory=tuple)
+    result: ResultMeta | None = None
     access_groups: tuple[AccessGroupMeta, ...] = field(default_factory=tuple)
 
 

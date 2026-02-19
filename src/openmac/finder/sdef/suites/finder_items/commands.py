@@ -32,7 +32,7 @@ class CleanUpCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the window to clean up")
@@ -54,7 +54,7 @@ class EjectCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier | None = Field(
@@ -84,7 +84,7 @@ class EmptyCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(),
+        result=None,
         access_groups=(
             (
                 "com.apple.finder.trash",
@@ -110,7 +110,7 @@ class EraseCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the items to erase")
@@ -127,7 +127,7 @@ class RevealCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the object to be made visible")
@@ -163,7 +163,7 @@ class UpdateCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the item to update")

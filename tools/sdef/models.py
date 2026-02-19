@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 YesNo = Literal["yes", "no"]
 AccessType = Literal["r", "w", "rw"]
@@ -114,9 +114,26 @@ class Command(BaseModel):
     access_groups: list[AccessGroup] = Field(default_factory=list, alias="access_group")
     parameters: list[Parameter] = Field(default_factory=list, alias="parameter")
     direct_parameters: list[DirectParameter] = Field(default_factory=list, alias="direct_parameter")
-    results: list[Result] = Field(default_factory=list, alias="result")
+    result: Result | None = Field(default=None, alias="result")
     cocoas: list[Cocoa] = Field(default_factory=list, alias="cocoa")
     documentation: list[Documentation] = Field(default_factory=list, alias="documentation")
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_result(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+        raw_result = value.get("result")
+        if not isinstance(raw_result, list):
+            return value
+        if not raw_result:
+            value["result"] = None
+            return value
+        if len(raw_result) == 1:
+            value["result"] = raw_result[0]
+            return value
+        msg = "SDEF command defines multiple <result> entries; expected at most one."
+        raise ValueError(msg)
 
 
 class Class(BaseModel):

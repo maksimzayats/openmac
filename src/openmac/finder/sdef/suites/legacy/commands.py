@@ -19,7 +19,7 @@ class RestartCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type=None,
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
 
@@ -35,7 +35,7 @@ class ShutDownCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type=None,
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
 
@@ -51,6 +51,6 @@ class SleepCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type=None,
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )

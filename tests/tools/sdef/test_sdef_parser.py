@@ -144,6 +144,28 @@ def test_load_sdef_rejects_unknown_fields_in_strict_mode(tmp_path: Path) -> None
     assert str(sdef_path) in str(exc_info.value)
 
 
+def test_load_sdef_rejects_command_with_multiple_results(tmp_path: Path) -> None:
+    sdef_path = tmp_path / "multiple-results.sdef"
+    sdef_path.write_text(
+        """<?xml version="1.0" encoding="UTF-8"?>
+<dictionary title="Dictionary">
+  <suite name="Strict Suite" code="Strt">
+    <command name="count" code="corecnte">
+      <result type="integer"/>
+      <result type="text"/>
+    </command>
+  </suite>
+</dictionary>
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="multiple <result> entries") as exc_info:
+        load_sdef(sdef_path)
+
+    assert str(sdef_path) in str(exc_info.value)
+
+
 def test_load_sdef_rejects_malformed_xml(tmp_path: Path) -> None:
     sdef_path = tmp_path / "malformed.sdef"
     sdef_path.write_text(

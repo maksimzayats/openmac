@@ -41,7 +41,7 @@ class OpenCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="list of objects to open")
@@ -78,7 +78,7 @@ class PrintCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="list of objects to print")
@@ -100,7 +100,7 @@ class QuitCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type=None,
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
 
@@ -116,7 +116,7 @@ class ActivateCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier | None = Field(
@@ -136,14 +136,14 @@ class CloseCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the object to close")
 
 
 class CountCommand(SDEFCommand):
-    """Return the number of elements of a particular class within an object\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object whose elements are to be counted", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "kocl", "description": "the class of the elements to be counted", "name": "each", "type": "type", "type_element": []}], "results": [{"description": "the number of elements", "type": "integer", "type_element": []}]}"""
+    """Return the number of elements of a particular class within an object\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object whose elements are to be counted", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "kocl", "description": "the class of the elements to be counted", "name": "each", "type": "type", "type_element": []}], "result": {"description": "the number of elements", "type": "integer", "type_element": []}}"""
 
     SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
         name="count",
@@ -163,12 +163,10 @@ class CountCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(
-            sdef_meta.ResultMeta(
-                type="integer",
-                description="the number of elements",
-                optional=None,
-            ),
+        result=sdef_meta.ResultMeta(
+            type="integer",
+            description="the number of elements",
+            optional=None,
         ),
         access_groups=(),
     )
@@ -180,7 +178,7 @@ class CountCommand(SDEFCommand):
 
 
 class DataSizeCommand(SDEFCommand):
-    """Return the size in bytes of an object\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object whose data size is to be returned", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "rtyp", "description": "the data type for which the size is calculated", "name": "as", "optional": "yes", "type": "type", "type_element": []}], "results": [{"description": "the size of the object in bytes", "type": "integer", "type_element": []}]}"""
+    """Return the size in bytes of an object\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object whose data size is to be returned", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "rtyp", "description": "the data type for which the size is calculated", "name": "as", "optional": "yes", "type": "type", "type_element": []}], "result": {"description": "the size of the object in bytes", "type": "integer", "type_element": []}}"""
 
     SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
         name="data size",
@@ -200,12 +198,10 @@ class DataSizeCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(
-            sdef_meta.ResultMeta(
-                type="integer",
-                description="the size of the object in bytes",
-                optional=None,
-            ),
+        result=sdef_meta.ResultMeta(
+            type="integer",
+            description="the size of the object in bytes",
+            optional=None,
         ),
         access_groups=(),
     )
@@ -221,7 +217,7 @@ class DataSizeCommand(SDEFCommand):
 
 
 class DeleteCommand(SDEFCommand):
-    """Move an item from its container to the trash\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the item to delete", "type": "specifier", "type_element": []}], "results": [{"description": "to the item that was just deleted", "type": "specifier", "type_element": []}]}"""
+    """Move an item from its container to the trash\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the item to delete", "type": "specifier", "type_element": []}], "result": {"description": "to the item that was just deleted", "type": "specifier", "type_element": []}}"""
 
     SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
         name="delete",
@@ -231,12 +227,10 @@ class DeleteCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(
-            sdef_meta.ResultMeta(
-                type="specifier",
-                description="to the item that was just deleted",
-                optional=None,
-            ),
+        result=sdef_meta.ResultMeta(
+            type="specifier",
+            description="to the item that was just deleted",
+            optional=None,
         ),
         access_groups=(),
     )
@@ -244,7 +238,7 @@ class DeleteCommand(SDEFCommand):
 
 
 class DuplicateCommand(SDEFCommand):
-    """Duplicate one or more object(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object(s) to duplicate", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "insh", "description": "the new location for the object(s)", "name": "to", "optional": "yes", "type": "location specifier", "type_element": []}, {"cocoa": [], "code": "alrp", "description": "Specifies whether or not to replace items in the destination that have the same name as items being duplicated", "name": "replacing", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "rout", "description": "Specifies whether or not to autoroute items (default is false). Only applies when copying to the system folder.", "name": "routing suppressed", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "exct", "description": "Specifies whether or not to copy permissions/ownership as is", "name": "exact copy", "optional": "yes", "type": "boolean", "type_element": []}], "results": [{"description": "to the duplicated object(s)", "type": "specifier", "type_element": []}]}"""
+    """Duplicate one or more object(s)\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object(s) to duplicate", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "insh", "description": "the new location for the object(s)", "name": "to", "optional": "yes", "type": "location specifier", "type_element": []}, {"cocoa": [], "code": "alrp", "description": "Specifies whether or not to replace items in the destination that have the same name as items being duplicated", "name": "replacing", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "rout", "description": "Specifies whether or not to autoroute items (default is false). Only applies when copying to the system folder.", "name": "routing suppressed", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "exct", "description": "Specifies whether or not to copy permissions/ownership as is", "name": "exact copy", "optional": "yes", "type": "boolean", "type_element": []}], "result": {"description": "to the duplicated object(s)", "type": "specifier", "type_element": []}}"""
 
     SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
         name="duplicate",
@@ -291,12 +285,10 @@ class DuplicateCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(
-            sdef_meta.ResultMeta(
-                type="specifier",
-                description="to the duplicated object(s)",
-                optional=None,
-            ),
+        result=sdef_meta.ResultMeta(
+            type="specifier",
+            description="to the duplicated object(s)",
+            optional=None,
         ),
         access_groups=(),
     )
@@ -324,7 +316,7 @@ class DuplicateCommand(SDEFCommand):
 
 
 class ExistsCommand(SDEFCommand):
-    """Verify if an object exists\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object in question", "type": "specifier", "type_element": []}], "results": [{"description": "true if it exists, false if not", "type": "boolean", "type_element": []}]}"""
+    """Verify if an object exists\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object in question", "type": "specifier", "type_element": []}], "result": {"description": "true if it exists, false if not", "type": "boolean", "type_element": []}}"""
 
     SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
         name="exists",
@@ -334,12 +326,10 @@ class ExistsCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(
-            sdef_meta.ResultMeta(
-                type="boolean",
-                description="true if it exists, false if not",
-                optional=None,
-            ),
+        result=sdef_meta.ResultMeta(
+            type="boolean",
+            description="true if it exists, false if not",
+            optional=None,
         ),
         access_groups=(),
     )
@@ -347,7 +337,7 @@ class ExistsCommand(SDEFCommand):
 
 
 class MakeCommand(SDEFCommand):
-    """Make a new element\n\nSDEF extras: {"parameters": [{"cocoa": [], "code": "kocl", "description": "the class of the new element", "name": "new", "type": "type", "type_element": []}, {"cocoa": [], "code": "insh", "description": "the location at which to insert the element", "name": "at", "type": "location specifier", "type_element": []}, {"cocoa": [], "code": "to  ", "description": "when creating an alias file, the original item to create an alias to or when creating a file viewer window, the target of the window", "name": "to", "optional": "yes", "type": "specifier", "type_element": []}, {"cocoa": [], "code": "prdt", "description": "the initial values for the properties of the element", "name": "with properties", "optional": "yes", "type": "record", "type_element": []}], "results": [{"description": "to the new object(s)", "type": "specifier", "type_element": []}]}"""
+    """Make a new element\n\nSDEF extras: {"parameters": [{"cocoa": [], "code": "kocl", "description": "the class of the new element", "name": "new", "type": "type", "type_element": []}, {"cocoa": [], "code": "insh", "description": "the location at which to insert the element", "name": "at", "type": "location specifier", "type_element": []}, {"cocoa": [], "code": "to  ", "description": "when creating an alias file, the original item to create an alias to or when creating a file viewer window, the target of the window", "name": "to", "optional": "yes", "type": "specifier", "type_element": []}, {"cocoa": [], "code": "prdt", "description": "the initial values for the properties of the element", "name": "with properties", "optional": "yes", "type": "record", "type_element": []}], "result": {"description": "to the new object(s)", "type": "specifier", "type_element": []}}"""
 
     SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
         name="make",
@@ -394,12 +384,10 @@ class MakeCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(
-            sdef_meta.ResultMeta(
-                type="specifier",
-                description="to the new object(s)",
-                optional=None,
-            ),
+        result=sdef_meta.ResultMeta(
+            type="specifier",
+            description="to the new object(s)",
+            optional=None,
         ),
         access_groups=(),
     )
@@ -422,7 +410,7 @@ class MakeCommand(SDEFCommand):
 
 
 class MoveCommand(SDEFCommand):
-    """Move object(s) to a new location\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object(s) to move", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "insh", "description": "the new location for the object(s)", "name": "to", "type": "location specifier", "type_element": []}, {"cocoa": [], "code": "alrp", "description": "Specifies whether or not to replace items in the destination that have the same name as items being moved", "name": "replacing", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "mvpl", "description": "Gives a list (in local window coordinates) of positions for the destination items", "name": "positioned at", "optional": "yes", "type": "list", "type_element": []}, {"cocoa": [], "code": "rout", "description": "Specifies whether or not to autoroute items (default is false). Only applies when moving to the system folder.", "name": "routing suppressed", "optional": "yes", "type": "boolean", "type_element": []}], "results": [{"description": "to the object(s) after they have been moved", "type": "specifier", "type_element": []}]}"""
+    """Move object(s) to a new location\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "the object(s) to move", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [], "code": "insh", "description": "the new location for the object(s)", "name": "to", "type": "location specifier", "type_element": []}, {"cocoa": [], "code": "alrp", "description": "Specifies whether or not to replace items in the destination that have the same name as items being moved", "name": "replacing", "optional": "yes", "type": "boolean", "type_element": []}, {"cocoa": [], "code": "mvpl", "description": "Gives a list (in local window coordinates) of positions for the destination items", "name": "positioned at", "optional": "yes", "type": "list", "type_element": []}, {"cocoa": [], "code": "rout", "description": "Specifies whether or not to autoroute items (default is false). Only applies when moving to the system folder.", "name": "routing suppressed", "optional": "yes", "type": "boolean", "type_element": []}], "result": {"description": "to the object(s) after they have been moved", "type": "specifier", "type_element": []}}"""
 
     SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
         name="move",
@@ -469,12 +457,10 @@ class MoveCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(
-            sdef_meta.ResultMeta(
-                type="specifier",
-                description="to the object(s) after they have been moved",
-                optional=None,
-            ),
+        result=sdef_meta.ResultMeta(
+            type="specifier",
+            description="to the object(s) after they have been moved",
+            optional=None,
         ),
         access_groups=(),
     )
@@ -512,7 +498,7 @@ class SelectCommand(SDEFCommand):
         bundle_id="com.apple.finder",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(..., description="the object to select")

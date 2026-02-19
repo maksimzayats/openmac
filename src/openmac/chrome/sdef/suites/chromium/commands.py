@@ -22,7 +22,7 @@ class ReloadCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -42,7 +42,7 @@ class GoBackCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -62,7 +62,7 @@ class GoForwardCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -82,7 +82,7 @@ class SelectAllCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -102,7 +102,7 @@ class CutSelectionCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -122,7 +122,7 @@ class CopySelectionCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -142,7 +142,7 @@ class PasteSelectionCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -162,7 +162,7 @@ class UndoCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -182,7 +182,7 @@ class RedoCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -202,7 +202,7 @@ class StopCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -222,7 +222,7 @@ class ViewSourceCommand(SDEFCommand):
         bundle_id="com.google.Chrome",
         direct_parameter_type="specifier",
         parameters=(),
-        results=(),
+        result=None,
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
@@ -232,7 +232,7 @@ class ViewSourceCommand(SDEFCommand):
 
 
 class ExecuteCommand(SDEFCommand):
-    """Execute a piece of javascript.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "javascript"}], "code": "JvSc", "description": "The javascript code to execute.", "name": "javascript", "type": "text", "type_element": []}], "results": [{"type": "any", "type_element": []}]}"""
+    """Execute a piece of javascript.\n\nSDEF extras: {"direct_parameters": [{"access_group": [], "description": "The tab to execute the command in.", "type": "specifier", "type_element": []}], "parameters": [{"cocoa": [{"key": "javascript"}], "code": "JvSc", "description": "The javascript code to execute.", "name": "javascript", "type": "text", "type_element": []}], "result": {"type": "any", "type_element": []}}"""
 
     SDEF_META: ClassVar[sdef_meta.CommandMeta] = sdef_meta.CommandMeta(
         name="execute",
@@ -252,7 +252,7 @@ class ExecuteCommand(SDEFCommand):
                 requires_access=None,
             ),
         ),
-        results=(sdef_meta.ResultMeta(type="any", description=None, optional=None),),
+        result=sdef_meta.ResultMeta(type="any", description=None, optional=None),
         access_groups=(),
     )
     direct_parameter: sdef_types.Specifier = Field(
