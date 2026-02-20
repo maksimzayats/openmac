@@ -1,4 +1,4 @@
-.PHONY: format lint test docs generate-suites
+.PHONY: format lint test test-integration docs generate-suites
 
 SDEF_APP ?= all
 
@@ -13,6 +13,9 @@ lint:
 
 test:
 	uv run pytest tests/ --cov=openmac --cov-report=term-missing
+
+test-integration:
+	uv run pytest tests/integration --run-integration
 
 generate-suites:
 	uv run python tools/sdef/generate_openmac_suites.py --app $(SDEF_APP)
