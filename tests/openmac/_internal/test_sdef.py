@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import NoneType
+
 from pydantic import BaseModel
 
 from openmac._internal.manager import Manager
@@ -29,7 +31,7 @@ class DemoSdefClass(SDEFClass):
     value: int
 
 
-class DemoSdefCommand(SDEFCommand):
+class DemoSdefCommand(SDEFCommand[NoneType]):
     argument: int
 
 

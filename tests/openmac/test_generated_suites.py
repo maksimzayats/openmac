@@ -8,6 +8,13 @@ from pydantic import TypeAdapter
 
 import openmac._internal.sdef.types as sdef_types
 from openmac._internal.sdef.base import SDEFClass, SDEFCommand
+from openmac.chrome.sdef.suites.chromium.commands import ExecuteCommand as ChromiumExecuteCommand
+from openmac.chrome.sdef.suites.standard.commands import (
+    CountCommand as ChromeCountCommand,
+    ExistsCommand as ChromeExistsCommand,
+    QuitCommand as ChromeQuitCommand,
+)
+from openmac.finder.sdef.suites.finder_basics.commands import SortCommand as FinderSortCommand
 
 SUITE_PACKAGES: Final[tuple[tuple[str, str], ...]] = (
     ("openmac.chrome.sdef.suites", "standard"),
@@ -177,7 +184,7 @@ UNKNOWN_SPECIFIER_FIELDS: Final[tuple[tuple[str, str, str], ...]] = (
 )
 
 
-def command_classes_from_module(module_name: str) -> list[type[SDEFCommand]]:
+def command_classes_from_module(module_name: str) -> list[type[SDEFCommand[object]]]:
     module = importlib.import_module(module_name)
     return [
         candidate
@@ -197,6 +204,43 @@ def annotation_contains_specifier(annotation: object) -> bool:
     if origin is sdef_types.Specifier:
         return True
     return any(annotation_contains_specifier(argument) for argument in get_args(annotation))
+
+
+def command_result_type_argument(command_class: type[object]) -> object:
+    for candidate in command_class.__mro__:
+        pydantic_meta: object = getattr(candidate, "__pydantic_generic_metadata__", None)
+        if isinstance(pydantic_meta, dict) and pydantic_meta.get("origin") is SDEFCommand:
+            args = pydantic_meta.get("args")
+            if isinstance(args, tuple) and len(args) == 1:
+                if args[0] is None:
+                    return type(None)
+                return args[0]
+
+    for candidate in command_class.__mro__:
+        for base in getattr(candidate, "__orig_bases__", ()):
+            if get_origin(base) is SDEFCommand:
+                args = get_args(base)
+                if len(args) == 1:
+                    return args[0]
+
+    msg = f"Command class {command_class.__qualname__!r} is not parameterized as SDEFCommand[TResult]."
+    raise AssertionError(msg)
+
+
+@pytest.mark.parametrize("module_name", COMMAND_MODULES)
+def test_generated_command_classes_are_parameterized(module_name: str) -> None:
+    for command_class in command_classes_from_module(module_name):
+        command_result_type_argument(command_class)
+
+
+def test_generated_command_result_type_arguments_match_expected_mappings() -> None:
+    assert command_result_type_argument(ChromeQuitCommand) is type(None)
+    assert command_result_type_argument(ChromiumExecuteCommand) == Any
+    assert command_result_type_argument(ChromeExistsCommand) is bool
+    assert command_result_type_argument(ChromeCountCommand) is int
+    assert command_result_type_argument(FinderSortCommand) == (
+        sdef_types.Specifier[SDEFClass] | None
+    )
 
 
 @pytest.mark.parametrize("module_name", GENERATED_MODULES)

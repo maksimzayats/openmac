@@ -9,7 +9,7 @@ from openmac._internal.sdef import SDEFCommand
 
 
 class AppleScriptSDEFScriptBuilder:
-    def __init__(self, command: SDEFCommand) -> None:
+    def __init__(self, command: SDEFCommand[object]) -> None:
         self._command = command
         self._meta = command.SDEF_META
         self._model_fields: Mapping[str, FieldInfo] = command.__class__.model_fields

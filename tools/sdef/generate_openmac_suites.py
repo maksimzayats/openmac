@@ -442,6 +442,46 @@ def resolve_annotation(
     return base_type
 
 
+def resolve_result_annotation(
+    raw_type: str | None,
+    type_elements: list[TypeElement],
+    *,
+    optional: bool,
+    current_suite_module: str,
+    lookups: LookupTables,
+    alias_tracker: CrossSuiteClassAliasTracker | None = None,
+) -> str:
+    selected_type = raw_type
+    list_type = False
+
+    selected_element = first_type_element(type_elements)
+    if selected_element is not None:
+        selected_type = selected_element.type
+        list_type = selected_element.list == "yes"
+
+    base_type: str
+    if selected_type is None:
+        base_type = "object"
+    else:
+        normalized_selected_type = normalize_name(selected_type)
+        if normalized_selected_type == "any":
+            base_type = "Any"
+        elif normalized_selected_type == "type":
+            base_type = specifier_type("SDEFClass")
+        else:
+            base_type = resolve_base_type(
+                selected_type,
+                current_suite_module,
+                lookups,
+                alias_tracker,
+            )
+
+    annotation = f"list[{base_type}]" if list_type else base_type
+    if optional:
+        return f"{annotation} | None"
+    return annotation
+
+
 def unique_name(name: str, in_use: set[str]) -> str:
     if name not in in_use:
         in_use.add(name)
@@ -985,7 +1025,19 @@ def command_class_lines(
     bundle_id: str,
     alias_tracker: CrossSuiteClassAliasTracker,
 ) -> list[str]:
-    lines = [f"class {command_class}(SDEFCommand):"]
+    if command.result is None:
+        result_annotation = "NoneType"
+    else:
+        result_annotation = resolve_result_annotation(
+            command.result.type,
+            command.result.type_elements,
+            optional=command.result.optional == "yes",
+            current_suite_module=module_name,
+            lookups=lookups,
+            alias_tracker=alias_tracker,
+        )
+
+    lines = [f"class {command_class}(SDEFCommand[{result_annotation}]):"]
     lines.append(f"    {render_py(build_docstring(command.description, command_extras(command)))}")
 
     in_use_names: set[str] = set()
@@ -1212,6 +1264,14 @@ def uses_sdef_types(lines: list[str]) -> bool:
 def type_annotation_expressions(lines: list[str]) -> list[str]:
     expressions: list[str] = []
     for line in lines:
+        base_match = re.match(
+            r"^class [A-Za-z_][A-Za-z0-9_]*\(SDEFCommand\[(.+)\]\):$",
+            line,
+        )
+        if base_match is not None:
+            expressions.append(base_match.group(1))
+            continue
+
         field_match = re.match(r"^\s+[A-Za-z_][A-Za-z0-9_]*: (.+) = Field\(", line)
         if field_match is not None:
             expressions.append(field_match.group(1))
@@ -1271,10 +1331,13 @@ def from_import_lines(module_path: str, names: list[str]) -> list[str]:
     return lines
 
 
-def classvar_typing_import_line(*, include_type_checking: bool) -> str:
+def classvar_typing_import_line(*, include_type_checking: bool, include_any: bool = False) -> str:
+    parts: list[str] = ["ClassVar"]
+    if include_any:
+        parts.insert(0, "Any")
     if include_type_checking:
-        return "from typing import ClassVar, TYPE_CHECKING"
-    return "from typing import ClassVar"
+        parts.append("TYPE_CHECKING")
+    return f"from typing import {', '.join(parts)}"
 
 
 def cross_suite_type_checking_import_lines(
@@ -1315,9 +1378,7 @@ def model_rebuild_lines(
         module_path = f"openmac.{target.app}.sdef.suites.{alias.module_name}.classes"
         lines.append(
             "    "
-            f'"{alias.alias_name}": getattr('
-            f'importlib.import_module("{module_path}"), '
-            f'"{alias.python_name}"),',
+            f'"{alias.alias_name}": importlib.import_module("{module_path}",).{alias.python_name},',
         )
     lines.append("}")
     lines.append("")
@@ -1581,13 +1642,24 @@ def generate_suite_commands_module(
     flattened_blocks = [line for block in command_class_blocks for line in block]
     needs_field = any(command.direct_parameters or command.parameters for command in suite.commands)
     needs_sdef_types = uses_sdef_types(flattened_blocks) or bool(cross_suite_aliases)
+    needs_any = annotation_references_symbol(flattened_blocks, "Any")
+    needs_none_type = annotation_references_symbol(flattened_blocks, "NoneType")
     needs_sdef_class = annotation_references_symbol(flattened_blocks, "SDEFClass") or bool(
         cross_suite_aliases,
     )
     import_map = local_type_imports(suite, flattened_blocks, include_classes=True)
 
     lines = generated_file_preamble(ruff_noqa="D301, D400, D415")
-    lines.append(classvar_typing_import_line(include_type_checking=bool(cross_suite_aliases)))
+    if needs_none_type:
+        lines.insert(1, "# mypy: disable-error-code=valid-type")
+    lines.append(
+        classvar_typing_import_line(
+            include_type_checking=bool(cross_suite_aliases),
+            include_any=needs_any,
+        ),
+    )
+    if needs_none_type:
+        lines.append("from types import NoneType")
     if needs_field:
         lines.append("from pydantic import Field")
     lines.extend(["", "from openmac._internal.sdef import meta as sdef_meta"])

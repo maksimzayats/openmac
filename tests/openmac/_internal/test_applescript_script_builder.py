@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import NoneType
+
 import pytest
 
 from openmac._internal.applescript import serializer
@@ -118,7 +120,7 @@ def test_build_script_type_parameter_is_rendered_as_raw_identifier() -> None:
     assert ' each "folder"\n' not in script
 
 
-class BrokenFieldNameMetaCommand(SDEFCommand):
+class BrokenFieldNameMetaCommand(SDEFCommand[NoneType]):
     SDEF_META = sdef_meta.CommandMeta(
         name="broken",
         code=None,
@@ -146,7 +148,7 @@ class BrokenFieldNameMetaCommand(SDEFCommand):
     with_value: str
 
 
-class BrokenDirectParameterMetaCommand(SDEFCommand):
+class BrokenDirectParameterMetaCommand(SDEFCommand[NoneType]):
     SDEF_META = sdef_meta.CommandMeta(
         name="broken direct",
         code=None,
@@ -162,7 +164,7 @@ class BrokenDirectParameterMetaCommand(SDEFCommand):
     )
 
 
-class BrokenParameterReferenceMetaCommand(SDEFCommand):
+class BrokenParameterReferenceMetaCommand(SDEFCommand[NoneType]):
     SDEF_META = sdef_meta.CommandMeta(
         name="broken parameter",
         code=None,

@@ -344,7 +344,9 @@ class Window(SDEFClass):
 
 
 _CROSS_SUITE_TYPES_NAMESPACE = {
-    "ChromiumTabType": importlib.import_module("openmac.chrome.sdef.suites.chromium.classes").Tab,
+    "ChromiumTabType": importlib.import_module(
+        "openmac.chrome.sdef.suites.chromium.classes",
+    ).Tab,
 }
 
 Application.model_rebuild(_types_namespace=_CROSS_SUITE_TYPES_NAMESPACE)
