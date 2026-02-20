@@ -7,7 +7,7 @@ import pytest
 from tools.sdef.models import Command
 from tools.sdef.parser import load_sdef
 
-ROOT_PATH = Path(__file__).resolve().parents[4]
+ROOT_PATH = Path(__file__).resolve().parents[3]
 FIXTURE_PATH = ROOT_PATH / "tools" / "sdef" / "suite.sdef"
 CHROME_SDEF_PATH = ROOT_PATH / "src" / "openmac" / "apps" / "chrome" / "sdef" / "chrome.sdef"
 FINDER_SDEF_PATH = ROOT_PATH / "src" / "openmac" / "apps" / "finder" / "sdef" / "finder.sdef"
