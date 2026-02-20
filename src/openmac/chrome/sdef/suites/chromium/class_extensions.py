@@ -6,6 +6,7 @@ from typing import ClassVar
 
 from pydantic import Field
 
+import openmac._internal.sdef.types as sdef_types
 import openmac.chrome.sdef.suites.standard.classes as standard_classes_module
 from openmac._internal.sdef import meta as sdef_meta
 from openmac.chrome.sdef.suites.chromium.classes import BookmarkFolder
@@ -52,13 +53,13 @@ class Application(standard_classes_module.Application):
         ),
         responds_to=(),
     )
-    bookmarks_bar: BookmarkFolder = Field(
+    bookmarks_bar: sdef_types.Specifier[BookmarkFolder] = Field(
         ...,
         alias="bookmarks bar",
         description="The bookmarks bar bookmark folder.",
         json_schema_extra={"cocoas": [{"key": "bookmarksBar"}]},
     )
-    other_bookmarks: BookmarkFolder = Field(
+    other_bookmarks: sdef_types.Specifier[BookmarkFolder] = Field(
         ...,
         alias="other bookmarks",
         description="The other bookmarks bookmark folder.",

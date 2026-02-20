@@ -4,9 +4,10 @@ import importlib
 from typing import Any, Final, cast, get_args, get_origin
 
 import pytest
+from pydantic import TypeAdapter
 
 import openmac._internal.sdef.types as sdef_types
-from openmac._internal.sdef.base import SDEFCommand
+from openmac._internal.sdef.base import SDEFClass, SDEFCommand
 
 SUITE_PACKAGES: Final[tuple[tuple[str, str], ...]] = (
     ("openmac.chrome.sdef.suites", "standard"),
@@ -80,6 +81,101 @@ SUITE_PACKAGE_MODULES_WITH_REMOVED_EXPORTS: Final[tuple[tuple[str, str], ...]] =
     ("openmac.finder.sdef.suites.enumerations", "EnumerationsSuite"),
 )
 
+CROSS_SUITE_ALIAS_MODULES: Final[tuple[str, ...]] = (
+    "openmac.chrome.sdef.suites.standard.classes",
+    "openmac.finder.sdef.suites.finder_basics.classes",
+    "openmac.finder.sdef.suites.finder_items.classes",
+    "openmac.finder.sdef.suites.window_classes.classes",
+    "openmac.finder.sdef.suites.legacy.classes",
+    "openmac.finder.sdef.suites.type_definitions.classes",
+)
+
+CROSS_SUITE_ALIAS_FIELDS: Final[tuple[tuple[str, str, str, str], ...]] = (
+    (
+        "openmac.chrome.sdef.suites.standard.classes",
+        "Window",
+        "active_tab",
+        "ChromiumTabType",
+    ),
+    (
+        "openmac.finder.sdef.suites.finder_basics.classes",
+        "Application",
+        "startup_disk",
+        "ContainersAndFoldersDiskType",
+    ),
+    (
+        "openmac.finder.sdef.suites.finder_basics.classes",
+        "Application",
+        "desktop",
+        "ContainersAndFoldersDesktopObjectType",
+    ),
+    (
+        "openmac.finder.sdef.suites.finder_basics.classes",
+        "Application",
+        "trash",
+        "ContainersAndFoldersTrashObjectType",
+    ),
+    (
+        "openmac.finder.sdef.suites.finder_basics.classes",
+        "Application",
+        "home",
+        "ContainersAndFoldersFolderType",
+    ),
+    (
+        "openmac.finder.sdef.suites.finder_basics.classes",
+        "Application",
+        "computer_container",
+        "ContainersAndFoldersComputerObjectType",
+    ),
+    (
+        "openmac.finder.sdef.suites.finder_basics.classes",
+        "Application",
+        "finder_preferences",
+        "TypeDefinitionsPreferencesType",
+    ),
+    (
+        "openmac.finder.sdef.suites.finder_items.classes",
+        "Item",
+        "icon",
+        "TypeDefinitionsIconFamilyType",
+    ),
+    (
+        "openmac.finder.sdef.suites.window_classes.classes",
+        "FinderWindow",
+        "icon_view_options",
+        "TypeDefinitionsIconViewOptionsType",
+    ),
+    (
+        "openmac.finder.sdef.suites.window_classes.classes",
+        "FinderWindow",
+        "list_view_options",
+        "TypeDefinitionsListViewOptionsType",
+    ),
+    (
+        "openmac.finder.sdef.suites.window_classes.classes",
+        "FinderWindow",
+        "column_view_options",
+        "TypeDefinitionsColumnViewOptionsType",
+    ),
+    (
+        "openmac.finder.sdef.suites.legacy.classes",
+        "ApplicationProcess",
+        "application_file",
+        "FilesApplicationFileType",
+    ),
+    (
+        "openmac.finder.sdef.suites.type_definitions.classes",
+        "Preferences",
+        "window",
+        "WindowClassesPreferencesWindowType",
+    ),
+)
+
+UNKNOWN_SPECIFIER_FIELDS: Final[tuple[tuple[str, str, str], ...]] = (
+    ("openmac.finder.sdef.suites.window_classes.classes", "FinderWindow", "target"),
+    ("openmac.finder.sdef.suites.finder_items.classes", "Item", "information_window"),
+)
+
 
 def command_classes_from_module(module_name: str) -> list[type[SDEFCommand]]:
     module = importlib.import_module(module_name)
@@ -98,6 +194,8 @@ def annotation_contains_specifier(annotation: object) -> bool:
     origin = get_origin(annotation)
     if origin is None:
         return False
+    if origin is sdef_types.Specifier:
+        return True
     return any(annotation_contains_specifier(argument) for argument in get_args(annotation))
 
 
@@ -167,3 +265,58 @@ def test_suite_package_inits_do_not_reexport(module_name: str, removed_export: s
     module = importlib.import_module(module_name)
     assert "__all__" not in module.__dict__
     assert not hasattr(module, removed_export)
+
+
+@pytest.mark.parametrize("module_name", CROSS_SUITE_ALIAS_MODULES)
+def test_cross_suite_alias_modules_import(module_name: str) -> None:
+    module = importlib.import_module(module_name)
+    assert module is not None
+
+
+@pytest.mark.parametrize("field_case", CROSS_SUITE_ALIAS_FIELDS)
+def test_cross_suite_alias_runtime_field_annotations_rebuild_to_specifier(
+    field_case: tuple[str, str, str, str],
+) -> None:
+    module_name, class_name, field_name, expected_alias_type = field_case
+    module = importlib.import_module(module_name)
+    model_class = cast("Any", getattr(module, class_name))
+    annotation = model_class.model_fields[field_name].annotation
+    assert get_origin(annotation) is sdef_types.Specifier
+    type_args = get_args(annotation)
+    assert len(type_args) == 1
+    assert issubclass(type_args[0], SDEFClass)
+    assert expected_alias_type in model_class.__annotations__[field_name]
+
+
+@pytest.mark.parametrize("field_case", CROSS_SUITE_ALIAS_FIELDS)
+def test_cross_suite_class_field_annotations_use_alias_tokens(
+    field_case: tuple[str, str, str, str],
+) -> None:
+    module_name, class_name, field_name, expected_annotation = field_case
+    module = importlib.import_module(module_name)
+    model_class = getattr(module, class_name)
+    assert model_class.__annotations__[field_name] == f"sdef_types.Specifier[{expected_annotation}]"
+    assert model_class.__annotations__[field_name] != "sdef_types.Specifier[SDEFClass]"
+
+
+@pytest.mark.parametrize(("module_name", "class_name", "field_name"), UNKNOWN_SPECIFIER_FIELDS)
+def test_unknown_specifier_fields_fallback_to_sdef_class(
+    module_name: str,
+    class_name: str,
+    field_name: str,
+) -> None:
+    module = importlib.import_module(module_name)
+    model_class = cast("Any", getattr(module, class_name))
+    annotation = model_class.model_fields[field_name].annotation
+    assert get_origin(annotation) is sdef_types.Specifier
+    assert get_args(annotation) == (SDEFClass,)
+    assert model_class.__annotations__[field_name] == "sdef_types.Specifier[SDEFClass]"
+
+
+def test_cross_suite_alias_field_still_validates_specifier_strings() -> None:
+    module = importlib.import_module("openmac.chrome.sdef.suites.standard.classes")
+    model_class = cast("Any", module.Window)
+    annotation = model_class.model_fields["active_tab"].annotation
+    assert get_origin(annotation) is sdef_types.Specifier
+    adapter = TypeAdapter(annotation)
+    assert adapter.validate_python("tab 1 of window 1") == sdef_types.Specifier("tab 1 of window 1")

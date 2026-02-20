@@ -94,7 +94,7 @@ class Container(SDEFClass):
         ),
         responds_to=(),
     )
-    entire_contents: sdef_types.Specifier = Field(
+    entire_contents: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         alias="entire contents",
         description="the entire contents of the container, including the contents of its children",
@@ -114,7 +114,7 @@ class Container(SDEFClass):
         alias="completely expanded",
         description="(NOT AVAILABLE YET) Are the container and all of its children opened as outlines? (can only be set for containers viewed as lists)",
     )
-    container_window: sdef_types.Specifier = Field(
+    container_window: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         alias="container window",
         description="the container window for this folder",

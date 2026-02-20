@@ -91,7 +91,7 @@ SDEF_TYPE_MAP: Final[dict[str, str]] = {
     "point": "sdef_types.Point",
     "record": "sdef_types.Record",
     "rectangle": "sdef_types.Rectangle",
-    "specifier": "sdef_types.Specifier",
+    "specifier": "sdef_types.Specifier[SDEFClass]",
 }
 
 SDEF_TEXT_SANITIZE_TABLE: Final[dict[int, str]] = str.maketrans({
@@ -133,6 +133,55 @@ class CommandParameterSpec:
     parameter: Parameter
     field_name: str
     annotation: str
+
+
+@dataclass(frozen=True, slots=True)
+class CrossSuiteClassAlias:
+    alias_name: str
+    module_name: str
+    python_name: str
+
+
+@dataclass(slots=True)
+class CrossSuiteClassAliasTracker:
+    alias_by_target: dict[tuple[str, str], str]
+    target_by_alias: dict[str, tuple[str, str]]
+    aliases_in_order: list[CrossSuiteClassAlias]
+
+    def __init__(self) -> None:
+        self.alias_by_target = {}
+        self.target_by_alias = {}
+        self.aliases_in_order = []
+
+    def alias_for(self, module_name: str, python_name: str) -> str:
+        target = (module_name, python_name)
+        existing_alias = self.alias_by_target.get(target)
+        if existing_alias is not None:
+            return existing_alias
+
+        base_alias = f"{pascal_case(module_name)}{python_name}Type"
+        candidate_alias = base_alias
+        index = 2
+        while True:
+            existing_target = self.target_by_alias.get(candidate_alias)
+            if existing_target is None or existing_target == target:
+                break
+            candidate_alias = f"{base_alias}{index}"
+            index += 1
+
+        self.alias_by_target[target] = candidate_alias
+        self.target_by_alias[candidate_alias] = target
+        self.aliases_in_order.append(
+            CrossSuiteClassAlias(
+                alias_name=candidate_alias,
+                module_name=module_name,
+                python_name=python_name,
+            ),
+        )
+        return candidate_alias
+
+    def aliases(self) -> tuple[CrossSuiteClassAlias, ...]:
+        return tuple(self.aliases_in_order)
 
 
 def parse_args() -> argparse.Namespace:
@@ -307,10 +356,15 @@ def first_type_element(elements: list[TypeElement]) -> TypeElement | None:
     return None
 
 
+def specifier_type(type_name: str) -> str:
+    return f"sdef_types.Specifier[{type_name}]"
+
+
 def resolve_base_type(
     raw_type: str | None,
     current_suite_module: str,
     lookups: LookupTables,
+    alias_tracker: CrossSuiteClassAliasTracker | None = None,
 ) -> str:
     if raw_type is None:
         return "object"
@@ -321,16 +375,29 @@ def resolve_base_type(
     if normalized in SDEF_TYPE_MAP:
         return SDEF_TYPE_MAP[normalized]
 
-    for definitions in (lookups.class_by_name, lookups.enum_by_name, lookups.value_type_by_name):
+    class_definition = lookups.class_by_name.get(normalized)
+    if class_definition is not None:
+        if class_definition.module_name == current_suite_module:
+            return specifier_type(class_definition.python_name)
+        if alias_tracker is not None:
+            return specifier_type(
+                alias_tracker.alias_for(
+                    class_definition.module_name,
+                    class_definition.python_name,
+                ),
+            )
+        return specifier_type("SDEFClass")
+
+    for definitions in (lookups.enum_by_name, lookups.value_type_by_name):
         named_definition = definitions.get(normalized)
         if named_definition is None:
             continue
         if named_definition.module_name == current_suite_module:
             return named_definition.python_name
-        return "sdef_types.Specifier"
+        return specifier_type("SDEFClass")
 
     if normalized.endswith("specifier"):
-        return "sdef_types.Specifier"
+        return specifier_type("SDEFClass")
 
     return "object"
 
@@ -340,6 +407,7 @@ def resolve_annotation(
     type_elements: list[TypeElement],
     current_suite_module: str,
     lookups: LookupTables,
+    alias_tracker: CrossSuiteClassAliasTracker | None = None,
     *,
     map_command_type_to_specifier: bool = False,
 ) -> str:
@@ -354,11 +422,21 @@ def resolve_annotation(
     if map_command_type_to_specifier and selected_type is not None:
         normalized_selected_type = normalize_name(selected_type)
         if normalized_selected_type == "type":
-            base_type = "sdef_types.Specifier"
+            base_type = specifier_type("SDEFClass")
         else:
-            base_type = resolve_base_type(selected_type, current_suite_module, lookups)
+            base_type = resolve_base_type(
+                selected_type,
+                current_suite_module,
+                lookups,
+                alias_tracker,
+            )
     else:
-        base_type = resolve_base_type(selected_type, current_suite_module, lookups)
+        base_type = resolve_base_type(
+            selected_type,
+            current_suite_module,
+            lookups,
+            alias_tracker,
+        )
     if list_type:
         return f"list[{base_type}]"
     return base_type
@@ -875,6 +953,7 @@ def command_parameter_specs(
     module_name: str,
     lookups: LookupTables,
     in_use_names: set[str],
+    alias_tracker: CrossSuiteClassAliasTracker,
 ) -> list[CommandParameterSpec]:
     specs: list[CommandParameterSpec] = []
     for parameter in command.parameters:
@@ -885,6 +964,7 @@ def command_parameter_specs(
             parameter.type_elements,
             module_name,
             lookups,
+            alias_tracker,
             map_command_type_to_specifier=True,
         )
         specs.append(
@@ -903,6 +983,7 @@ def command_class_lines(
     lookups: LookupTables,
     command_class: str,
     bundle_id: str,
+    alias_tracker: CrossSuiteClassAliasTracker,
 ) -> list[str]:
     lines = [f"class {command_class}(SDEFCommand):"]
     lines.append(f"    {render_py(build_docstring(command.description, command_extras(command)))}")
@@ -911,7 +992,13 @@ def command_class_lines(
     direct_parameter = first_direct_parameter(command)
     if direct_parameter is not None:
         in_use_names.add("direct_parameter")
-    parameter_specs = command_parameter_specs(command, module_name, lookups, in_use_names)
+    parameter_specs = command_parameter_specs(
+        command,
+        module_name,
+        lookups,
+        in_use_names,
+        alias_tracker,
+    )
     lines.append(
         "    SDEF_META: ClassVar[sdef_meta.CommandMeta] = "
         f"{command_meta_expr(command, bundle_id, [spec.field_name for spec in parameter_specs], has_direct_parameter=direct_parameter is not None, direct_parameter_optional=to_bool(direct_parameter.optional) if direct_parameter is not None else None)}",
@@ -923,6 +1010,7 @@ def command_class_lines(
             direct_parameter.type_elements,
             module_name,
             lookups,
+            alias_tracker,
             map_command_type_to_specifier=True,
         )
         lines.append(
@@ -957,10 +1045,17 @@ def field_line(
     module_name: str,
     lookups: LookupTables,
     in_use_names: set[str],
+    alias_tracker: CrossSuiteClassAliasTracker,
 ) -> str:
     raw_name = property_.name or "property"
     python_name = unique_name(ensure_identifier(raw_name), in_use_names)
-    annotation = resolve_annotation(property_.type, property_.type_elements, module_name, lookups)
+    annotation = resolve_annotation(
+        property_.type,
+        property_.type_elements,
+        module_name,
+        lookups,
+        alias_tracker,
+    )
     kwargs: list[str] = ["..."]
     kwargs.append(f"alias={render_py(sanitize_text(raw_name))}")
     kwargs.append(f"description={render_py(sanitize_optional_text(property_.description))}")
@@ -990,6 +1085,7 @@ def class_lines(
     class_definition: Class,
     module_name: str,
     lookups: LookupTables,
+    alias_tracker: CrossSuiteClassAliasTracker,
 ) -> list[str]:
     sdef_class_name = class_definition.name or "class"
     python_class_name = class_name(sdef_class_name)
@@ -1003,7 +1099,7 @@ def class_lines(
     )
     in_use_names: set[str] = set()
     for property_ in class_definition.properties:
-        lines.append(field_line(property_, module_name, lookups, in_use_names))
+        lines.append(field_line(property_, module_name, lookups, in_use_names, alias_tracker))
     if not class_definition.properties:
         lines.append("    pass")
     lines.append("")
@@ -1015,6 +1111,7 @@ def class_extension_lines(
     class_extension: ClassExtension,
     module_name: str,
     lookups: LookupTables,
+    alias_tracker: CrossSuiteClassAliasTracker,
 ) -> tuple[list[str], tuple[str, str] | None]:
     if class_extension.extends is None:
         return ([], None)
@@ -1041,7 +1138,7 @@ def class_extension_lines(
 
     in_use_names: set[str] = set()
     for property_ in class_extension.properties:
-        lines.append(field_line(property_, module_name, lookups, in_use_names))
+        lines.append(field_line(property_, module_name, lookups, in_use_names, alias_tracker))
     if not class_extension.properties:
         lines.append("    pass")
     lines.append("")
@@ -1174,14 +1271,71 @@ def from_import_lines(module_path: str, names: list[str]) -> list[str]:
     return lines
 
 
+def classvar_typing_import_line(*, include_type_checking: bool) -> str:
+    if include_type_checking:
+        return "from typing import ClassVar, TYPE_CHECKING"
+    return "from typing import ClassVar"
+
+
+def cross_suite_type_checking_import_lines(
+    target: AppTarget,
+    aliases: tuple[CrossSuiteClassAlias, ...],
+) -> list[str]:
+    if not aliases:
+        return []
+
+    sorted_aliases = sorted(aliases, key=lambda alias: alias.alias_name)
+    lines = ["if TYPE_CHECKING:"]
+    for alias in sorted_aliases:
+        lines.append(
+            "    "
+            f"from openmac.{target.app}.sdef.suites.{alias.module_name}.classes "
+            f"import {alias.python_name} as {alias.alias_name}",
+        )
+    return lines
+
+
+def annotation_references_symbol(lines: list[str], symbol: str) -> bool:
+    pattern = re.compile(rf"\b{re.escape(symbol)}\b")
+    return any(pattern.search(expression) for expression in type_annotation_expressions(lines))
+
+
+def model_rebuild_lines(
+    target: AppTarget,
+    *,
+    model_names: list[str],
+    aliases: tuple[CrossSuiteClassAlias, ...],
+) -> list[str]:
+    if not aliases or not model_names:
+        return []
+
+    sorted_aliases = sorted(aliases, key=lambda alias: alias.alias_name)
+    lines = ["_CROSS_SUITE_TYPES_NAMESPACE = {"]
+    for alias in sorted_aliases:
+        module_path = f"openmac.{target.app}.sdef.suites.{alias.module_name}.classes"
+        lines.append(
+            "    "
+            f'"{alias.alias_name}": getattr('
+            f'importlib.import_module("{module_path}"), '
+            f'"{alias.python_name}"),',
+        )
+    lines.append("}")
+    lines.append("")
+    for model_name in model_names:
+        lines.append(f"{model_name}.model_rebuild(_types_namespace=_CROSS_SUITE_TYPES_NAMESPACE)")
+    lines.append("")
+    return lines
+
+
 def command_class_outputs(
     suite: Suite,
     module_name: str,
     lookups: LookupTables,
     bundle_id: str,
-) -> tuple[list[str], list[list[str]]]:
+) -> tuple[list[str], list[list[str]], tuple[CrossSuiteClassAlias, ...]]:
     command_class_names: list[str] = []
     command_class_blocks: list[list[str]] = []
+    alias_tracker = CrossSuiteClassAliasTracker()
     in_use_command_class_names: set[str] = set()
     for command in suite.commands:
         command_name_value = command.name or "command"
@@ -1197,9 +1351,10 @@ def command_class_outputs(
                 lookups,
                 generated_command_class_name,
                 bundle_id,
+                alias_tracker,
             ),
         )
-    return (command_class_names, command_class_blocks)
+    return (command_class_names, command_class_blocks, alias_tracker.aliases())
 
 
 def generate_suite_init_module() -> str:
@@ -1226,25 +1381,33 @@ def generate_suite_classes_module(
     module_name: str,
     lookups: LookupTables,
 ) -> str:
+    alias_tracker = CrossSuiteClassAliasTracker()
     class_blocks: list[list[str]] = [
-        class_lines(class_definition, module_name, lookups) for class_definition in suite.classes
+        class_lines(class_definition, module_name, lookups, alias_tracker)
+        for class_definition in suite.classes
     ]
     if not class_blocks:
         return "\n".join(generated_file_preamble())
 
+    cross_suite_aliases = alias_tracker.aliases()
     flattened_blocks = [line for block in class_blocks for line in block]
     needs_field = any(class_definition.properties for class_definition in suite.classes)
-    needs_sdef_types = uses_sdef_types(flattened_blocks)
+    needs_sdef_types = uses_sdef_types(flattened_blocks) or bool(cross_suite_aliases)
     import_map = local_type_imports(suite, flattened_blocks, include_classes=False)
 
     lines = generated_file_preamble(ruff_noqa="D301, D400, D415")
-    lines.append("from typing import ClassVar")
+    lines.append(classvar_typing_import_line(include_type_checking=bool(cross_suite_aliases)))
     if needs_field:
         lines.append("from pydantic import Field")
     lines.extend(["", "from openmac._internal.sdef import meta as sdef_meta"])
     if needs_sdef_types:
         lines.append("import openmac._internal.sdef.types as sdef_types")
+    if cross_suite_aliases:
+        lines.append("import importlib")
     lines.append("from openmac._internal.sdef.base import SDEFClass")
+    if cross_suite_aliases:
+        lines.append("")
+        lines.extend(cross_suite_type_checking_import_lines(target, cross_suite_aliases))
     for submodule in ("enumerations", "value_types"):
         names = import_map.get(submodule)
         if names is None:
@@ -1257,7 +1420,31 @@ def generate_suite_classes_module(
         )
     lines.append("")
     lines.extend(flattened_blocks)
+    model_names = [
+        class_name(class_definition.name or "class") for class_definition in suite.classes
+    ]
+    lines.extend(
+        model_rebuild_lines(
+            target,
+            model_names=model_names,
+            aliases=cross_suite_aliases,
+        ),
+    )
     return "\n".join(lines)
+
+
+def remove_extension_class_imports(
+    import_map: dict[str, list[str]],
+    extension_names: set[str],
+) -> None:
+    class_imports = import_map.get("classes")
+    if class_imports is None:
+        return
+    filtered_class_imports = [name for name in class_imports if name not in extension_names]
+    if filtered_class_imports:
+        import_map["classes"] = filtered_class_imports
+    else:
+        del import_map["classes"]
 
 
 def generate_suite_class_extensions_module(
@@ -1269,15 +1456,18 @@ def generate_suite_class_extensions_module(
     suite_name_value = suite.name or "Suite"
     class_extension_blocks: list[list[str]] = []
     needs_field = any(class_extension.properties for class_extension in suite.class_extensions)
+    alias_tracker = CrossSuiteClassAliasTracker()
     import_module_aliases: dict[str, str] = {}
     import_symbols_by_module: dict[str, set[str]] = {}
     extension_names: set[str] = set()
+    extension_class_names: list[str] = []
     for class_extension in suite.class_extensions:
         extension_lines, parent_import = class_extension_lines(
             target,
             class_extension,
             module_name,
             lookups,
+            alias_tracker,
         )
         if extension_lines:
             extension_name_match = re.match(r"^class ([A-Za-z0-9_]+)\(", extension_lines[0])
@@ -1287,6 +1477,7 @@ def generate_suite_class_extensions_module(
                     msg = f"Duplicate class-extension output name {extension_name!r} in suite {suite_name_value!r}"
                     raise ValueError(msg)
                 extension_names.add(extension_name)
+                extension_class_names.append(extension_name)
             class_extension_blocks.append(extension_lines)
         if parent_import is not None:
             parent_module_path, parent_module_alias = parent_import
@@ -1295,16 +1486,11 @@ def generate_suite_class_extensions_module(
     if not class_extension_blocks:
         return "\n".join(generated_file_preamble())
 
+    cross_suite_aliases = alias_tracker.aliases()
     flattened_blocks = [line for block in class_extension_blocks for line in block]
-    needs_sdef_types = uses_sdef_types(flattened_blocks)
+    needs_sdef_types = uses_sdef_types(flattened_blocks) or bool(cross_suite_aliases)
     import_map = local_type_imports(suite, flattened_blocks, include_classes=True)
-    class_imports = import_map.get("classes")
-    if class_imports is not None:
-        filtered_class_imports = [name for name in class_imports if name not in extension_names]
-        if filtered_class_imports:
-            import_map["classes"] = filtered_class_imports
-        else:
-            del import_map["classes"]
+    remove_extension_class_imports(import_map, extension_names)
     for submodule, names in import_map.items():
         module_path = f"openmac.{target.app}.sdef.suites.{module_name}.{submodule}"
         if module_path not in import_symbols_by_module:
@@ -1312,13 +1498,18 @@ def generate_suite_class_extensions_module(
         import_symbols_by_module[module_path].update(names)
 
     lines = generated_file_preamble(ruff_noqa="D301, D400, D415")
-    lines.append("from typing import ClassVar")
+    lines.append(classvar_typing_import_line(include_type_checking=bool(cross_suite_aliases)))
     if needs_field:
         lines.append("from pydantic import Field")
     lines.extend(["", "from openmac._internal.sdef import meta as sdef_meta"])
     if needs_sdef_types:
         lines.append("import openmac._internal.sdef.types as sdef_types")
+    if cross_suite_aliases:
+        lines.append("import importlib")
     lines.extend(["from openmac._internal.sdef.base import SDEFClass", ""])
+    if cross_suite_aliases:
+        lines.extend(cross_suite_type_checking_import_lines(target, cross_suite_aliases))
+        lines.append("")
     for module_path in sorted(import_module_aliases):
         lines.append(f"import {module_path} as {import_module_aliases[module_path]}")
     for module_path in sorted(import_symbols_by_module):
@@ -1327,6 +1518,13 @@ def generate_suite_class_extensions_module(
         )
     lines.append("")
     lines.extend(flattened_blocks)
+    lines.extend(
+        model_rebuild_lines(
+            target,
+            model_names=extension_class_names,
+            aliases=cross_suite_aliases,
+        ),
+    )
     return "\n".join(lines)
 
 
@@ -1373,24 +1571,37 @@ def generate_suite_commands_module(
     target: AppTarget,
     suite: Suite,
     module_name: str,
+    command_class_names: list[str],
     command_class_blocks: list[list[str]],
+    cross_suite_aliases: tuple[CrossSuiteClassAlias, ...],
 ) -> str:
     if not command_class_blocks:
         return "\n".join(generated_file_preamble())
 
     flattened_blocks = [line for block in command_class_blocks for line in block]
     needs_field = any(command.direct_parameters or command.parameters for command in suite.commands)
-    needs_sdef_types = uses_sdef_types(flattened_blocks)
+    needs_sdef_types = uses_sdef_types(flattened_blocks) or bool(cross_suite_aliases)
+    needs_sdef_class = annotation_references_symbol(flattened_blocks, "SDEFClass") or bool(
+        cross_suite_aliases,
+    )
     import_map = local_type_imports(suite, flattened_blocks, include_classes=True)
 
     lines = generated_file_preamble(ruff_noqa="D301, D400, D415")
-    lines.append("from typing import ClassVar")
+    lines.append(classvar_typing_import_line(include_type_checking=bool(cross_suite_aliases)))
     if needs_field:
         lines.append("from pydantic import Field")
     lines.extend(["", "from openmac._internal.sdef import meta as sdef_meta"])
     if needs_sdef_types:
         lines.append("import openmac._internal.sdef.types as sdef_types")
-    lines.append("from openmac._internal.sdef.base import SDEFCommand")
+    if cross_suite_aliases:
+        lines.append("import importlib")
+    if needs_sdef_class:
+        lines.append("from openmac._internal.sdef.base import SDEFClass, SDEFCommand")
+    else:
+        lines.append("from openmac._internal.sdef.base import SDEFCommand")
+    if cross_suite_aliases:
+        lines.append("")
+        lines.extend(cross_suite_type_checking_import_lines(target, cross_suite_aliases))
     for submodule in ("classes", "enumerations", "value_types"):
         names = import_map.get(submodule)
         if names is None:
@@ -1403,6 +1614,13 @@ def generate_suite_commands_module(
         )
     lines.append("")
     lines.extend(flattened_blocks)
+    lines.extend(
+        model_rebuild_lines(
+            target,
+            model_names=command_class_names,
+            aliases=cross_suite_aliases,
+        ),
+    )
     return "\n".join(lines)
 
 
@@ -1432,7 +1650,7 @@ def generate_suite_package_files(
 ) -> dict[str, str]:
     suite_name_value = suite.name or "Suite"
     package_name = suite_package_name(suite_name_value)
-    _, command_class_blocks = command_class_outputs(
+    command_class_names, command_class_blocks, command_cross_suite_aliases = command_class_outputs(
         suite,
         package_name,
         lookups,
@@ -1449,7 +1667,9 @@ def generate_suite_package_files(
             target,
             suite,
             package_name,
+            command_class_names,
             command_class_blocks,
+            command_cross_suite_aliases,
         ),
     }
     if suite.class_extensions:

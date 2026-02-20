@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef.types as sdef_types
 from openmac._internal.sdef import meta as sdef_meta
-from openmac._internal.sdef.base import SDEFCommand
+from openmac._internal.sdef.base import SDEFClass, SDEFCommand
 
 
 class SaveCommand(SDEFCommand):
@@ -53,7 +53,7 @@ class SaveCommand(SDEFCommand):
             ),
         ),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="the object to save, usually a document or window",
     )
@@ -115,7 +115,7 @@ class CloseCommand(SDEFCommand):
             ),
         ),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="the document(s) or window(s) to close.",
     )
@@ -175,11 +175,11 @@ class CountCommand(SDEFCommand):
             ),
         ),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="the object whose elements are to be counted",
     )
-    each: sdef_types.Specifier | None = Field(
+    each: sdef_types.Specifier[SDEFClass] | None = Field(
         default=None,
         alias="each",
         description="The class of objects to be counted.",
@@ -208,7 +208,10 @@ class DeleteCommand(SDEFCommand):
             ),
         ),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the object to delete")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the object to delete",
+    )
 
 
 class DuplicateCommand(SDEFCommand):
@@ -257,7 +260,10 @@ class DuplicateCommand(SDEFCommand):
             ),
         ),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the object(s) to duplicate")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the object(s) to duplicate",
+    )
     to: sdef_types.LocationSpecifier | None = Field(
         default=None,
         alias="to",
@@ -366,7 +372,7 @@ class MakeCommand(SDEFCommand):
             ),
         ),
     )
-    new: sdef_types.Specifier = Field(
+    new: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         alias="new",
         description="The class of the new object.",
@@ -428,7 +434,10 @@ class MoveCommand(SDEFCommand):
             ),
         ),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the object(s) to move")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the object(s) to move",
+    )
     to: sdef_types.LocationSpecifier = Field(
         ...,
         alias="to",
@@ -453,7 +462,7 @@ class PrintCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The file(s) or document(s) to be printed.",
     )

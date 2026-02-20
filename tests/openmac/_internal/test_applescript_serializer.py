@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 import openmac._internal.applescript.serializer as applescript_serializer
 from openmac._internal.applescript import dumps, loads
+from openmac._internal.sdef.base import SDEFClass
 from openmac._internal.sdef.types import (
     Date,
     File,
@@ -40,7 +41,7 @@ class AliasModel(BaseModel):
 
 
 class WindowPayload(BaseModel):
-    target: Specifier = Field(alias="target object")
+    target: Specifier[SDEFClass] = Field(alias="target object")
     frame: Rectangle
 
 

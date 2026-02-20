@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef.types as sdef_types
 from openmac._internal.sdef import meta as sdef_meta
-from openmac._internal.sdef.base import SDEFCommand
+from openmac._internal.sdef.base import SDEFClass, SDEFCommand
 
 
 class OpenVirtualLocationCommand(SDEFCommand):
@@ -92,11 +92,11 @@ class SortCommand(SDEFCommand):
         ),
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="a list of finder objects to sort",
     )
-    by: sdef_types.Specifier = Field(
+    by: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         alias="by",
         description="the property to sort the items by (name, index, date, etc.)",

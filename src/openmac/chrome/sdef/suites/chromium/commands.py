@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef.types as sdef_types
 from openmac._internal.sdef import meta as sdef_meta
-from openmac._internal.sdef.base import SDEFCommand
+from openmac._internal.sdef.base import SDEFClass, SDEFCommand
 
 
 class ReloadCommand(SDEFCommand):
@@ -27,7 +27,7 @@ class ReloadCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -49,7 +49,7 @@ class GoBackCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -71,7 +71,7 @@ class GoForwardCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -93,7 +93,7 @@ class SelectAllCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -115,7 +115,7 @@ class CutSelectionCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -137,7 +137,7 @@ class CopySelectionCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -159,7 +159,7 @@ class PasteSelectionCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -181,7 +181,7 @@ class UndoCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -203,7 +203,7 @@ class RedoCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -225,7 +225,7 @@ class StopCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -247,7 +247,7 @@ class ViewSourceCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )
@@ -280,7 +280,7 @@ class ExecuteCommand(SDEFCommand):
         result=sdef_meta.ResultMeta(type="any", description=None, optional=None),
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="The tab to execute the command in.",
     )

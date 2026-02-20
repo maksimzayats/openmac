@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef.types as sdef_types
 from openmac._internal.sdef import meta as sdef_meta
-from openmac._internal.sdef.base import SDEFCommand
+from openmac._internal.sdef.base import SDEFClass, SDEFCommand
 
 
 class OpenCommand(SDEFCommand):
@@ -48,8 +48,11 @@ class OpenCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="list of objects to open")
-    using: sdef_types.Specifier | None = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="list of objects to open",
+    )
+    using: sdef_types.Specifier[SDEFClass] | None = Field(
         default=None,
         alias="using",
         description="the application file to open the object with",
@@ -88,7 +91,10 @@ class PrintCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="list of objects to print")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="list of objects to print",
+    )
     with_properties: sdef_types.Record | None = Field(
         default=None,
         alias="with properties",
@@ -130,7 +136,7 @@ class ActivateCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier | None = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] | None = Field(
         default=None,
         description="the window to activate (if not specified, activates the Finder)",
     )
@@ -152,7 +158,10 @@ class CloseCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the object to close")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the object to close",
+    )
 
 
 class CountCommand(SDEFCommand):
@@ -186,11 +195,11 @@ class CountCommand(SDEFCommand):
         ),
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="the object whose elements are to be counted",
     )
-    each: sdef_types.Specifier = Field(
+    each: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         alias="each",
         description="the class of the elements to be counted",
@@ -228,11 +237,11 @@ class DataSizeCommand(SDEFCommand):
         ),
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         description="the object whose data size is to be returned",
     )
-    as_: sdef_types.Specifier | None = Field(
+    as_: sdef_types.Specifier[SDEFClass] | None = Field(
         default=None,
         alias="as",
         description="the data type for which the size is calculated",
@@ -259,7 +268,7 @@ class DeleteCommand(SDEFCommand):
         ),
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the item to delete")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(..., description="the item to delete")
 
 
 class DuplicateCommand(SDEFCommand):
@@ -323,7 +332,10 @@ class DuplicateCommand(SDEFCommand):
         ),
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the object(s) to duplicate")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the object(s) to duplicate",
+    )
     to: sdef_types.LocationSpecifier | None = Field(
         default=None,
         alias="to",
@@ -366,7 +378,10 @@ class ExistsCommand(SDEFCommand):
         ),
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the object in question")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the object in question",
+    )
 
 
 class MakeCommand(SDEFCommand):
@@ -430,13 +445,17 @@ class MakeCommand(SDEFCommand):
         ),
         access_groups=(),
     )
-    new: sdef_types.Specifier = Field(..., alias="new", description="the class of the new element")
+    new: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        alias="new",
+        description="the class of the new element",
+    )
     at: sdef_types.LocationSpecifier = Field(
         ...,
         alias="at",
         description="the location at which to insert the element",
     )
-    to: sdef_types.Specifier | None = Field(
+    to: sdef_types.Specifier[SDEFClass] | None = Field(
         default=None,
         alias="to",
         description="when creating an alias file, the original item to create an alias to or when creating a file viewer window, the target of the window",
@@ -509,7 +528,10 @@ class MoveCommand(SDEFCommand):
         ),
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the object(s) to move")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the object(s) to move",
+    )
     to: sdef_types.LocationSpecifier = Field(
         ...,
         alias="to",
@@ -520,7 +542,7 @@ class MoveCommand(SDEFCommand):
         alias="replacing",
         description="Specifies whether or not to replace items in the destination that have the same name as items being moved",
     )
-    positioned_at: sdef_types.Specifier | None = Field(
+    positioned_at: sdef_types.Specifier[SDEFClass] | None = Field(
         default=None,
         alias="positioned at",
         description="Gives a list (in local window coordinates) of positions for the destination items",
@@ -548,4 +570,7 @@ class SelectCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the object to select")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the object to select",
+    )

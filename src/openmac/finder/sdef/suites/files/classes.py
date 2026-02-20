@@ -120,7 +120,7 @@ class AliasFile(File):
         elements=(),
         responds_to=(),
     )
-    original_item: sdef_types.Specifier = Field(
+    original_item: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         alias="original item",
         description="the original item pointed to by the alias",
@@ -313,7 +313,7 @@ class Clipping(File):
         elements=(),
         responds_to=(),
     )
-    clipping_window: sdef_types.Specifier = Field(
+    clipping_window: sdef_types.Specifier[SDEFClass] = Field(
         ...,
         alias="clipping window",
         description="(NOT AVAILABLE YET) the clipping window for this clipping",

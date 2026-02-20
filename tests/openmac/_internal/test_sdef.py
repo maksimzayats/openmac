@@ -16,7 +16,7 @@ from openmac._internal.sdef.types import (
 
 
 class SdefPayload(BaseModel):
-    specifier: Specifier
+    specifier: Specifier[SDEFClass]
     location: LocationSpecifier
     record: Record
     date: Date

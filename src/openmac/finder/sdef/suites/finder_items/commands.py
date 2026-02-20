@@ -8,7 +8,7 @@ from pydantic import Field
 
 import openmac._internal.sdef.types as sdef_types
 from openmac._internal.sdef import meta as sdef_meta
-from openmac._internal.sdef.base import SDEFCommand
+from openmac._internal.sdef.base import SDEFClass, SDEFCommand
 
 
 class CleanUpCommand(SDEFCommand):
@@ -38,8 +38,11 @@ class CleanUpCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the window to clean up")
-    by: sdef_types.Specifier | None = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the window to clean up",
+    )
+    by: sdef_types.Specifier[SDEFClass] | None = Field(
         default=None,
         alias="by",
         description="the order in which to clean up the objects (name, index, date, etc.)",
@@ -62,7 +65,7 @@ class EjectCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier | None = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] | None = Field(
         default=None,
         description="the disk(s) to eject",
     )
@@ -100,7 +103,7 @@ class EmptyCommand(SDEFCommand):
             ),
         ),
     )
-    direct_parameter: sdef_types.Specifier | None = Field(
+    direct_parameter: sdef_types.Specifier[SDEFClass] | None = Field(
         default=None,
         description='"empty" and "empty trash" both do the same thing',
     )
@@ -123,7 +126,7 @@ class EraseCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the items to erase")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(..., description="the items to erase")
 
 
 class RevealCommand(SDEFCommand):
@@ -142,7 +145,10 @@ class RevealCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the object to be made visible")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(
+        ...,
+        description="the object to be made visible",
+    )
 
 
 class UpdateCommand(SDEFCommand):
@@ -182,7 +188,7 @@ class UpdateCommand(SDEFCommand):
         result=None,
         access_groups=(),
     )
-    direct_parameter: sdef_types.Specifier = Field(..., description="the item to update")
+    direct_parameter: sdef_types.Specifier[SDEFClass] = Field(..., description="the item to update")
     necessity: bool | None = Field(
         default=None,
         alias="necessity",

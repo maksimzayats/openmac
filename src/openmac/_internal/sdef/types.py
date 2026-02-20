@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 from collections import UserDict, UserString
-from typing import Any, NamedTuple
+from typing import TYPE_CHECKING, Any, Generic, NamedTuple, TypeVar
 
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
 
+if TYPE_CHECKING:
+    from openmac._internal.sdef.base import SDEFClass
 
-class Specifier(UserString):
+_SDEFClassT_co = TypeVar("_SDEFClassT_co", bound="SDEFClass", covariant=True)
+
+
+class Specifier(UserString, Generic[_SDEFClassT_co]):
     """A specifier returned from Apple Script, represented as a string."""
 
     @classmethod
@@ -19,7 +24,7 @@ class Specifier(UserString):
         return core_schema.no_info_after_validator_function(cls, handler(str))
 
 
-class LocationSpecifier(Specifier):
+class LocationSpecifier(Specifier["SDEFClass"]):
     """A location specifier returned from Apple Script, represented as a string."""
 
     @classmethod
