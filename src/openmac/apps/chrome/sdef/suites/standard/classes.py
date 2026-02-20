@@ -13,7 +13,7 @@ from openmac._internal.sdef import meta as sdef_meta
 from openmac._internal.sdef.base import SDEFClass
 
 if TYPE_CHECKING:
-    from openmac.chrome.sdef.suites.chromium.classes import Tab as ChromiumTabType
+    from openmac.apps.chrome.sdef.suites.chromium.classes import Tab as ChromiumTabType
 
 
 class Application(SDEFClass):
@@ -345,7 +345,7 @@ class Window(SDEFClass):
 
 _CROSS_SUITE_TYPES_NAMESPACE = {
     "ChromiumTabType": importlib.import_module(
-        "openmac.chrome.sdef.suites.chromium.classes",
+        "openmac.apps.chrome.sdef.suites.chromium.classes",
     ).Tab,
 }
 

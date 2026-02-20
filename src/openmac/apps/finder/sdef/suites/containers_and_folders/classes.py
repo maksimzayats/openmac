@@ -9,7 +9,7 @@ from pydantic import Field
 import openmac._internal.sdef.types as sdef_types
 from openmac._internal.sdef import meta as sdef_meta
 from openmac._internal.sdef.base import SDEFClass
-from openmac.finder.sdef.suites.containers_and_folders.enumerations import Edfm
+from openmac.apps.finder.sdef.suites.containers_and_folders.enumerations import Edfm
 
 
 class Container(SDEFClass):

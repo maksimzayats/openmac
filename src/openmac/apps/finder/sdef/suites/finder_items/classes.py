@@ -13,10 +13,10 @@ from openmac._internal.sdef import meta as sdef_meta
 from openmac._internal.sdef.base import SDEFClass
 
 if TYPE_CHECKING:
-    from openmac.finder.sdef.suites.type_definitions.classes import (
+    from openmac.apps.finder.sdef.suites.type_definitions.classes import (
         IconFamily as TypeDefinitionsIconFamilyType,
     )
-from openmac.finder.sdef.suites.finder_items.enumerations import Priv
+from openmac.apps.finder.sdef.suites.finder_items.enumerations import Priv
 
 
 class Item(SDEFClass):
@@ -397,7 +397,7 @@ class Item(SDEFClass):
 
 _CROSS_SUITE_TYPES_NAMESPACE = {
     "TypeDefinitionsIconFamilyType": importlib.import_module(
-        "openmac.finder.sdef.suites.type_definitions.classes",
+        "openmac.apps.finder.sdef.suites.type_definitions.classes",
     ).IconFamily,
 }
 

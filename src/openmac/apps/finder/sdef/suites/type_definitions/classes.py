@@ -13,10 +13,10 @@ from openmac._internal.sdef import meta as sdef_meta
 from openmac._internal.sdef.base import SDEFClass
 
 if TYPE_CHECKING:
-    from openmac.finder.sdef.suites.window_classes.classes import (
+    from openmac.apps.finder.sdef.suites.window_classes.classes import (
         PreferencesWindow as WindowClassesPreferencesWindowType,
     )
-from openmac.finder.sdef.suites.type_definitions.enumerations import (
+from openmac.apps.finder.sdef.suites.type_definitions.enumerations import (
     Earr,
     Elsv,
     Epos,
@@ -912,7 +912,7 @@ class AliasList(SDEFClass):
 
 _CROSS_SUITE_TYPES_NAMESPACE = {
     "WindowClassesPreferencesWindowType": importlib.import_module(
-        "openmac.finder.sdef.suites.window_classes.classes",
+        "openmac.apps.finder.sdef.suites.window_classes.classes",
     ).PreferencesWindow,
 }
 

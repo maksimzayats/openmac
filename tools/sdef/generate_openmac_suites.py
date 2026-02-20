@@ -56,16 +56,16 @@ class AppTarget:
 APP_TARGETS: Final[dict[str, AppTarget]] = {
     "chrome": AppTarget(
         app="chrome",
-        package="openmac.chrome.sdef.suites",
-        sdef_path=ROOT / "src" / "openmac" / "chrome" / "sdef" / "chrome.sdef",
-        suites_dir=ROOT / "src" / "openmac" / "chrome" / "sdef" / "suites",
+        package="openmac.apps.chrome.sdef.suites",
+        sdef_path=ROOT / "src" / "openmac" / "apps" / "chrome" / "sdef" / "chrome.sdef",
+        suites_dir=ROOT / "src" / "openmac" / "apps" / "chrome" / "sdef" / "suites",
         bundle_id="com.google.Chrome",
     ),
     "finder": AppTarget(
         app="finder",
-        package="openmac.finder.sdef.suites",
-        sdef_path=ROOT / "src" / "openmac" / "finder" / "sdef" / "finder.sdef",
-        suites_dir=ROOT / "src" / "openmac" / "finder" / "sdef" / "suites",
+        package="openmac.apps.finder.sdef.suites",
+        sdef_path=ROOT / "src" / "openmac" / "apps" / "finder" / "sdef" / "finder.sdef",
+        suites_dir=ROOT / "src" / "openmac" / "apps" / "finder" / "sdef" / "suites",
         bundle_id="com.apple.finder",
     ),
 }

@@ -7,13 +7,10 @@ import pytest
 from tools.sdef.models import Command
 from tools.sdef.parser import load_sdef
 
-FIXTURE_PATH = Path(__file__).resolve().parents[3] / "tools" / "sdef" / "suite.sdef"
-CHROME_SDEF_PATH = (
-    Path(__file__).resolve().parents[3] / "src" / "openmac" / "chrome" / "sdef" / "chrome.sdef"
-)
-FINDER_SDEF_PATH = (
-    Path(__file__).resolve().parents[3] / "src" / "openmac" / "finder" / "sdef" / "finder.sdef"
-)
+ROOT_PATH = Path(__file__).resolve().parents[4]
+FIXTURE_PATH = ROOT_PATH / "tools" / "sdef" / "suite.sdef"
+CHROME_SDEF_PATH = ROOT_PATH / "src" / "openmac" / "apps" / "chrome" / "sdef" / "chrome.sdef"
+FINDER_SDEF_PATH = ROOT_PATH / "src" / "openmac" / "apps" / "finder" / "sdef" / "finder.sdef"
 APP_SDEF_DIR = Path(__file__).resolve().parent / "captured_apps_sdef"
 APP_SDEF_PATHS = sorted(APP_SDEF_DIR.glob("*.sdef"))
 CHROMIUM_APP_SDEF_NAMES = {"google_chrome.sdef", "google_chrome_beta.sdef", "microsoft_edge.sdef"}

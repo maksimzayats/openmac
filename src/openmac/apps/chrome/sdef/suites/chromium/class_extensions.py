@@ -7,9 +7,9 @@ from typing import ClassVar
 from pydantic import Field
 
 import openmac._internal.sdef.types as sdef_types
-import openmac.chrome.sdef.suites.standard.classes as standard_classes_module
+import openmac.apps.chrome.sdef.suites.standard.classes as standard_classes_module
 from openmac._internal.sdef import meta as sdef_meta
-from openmac.chrome.sdef.suites.chromium.classes import BookmarkFolder
+from openmac.apps.chrome.sdef.suites.chromium.classes import BookmarkFolder
 
 
 class Application(standard_classes_module.Application):

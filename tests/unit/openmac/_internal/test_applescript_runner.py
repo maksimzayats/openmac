@@ -9,7 +9,7 @@ import pytest
 from openmac._internal.applescript.executor import AppleScriptExecutor
 from openmac._internal.applescript.runner import AppleScriptSDEFCommandRunner
 from openmac._internal.sdef import SDEFCommand
-from openmac.chrome.sdef.suites.standard.commands import QuitCommand as ChromeQuitCommand
+from openmac.apps.chrome.sdef.suites.standard.commands import QuitCommand as ChromeQuitCommand
 
 
 def test_run_raw_executes_builder_script_and_returns_stdout() -> None:

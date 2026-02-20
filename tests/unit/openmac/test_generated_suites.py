@@ -8,26 +8,28 @@ from pydantic import TypeAdapter
 
 import openmac._internal.sdef.types as sdef_types
 from openmac._internal.sdef.base import SDEFClass, SDEFCommand
-from openmac.chrome.sdef.suites.chromium.commands import ExecuteCommand as ChromiumExecuteCommand
-from openmac.chrome.sdef.suites.standard.commands import (
+from openmac.apps.chrome.sdef.suites.chromium.commands import (
+    ExecuteCommand as ChromiumExecuteCommand,
+)
+from openmac.apps.chrome.sdef.suites.standard.commands import (
     CountCommand as ChromeCountCommand,
     ExistsCommand as ChromeExistsCommand,
     QuitCommand as ChromeQuitCommand,
 )
-from openmac.finder.sdef.suites.finder_basics.commands import SortCommand as FinderSortCommand
+from openmac.apps.finder.sdef.suites.finder_basics.commands import SortCommand as FinderSortCommand
 
 SUITE_PACKAGES: Final[tuple[tuple[str, str], ...]] = (
-    ("openmac.chrome.sdef.suites", "standard"),
-    ("openmac.chrome.sdef.suites", "chromium"),
-    ("openmac.finder.sdef.suites", "standard"),
-    ("openmac.finder.sdef.suites", "finder_basics"),
-    ("openmac.finder.sdef.suites", "finder_items"),
-    ("openmac.finder.sdef.suites", "containers_and_folders"),
-    ("openmac.finder.sdef.suites", "files"),
-    ("openmac.finder.sdef.suites", "window_classes"),
-    ("openmac.finder.sdef.suites", "legacy"),
-    ("openmac.finder.sdef.suites", "type_definitions"),
-    ("openmac.finder.sdef.suites", "enumerations"),
+    ("openmac.apps.chrome.sdef.suites", "standard"),
+    ("openmac.apps.chrome.sdef.suites", "chromium"),
+    ("openmac.apps.finder.sdef.suites", "standard"),
+    ("openmac.apps.finder.sdef.suites", "finder_basics"),
+    ("openmac.apps.finder.sdef.suites", "finder_items"),
+    ("openmac.apps.finder.sdef.suites", "containers_and_folders"),
+    ("openmac.apps.finder.sdef.suites", "files"),
+    ("openmac.apps.finder.sdef.suites", "window_classes"),
+    ("openmac.apps.finder.sdef.suites", "legacy"),
+    ("openmac.apps.finder.sdef.suites", "type_definitions"),
+    ("openmac.apps.finder.sdef.suites", "enumerations"),
 )
 
 BASE_SUBMODULES: Final[tuple[str, ...]] = (
@@ -39,8 +41,8 @@ BASE_SUBMODULES: Final[tuple[str, ...]] = (
 )
 
 CLASS_EXTENSION_MODULES: Final[tuple[str, ...]] = (
-    "openmac.chrome.sdef.suites.chromium.class_extensions",
-    "openmac.finder.sdef.suites.legacy.class_extensions",
+    "openmac.apps.chrome.sdef.suites.chromium.class_extensions",
+    "openmac.apps.finder.sdef.suites.legacy.class_extensions",
 )
 
 GENERATED_MODULES: Final[list[str]] = [
@@ -55,11 +57,11 @@ COMMAND_MODULES: Final[list[str]] = [
 
 ROOT_SUITES_MODULES_WITH_REMOVED_EXPORTS: Final[tuple[tuple[str, tuple[str, ...]], ...]] = (
     (
-        "openmac.chrome.sdef.suites",
+        "openmac.apps.chrome.sdef.suites",
         ("StandardSuite", "ChromiumSuite"),
     ),
     (
-        "openmac.finder.sdef.suites",
+        "openmac.apps.finder.sdef.suites",
         (
             "StandardSuite",
             "FinderBasicsSuite",
@@ -75,103 +77,103 @@ ROOT_SUITES_MODULES_WITH_REMOVED_EXPORTS: Final[tuple[tuple[str, tuple[str, ...]
 )
 
 SUITE_PACKAGE_MODULES_WITH_REMOVED_EXPORTS: Final[tuple[tuple[str, str], ...]] = (
-    ("openmac.chrome.sdef.suites.standard", "StandardSuite"),
-    ("openmac.chrome.sdef.suites.chromium", "ChromiumSuite"),
-    ("openmac.finder.sdef.suites.standard", "StandardSuite"),
-    ("openmac.finder.sdef.suites.finder_basics", "FinderBasicsSuite"),
-    ("openmac.finder.sdef.suites.finder_items", "FinderItemsSuite"),
-    ("openmac.finder.sdef.suites.containers_and_folders", "ContainersAndFoldersSuite"),
-    ("openmac.finder.sdef.suites.files", "FilesSuite"),
-    ("openmac.finder.sdef.suites.window_classes", "WindowClassesSuite"),
-    ("openmac.finder.sdef.suites.legacy", "LegacySuite"),
-    ("openmac.finder.sdef.suites.type_definitions", "TypeDefinitionsSuite"),
-    ("openmac.finder.sdef.suites.enumerations", "EnumerationsSuite"),
+    ("openmac.apps.chrome.sdef.suites.standard", "StandardSuite"),
+    ("openmac.apps.chrome.sdef.suites.chromium", "ChromiumSuite"),
+    ("openmac.apps.finder.sdef.suites.standard", "StandardSuite"),
+    ("openmac.apps.finder.sdef.suites.finder_basics", "FinderBasicsSuite"),
+    ("openmac.apps.finder.sdef.suites.finder_items", "FinderItemsSuite"),
+    ("openmac.apps.finder.sdef.suites.containers_and_folders", "ContainersAndFoldersSuite"),
+    ("openmac.apps.finder.sdef.suites.files", "FilesSuite"),
+    ("openmac.apps.finder.sdef.suites.window_classes", "WindowClassesSuite"),
+    ("openmac.apps.finder.sdef.suites.legacy", "LegacySuite"),
+    ("openmac.apps.finder.sdef.suites.type_definitions", "TypeDefinitionsSuite"),
+    ("openmac.apps.finder.sdef.suites.enumerations", "EnumerationsSuite"),
 )
 
 CROSS_SUITE_ALIAS_MODULES: Final[tuple[str, ...]] = (
-    "openmac.chrome.sdef.suites.standard.classes",
-    "openmac.finder.sdef.suites.finder_basics.classes",
-    "openmac.finder.sdef.suites.finder_items.classes",
-    "openmac.finder.sdef.suites.window_classes.classes",
-    "openmac.finder.sdef.suites.legacy.classes",
-    "openmac.finder.sdef.suites.type_definitions.classes",
+    "openmac.apps.chrome.sdef.suites.standard.classes",
+    "openmac.apps.finder.sdef.suites.finder_basics.classes",
+    "openmac.apps.finder.sdef.suites.finder_items.classes",
+    "openmac.apps.finder.sdef.suites.window_classes.classes",
+    "openmac.apps.finder.sdef.suites.legacy.classes",
+    "openmac.apps.finder.sdef.suites.type_definitions.classes",
 )
 
 CROSS_SUITE_ALIAS_FIELDS: Final[tuple[tuple[str, str, str, str], ...]] = (
     (
-        "openmac.chrome.sdef.suites.standard.classes",
+        "openmac.apps.chrome.sdef.suites.standard.classes",
         "Window",
         "active_tab",
         "ChromiumTabType",
     ),
     (
-        "openmac.finder.sdef.suites.finder_basics.classes",
+        "openmac.apps.finder.sdef.suites.finder_basics.classes",
         "Application",
         "startup_disk",
         "ContainersAndFoldersDiskType",
     ),
     (
-        "openmac.finder.sdef.suites.finder_basics.classes",
+        "openmac.apps.finder.sdef.suites.finder_basics.classes",
         "Application",
         "desktop",
         "ContainersAndFoldersDesktopObjectType",
     ),
     (
-        "openmac.finder.sdef.suites.finder_basics.classes",
+        "openmac.apps.finder.sdef.suites.finder_basics.classes",
         "Application",
         "trash",
         "ContainersAndFoldersTrashObjectType",
     ),
     (
-        "openmac.finder.sdef.suites.finder_basics.classes",
+        "openmac.apps.finder.sdef.suites.finder_basics.classes",
         "Application",
         "home",
         "ContainersAndFoldersFolderType",
     ),
     (
-        "openmac.finder.sdef.suites.finder_basics.classes",
+        "openmac.apps.finder.sdef.suites.finder_basics.classes",
         "Application",
         "computer_container",
         "ContainersAndFoldersComputerObjectType",
     ),
     (
-        "openmac.finder.sdef.suites.finder_basics.classes",
+        "openmac.apps.finder.sdef.suites.finder_basics.classes",
         "Application",
         "finder_preferences",
         "TypeDefinitionsPreferencesType",
     ),
     (
-        "openmac.finder.sdef.suites.finder_items.classes",
+        "openmac.apps.finder.sdef.suites.finder_items.classes",
         "Item",
         "icon",
         "TypeDefinitionsIconFamilyType",
     ),
     (
-        "openmac.finder.sdef.suites.window_classes.classes",
+        "openmac.apps.finder.sdef.suites.window_classes.classes",
         "FinderWindow",
         "icon_view_options",
         "TypeDefinitionsIconViewOptionsType",
     ),
     (
-        "openmac.finder.sdef.suites.window_classes.classes",
+        "openmac.apps.finder.sdef.suites.window_classes.classes",
         "FinderWindow",
         "list_view_options",
         "TypeDefinitionsListViewOptionsType",
     ),
     (
-        "openmac.finder.sdef.suites.window_classes.classes",
+        "openmac.apps.finder.sdef.suites.window_classes.classes",
         "FinderWindow",
         "column_view_options",
         "TypeDefinitionsColumnViewOptionsType",
     ),
     (
-        "openmac.finder.sdef.suites.legacy.classes",
+        "openmac.apps.finder.sdef.suites.legacy.classes",
         "ApplicationProcess",
         "application_file",
         "FilesApplicationFileType",
     ),
     (
-        "openmac.finder.sdef.suites.type_definitions.classes",
+        "openmac.apps.finder.sdef.suites.type_definitions.classes",
         "Preferences",
         "window",
         "WindowClassesPreferencesWindowType",
@@ -179,8 +181,8 @@ CROSS_SUITE_ALIAS_FIELDS: Final[tuple[tuple[str, str, str, str], ...]] = (
 )
 
 UNKNOWN_SPECIFIER_FIELDS: Final[tuple[tuple[str, str, str], ...]] = (
-    ("openmac.finder.sdef.suites.window_classes.classes", "FinderWindow", "target"),
-    ("openmac.finder.sdef.suites.finder_items.classes", "Item", "information_window"),
+    ("openmac.apps.finder.sdef.suites.window_classes.classes", "FinderWindow", "target"),
+    ("openmac.apps.finder.sdef.suites.finder_items.classes", "Item", "information_window"),
 )
 
 
@@ -252,7 +254,9 @@ def test_generated_suite_submodules_import(module_name: str) -> None:
 @pytest.mark.parametrize("module_name", COMMAND_MODULES)
 def test_generated_suite_commands_are_not_callable(module_name: str) -> None:
     expected_bundle_id = (
-        "com.google.Chrome" if module_name.startswith("openmac.chrome.") else "com.apple.finder"
+        "com.google.Chrome"
+        if module_name.startswith("openmac.apps.chrome.")
+        else "com.apple.finder"
     )
     command_classes = command_classes_from_module(module_name)
     for command_class in command_classes:
@@ -358,7 +362,7 @@ def test_unknown_specifier_fields_fallback_to_sdef_class(
 
 
 def test_cross_suite_alias_field_still_validates_specifier_strings() -> None:
-    module = importlib.import_module("openmac.chrome.sdef.suites.standard.classes")
+    module = importlib.import_module("openmac.apps.chrome.sdef.suites.standard.classes")
     model_class = cast("Any", module.Window)
     annotation = model_class.model_fields["active_tab"].annotation
     assert get_origin(annotation) is sdef_types.Specifier

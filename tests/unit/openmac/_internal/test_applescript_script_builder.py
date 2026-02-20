@@ -7,10 +7,10 @@ import pytest
 from openmac._internal.applescript import serializer
 from openmac._internal.applescript.script_builder import AppleScriptSDEFScriptBuilder
 from openmac._internal.sdef import SDEFCommand, meta as sdef_meta
-from openmac.chrome.sdef.suites.chromium.commands import GoBackCommand, ReloadCommand
-from openmac.chrome.sdef.suites.standard.commands import QuitCommand as ChromeQuitCommand
-from openmac.finder.sdef.suites.finder_items.commands import CleanUpCommand
-from openmac.finder.sdef.suites.standard.commands import (
+from openmac.apps.chrome.sdef.suites.chromium.commands import GoBackCommand, ReloadCommand
+from openmac.apps.chrome.sdef.suites.standard.commands import QuitCommand as ChromeQuitCommand
+from openmac.apps.finder.sdef.suites.finder_items.commands import CleanUpCommand
+from openmac.apps.finder.sdef.suites.standard.commands import (
     ActivateCommand,
     CountCommand,
     DuplicateCommand,

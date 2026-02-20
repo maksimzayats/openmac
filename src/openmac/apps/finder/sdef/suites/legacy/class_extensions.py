@@ -7,7 +7,7 @@ from typing import ClassVar
 from pydantic import Field
 
 import openmac._internal.sdef.types as sdef_types
-import openmac.finder.sdef.suites.finder_basics.classes as finder_basics_classes_module
+import openmac.apps.finder.sdef.suites.finder_basics.classes as finder_basics_classes_module
 from openmac._internal.sdef import meta as sdef_meta
 
 

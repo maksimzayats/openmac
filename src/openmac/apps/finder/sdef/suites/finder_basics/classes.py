@@ -13,14 +13,14 @@ from openmac._internal.sdef import meta as sdef_meta
 from openmac._internal.sdef.base import SDEFClass
 
 if TYPE_CHECKING:
-    from openmac.finder.sdef.suites.containers_and_folders.classes import (
+    from openmac.apps.finder.sdef.suites.containers_and_folders.classes import (
         ComputerObject as ContainersAndFoldersComputerObjectType,
         DesktopObject as ContainersAndFoldersDesktopObjectType,
         Disk as ContainersAndFoldersDiskType,
         Folder as ContainersAndFoldersFolderType,
         TrashObject as ContainersAndFoldersTrashObjectType,
     )
-    from openmac.finder.sdef.suites.type_definitions.classes import (
+    from openmac.apps.finder.sdef.suites.type_definitions.classes import (
         Preferences as TypeDefinitionsPreferencesType,
     )
 
@@ -259,22 +259,22 @@ class Application(SDEFClass):
 
 _CROSS_SUITE_TYPES_NAMESPACE = {
     "ContainersAndFoldersComputerObjectType": importlib.import_module(
-        "openmac.finder.sdef.suites.containers_and_folders.classes",
+        "openmac.apps.finder.sdef.suites.containers_and_folders.classes",
     ).ComputerObject,
     "ContainersAndFoldersDesktopObjectType": importlib.import_module(
-        "openmac.finder.sdef.suites.containers_and_folders.classes",
+        "openmac.apps.finder.sdef.suites.containers_and_folders.classes",
     ).DesktopObject,
     "ContainersAndFoldersDiskType": importlib.import_module(
-        "openmac.finder.sdef.suites.containers_and_folders.classes",
+        "openmac.apps.finder.sdef.suites.containers_and_folders.classes",
     ).Disk,
     "ContainersAndFoldersFolderType": importlib.import_module(
-        "openmac.finder.sdef.suites.containers_and_folders.classes",
+        "openmac.apps.finder.sdef.suites.containers_and_folders.classes",
     ).Folder,
     "ContainersAndFoldersTrashObjectType": importlib.import_module(
-        "openmac.finder.sdef.suites.containers_and_folders.classes",
+        "openmac.apps.finder.sdef.suites.containers_and_folders.classes",
     ).TrashObject,
     "TypeDefinitionsPreferencesType": importlib.import_module(
-        "openmac.finder.sdef.suites.type_definitions.classes",
+        "openmac.apps.finder.sdef.suites.type_definitions.classes",
     ).Preferences,
 }
 

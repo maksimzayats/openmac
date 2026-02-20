@@ -13,12 +13,12 @@ from openmac._internal.sdef import meta as sdef_meta
 from openmac._internal.sdef.base import SDEFClass
 
 if TYPE_CHECKING:
-    from openmac.finder.sdef.suites.type_definitions.classes import (
+    from openmac.apps.finder.sdef.suites.type_definitions.classes import (
         ColumnViewOptions as TypeDefinitionsColumnViewOptionsType,
         IconViewOptions as TypeDefinitionsIconViewOptionsType,
         ListViewOptions as TypeDefinitionsListViewOptionsType,
     )
-from openmac.finder.sdef.suites.window_classes.enumerations import (
+from openmac.apps.finder.sdef.suites.window_classes.enumerations import (
     Ecvw,
     Ipnl,
     Pple,
@@ -471,13 +471,13 @@ class ClippingWindow(Window):
 
 _CROSS_SUITE_TYPES_NAMESPACE = {
     "TypeDefinitionsColumnViewOptionsType": importlib.import_module(
-        "openmac.finder.sdef.suites.type_definitions.classes",
+        "openmac.apps.finder.sdef.suites.type_definitions.classes",
     ).ColumnViewOptions,
     "TypeDefinitionsIconViewOptionsType": importlib.import_module(
-        "openmac.finder.sdef.suites.type_definitions.classes",
+        "openmac.apps.finder.sdef.suites.type_definitions.classes",
     ).IconViewOptions,
     "TypeDefinitionsListViewOptionsType": importlib.import_module(
-        "openmac.finder.sdef.suites.type_definitions.classes",
+        "openmac.apps.finder.sdef.suites.type_definitions.classes",
     ).ListViewOptions,
 }
 

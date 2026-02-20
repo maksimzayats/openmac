@@ -13,7 +13,9 @@ from openmac._internal.sdef import meta as sdef_meta
 from openmac._internal.sdef.base import SDEFClass
 
 if TYPE_CHECKING:
-    from openmac.finder.sdef.suites.files.classes import ApplicationFile as FilesApplicationFileType
+    from openmac.apps.finder.sdef.suites.files.classes import (
+        ApplicationFile as FilesApplicationFileType,
+    )
 
 
 class Process(SDEFClass):
@@ -246,7 +248,7 @@ class DeskAccessoryProcess(Process):
 
 _CROSS_SUITE_TYPES_NAMESPACE = {
     "FilesApplicationFileType": importlib.import_module(
-        "openmac.finder.sdef.suites.files.classes",
+        "openmac.apps.finder.sdef.suites.files.classes",
     ).ApplicationFile,
 }
 
