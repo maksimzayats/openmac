@@ -20,15 +20,8 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "acodex>=0.101.0",
     "appscript>=1.4.0",
-    "beautifulsoup4>=4.13.0",
-    "diwire>=1.0.0",
-    "fastapi>=0.129.0",
-    "py-applescript>=1.0.3",
-    "pyobjc>=12.1",
     "typer>=0.23.1",
-    "uvicorn>=0.40.0",
 ]
 
 [project.urls]
@@ -45,7 +38,6 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.13",
-    "xmltodict>=1.0.3",
 ]
 docs = [
     "furo>=2025.12.19",

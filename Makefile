@@ -14,14 +14,6 @@ lint:
 test:
 	uv run pytest tests/ --cov=openmac --cov-report=term-missing
 
-test-integration:
-	uv run pytest tests/integration --run-integration
-
-generate-suites:
-	uv run python tools/sdef/generate_openmac_suites.py --app $(SDEF_APP)
-	make format
-	make format
-
 docs:
 	rm -rf docs/_build
 	uv run --group docs sphinx-build -W -b html docs docs/_build/html
