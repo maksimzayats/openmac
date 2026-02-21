@@ -3,15 +3,15 @@ from __future__ import annotations
 import pytest
 
 from openmac.apps.chrome.objects.application import Chrome
-from openmac.apps.chrome.objects.windows import Window
+from openmac.apps.chrome.objects.windows import ChromeWindow
 
 
 @pytest.fixture(scope="function")
-def window(chrome: Chrome) -> Window:
+def window(chrome: Chrome) -> ChromeWindow:
     return chrome.windows.first()
 
 
-def test_window_properties_complete(window: Window) -> None:
+def test_window_properties_complete(window: ChromeWindow) -> None:
     properties = window.properties
     properties_keys = set(properties.__dataclass_fields__.keys())
 

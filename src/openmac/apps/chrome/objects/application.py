@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from appscript import Keyword
 
 from openmac.apps._internal.base import BaseApplication
-from openmac.apps.chrome.objects.windows import Window, WindowsManager
+from openmac.apps.chrome.objects.windows import ChromeWindow, ChromeWindowsManager
 
 
 class Chrome(BaseApplication):
@@ -39,12 +39,12 @@ class Chrome(BaseApplication):
     # region Managers
 
     @property
-    def windows(self) -> WindowsManager:
-        return WindowsManager(
+    def windows(self) -> ChromeWindowsManager:
+        return ChromeWindowsManager(
             _ae_application=self._ae_object,
             _ae_objects=self._ae_object.windows,
             _objects=[
-                Window(_ae_application=self._ae_object, _ae_object=ae_window)
+                ChromeWindow(_ae_application=self._ae_object, _ae_object=ae_window)
                 for ae_window in self._ae_object.windows()
             ],
         )

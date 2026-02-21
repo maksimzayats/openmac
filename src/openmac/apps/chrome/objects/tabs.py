@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(slots=True)
-class Tab(BaseObject):
+class ChromeTab(BaseObject):
     _from_ae_window: GenericReference
 
     # region Properties
@@ -38,9 +38,9 @@ class Tab(BaseObject):
         return self._ae_object.id()
 
     @property
-    def properties(self) -> TabProperties:
+    def properties(self) -> ChromeTabProperties:
         ae_properties = self._ae_object.properties()
-        return TabProperties(
+        return ChromeTabProperties(
             url=ae_properties[Keyword("URL")],
             title=ae_properties[Keyword("title")],
             loading=ae_properties[Keyword("loading")],
@@ -63,7 +63,7 @@ class Tab(BaseObject):
     def go_forward(self) -> None:
         self._ae_object.go_forward()
 
-    def duplicate(self) -> Tab:
+    def duplicate(self) -> ChromeTab:
         ae_tab = self._from_ae_window.tabs.end.make(
             new=k.tab,
             with_properties={
@@ -71,7 +71,7 @@ class Tab(BaseObject):
             },
         )
 
-        return Tab(
+        return ChromeTab(
             _ae_application=self._ae_application,
             _ae_object=ae_tab,
             _from_ae_window=self._from_ae_window,
@@ -93,7 +93,7 @@ class Tab(BaseObject):
 
         while self.loading:
             if time.perf_counter() - start_time > timeout:
-                raise TimeoutError(f"Tab did not finish loading within {timeout} seconds.")
+                raise TimeoutError(f"ChromeTab did not finish loading within {timeout} seconds.")
 
             time.sleep(0.1)
 
@@ -101,7 +101,7 @@ class Tab(BaseObject):
 
 
 @dataclass(slots=True)
-class TabProperties:
+class ChromeTabProperties:
     url: str
     title: str
     loading: bool
@@ -109,15 +109,15 @@ class TabProperties:
 
 
 @dataclass(slots=True)
-class TabsManager(BaseManager[Tab]):
+class ChromeTabsManager(BaseManager[ChromeTab]):
     _from_ae_window: GenericReference
-    """Window object from which this manager was created. Needed to create new tabs with the correct parent window."""
+    """ChromeWindow object from which this manager was created. Needed to create new tabs with the correct parent window."""
 
     if TYPE_CHECKING:
 
-        def get(self, **filters: Unpack[TabsFilter]) -> Tab: ...  # type: ignore[override]
-        def filter(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
-        def exclude(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
+        def get(self, **filters: Unpack[ChromeTabsFilter]) -> ChromeTab: ...  # type: ignore[override]
+        def filter(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
+        def exclude(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
 
     def new(
         self,
@@ -125,14 +125,14 @@ class TabsManager(BaseManager[Tab]):
         *,
         wait_until_loaded: bool = True,
         preserve_focus: bool = True,
-    ) -> Tab:
+    ) -> ChromeTab:
         if preserve_focus:
             with preserve_focus_context_manager():
                 ae_tab = self._make_ae_tab(url)
         else:
             ae_tab = self._make_ae_tab(url)
 
-        tab = Tab(
+        tab = ChromeTab(
             _ae_application=self._ae_application,
             _ae_object=ae_tab,
             _from_ae_window=self._from_ae_window,
@@ -152,7 +152,7 @@ class TabsManager(BaseManager[Tab]):
         )
 
 
-class TabsFilter(TypedDict, total=False):
+class ChromeTabsFilter(TypedDict, total=False):
     url: str
     url__eq: str
     url__ne: str

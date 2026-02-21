@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal, TypedDict
 from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
-from openmac.apps.chrome.objects.tabs import Tab, TabsManager
+from openmac.apps.chrome.objects.tabs import ChromeTab, ChromeTabsManager
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from typing_extensions import Unpack
 
 
-class Window(BaseObject):
+class ChromeWindow(BaseObject):
     # region Properties
 
     @property
@@ -75,17 +75,17 @@ class Window(BaseObject):
         return self._ae_object.minimized()
 
     @property
-    def active_tab(self) -> Tab:
-        return Tab(
+    def active_tab(self) -> ChromeTab:
+        return ChromeTab(
             _ae_application=self._ae_application,
             _ae_object=self._ae_object.active_tab(),
             _from_ae_window=self._ae_object,
         )
 
     @property
-    def properties(self) -> WindowProperties:
+    def properties(self) -> ChromeWindowProperties:
         ae_properties = self._ae_object.properties()
-        return WindowProperties(
+        return ChromeWindowProperties(
             id=ae_properties[Keyword("id")],
             closeable=ae_properties[Keyword("closeable")],
             zoomed=ae_properties[Keyword("zoomed")],
@@ -108,13 +108,13 @@ class Window(BaseObject):
     # region Managers
 
     @property
-    def tabs(self) -> TabsManager:
-        return TabsManager(
+    def tabs(self) -> ChromeTabsManager:
+        return ChromeTabsManager(
             _from_ae_window=self._ae_object,
             _ae_application=self._ae_application,
             _ae_objects=self._ae_object.tabs,
             _objects=[
-                Tab(
+                ChromeTab(
                     _ae_application=self._ae_application,
                     _ae_object=ae_tab,
                     _from_ae_window=self._ae_object,
@@ -134,7 +134,7 @@ class Window(BaseObject):
 
 
 @dataclass(slots=True)
-class WindowProperties:
+class ChromeWindowProperties:
     id: str
     closeable: bool
     zoomed: bool
@@ -153,26 +153,26 @@ class WindowProperties:
 
 
 @dataclass(slots=True)
-class WindowsManager(BaseManager[Window]):
+class ChromeWindowsManager(BaseManager[ChromeWindow]):
     if TYPE_CHECKING:
 
-        def get(self, **filters: Unpack[WindowsFilter]) -> Window: ...  # type: ignore[override]
-        def filter(self, **filters: Unpack[WindowsFilter]) -> BaseManager[Window]: ...  # type: ignore[override]
-        def exclude(self, **filters: Unpack[WindowsFilter]) -> BaseManager[Window]: ...  # type: ignore[override]
+        def get(self, **filters: Unpack[ChromeWindowsFilter]) -> ChromeWindow: ...  # type: ignore[override]
+        def filter(self, **filters: Unpack[ChromeWindowsFilter]) -> BaseManager[ChromeWindow]: ...  # type: ignore[override]
+        def exclude(self, **filters: Unpack[ChromeWindowsFilter]) -> BaseManager[ChromeWindow]: ...  # type: ignore[override]
 
     def new(
         self,
         *,
         mode: Literal["normal", "incognito"] = "incognito",
         preserve_focus: bool = True,
-    ) -> Window:
+    ) -> ChromeWindow:
         if preserve_focus:
             with preserve_focus_context_manager():
                 ae_window = self._make_ae_window(mode)
         else:
             ae_window = self._make_ae_window(mode)
 
-        return Window(
+        return ChromeWindow(
             _ae_application=self._ae_application,
             _ae_object=ae_window,
         )
@@ -186,7 +186,7 @@ class WindowsManager(BaseManager[Window]):
         )
 
 
-class WindowsFilter(TypedDict, total=False):
+class ChromeWindowsFilter(TypedDict, total=False):
     id: str
     id__eq: str
     id__ne: str

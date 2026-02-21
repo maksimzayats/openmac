@@ -7,16 +7,16 @@ import pytest
 from appscript import CommandError
 
 from openmac.apps.chrome.objects.application import Chrome
-from openmac.apps.chrome.objects.tabs import Tab
+from openmac.apps.chrome.objects.tabs import ChromeTab
 
 
 @pytest.fixture(scope="function")
-def tab(chrome: Chrome) -> Tab:
+def tab(chrome: Chrome) -> ChromeTab:
     return chrome.windows.first().tabs.first()
 
 
 @pytest.fixture(scope="function")
-def new_tab_no_wait(chrome: Chrome) -> Generator[Tab, None, None]:
+def new_tab_no_wait(chrome: Chrome) -> Generator[ChromeTab, None, None]:
     tab = chrome.windows.first().tabs.new(url="https://www.google.com", wait_until_loaded=False)
 
     try:
@@ -26,7 +26,7 @@ def new_tab_no_wait(chrome: Chrome) -> Generator[Tab, None, None]:
             tab.close()
 
 
-def test_tabs_properties_complete(tab: Tab) -> None:
+def test_tabs_properties_complete(tab: ChromeTab) -> None:
     properties = tab.properties
     properties_keys = set(properties.__dataclass_fields__.keys())
 
@@ -41,7 +41,7 @@ def test_tabs_properties_complete(tab: Tab) -> None:
     assert diff == {"class_"}
 
 
-def test_tab_wait_until_loaded(new_tab_no_wait: Tab) -> None:
+def test_tab_wait_until_loaded(new_tab_no_wait: ChromeTab) -> None:
     assert new_tab_no_wait.url == "https://www.google.com/"
     assert new_tab_no_wait.loading
 
@@ -51,7 +51,7 @@ def test_tab_wait_until_loaded(new_tab_no_wait: Tab) -> None:
     assert not new_tab_no_wait.loading
 
 
-def test_tab_close(new_tab_no_wait: Tab) -> None:
+def test_tab_close(new_tab_no_wait: ChromeTab) -> None:
     assert new_tab_no_wait.url == "https://www.google.com/"
 
     new_tab_no_wait.close()
