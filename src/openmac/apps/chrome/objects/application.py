@@ -26,7 +26,6 @@ class Chrome(BaseApplication):
     @property
     def properties(self) -> ChromeProperties:
         ae_properties = self._ae_object.properties()
-        print(ae_properties)
         return ChromeProperties(
             version=ae_properties[Keyword("version")],
             title=ae_properties[Keyword("title")],
@@ -50,11 +49,3 @@ class ChromeProperties:
     version: str
     title: str
     frontmost: bool
-
-
-chrome = Chrome()
-w = chrome.windows.new()
-for w in chrome.windows.filter():
-    w.tabs.new(url="https://www.google.com")
-    for t in w.tabs:
-        print("  ", t.properties)

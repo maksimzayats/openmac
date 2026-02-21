@@ -78,10 +78,6 @@ class TabsFilter(TypedDict, total=False):
     url: str
     url__eq: str
     url__ne: str
-    url__lt: str
-    url__lte: str
-    url__gt: str
-    url__gte: str
     url__in: Collection[str]
     url__contains: str
     url__startswith: str
@@ -90,10 +86,6 @@ class TabsFilter(TypedDict, total=False):
     title: str
     title__eq: str
     title__ne: str
-    title__lt: str
-    title__lte: str
-    title__gt: str
-    title__gte: str
     title__in: Collection[str]
     title__contains: str
     title__startswith: str
@@ -102,19 +94,10 @@ class TabsFilter(TypedDict, total=False):
     loading: bool
     loading__eq: bool
     loading__ne: bool
-    loading__lt: bool
-    loading__lte: bool
-    loading__gt: bool
-    loading__gte: bool
-    loading__in: Collection[bool]
 
     id: str
     id__eq: str
     id__ne: str
-    id__lt: str
-    id__lte: str
-    id__gt: str
-    id__gte: str
     id__in: Collection[str]
     id__contains: str
     id__startswith: str
