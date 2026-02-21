@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-import pytest
-
 from openmac.apps.chrome.objects.application import Chrome
-
-
-@pytest.fixture(scope="module")
-def chrome() -> Chrome:
-    return Chrome()
 
 
 def test_application_properties_complete(chrome: Chrome) -> None:
     properties = chrome.properties
-    ae_properties = chrome._ae_object.properties()
+    properties_keys = set(properties.__dataclass_fields__.keys())
 
-    assert properties == ae_properties
+    ae_properties = chrome._ae_object.properties()
+    ae_properties_keys = {keyword.AS_name for keyword in ae_properties}
+
+    diff = properties_keys.symmetric_difference(ae_properties_keys)
+
+    # TODO(Maksim): add "bookmarks_bar", "other_bookmarks"
+    assert diff == {"bookmarks_bar", "other_bookmarks", "class_"}

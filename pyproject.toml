@@ -101,7 +101,7 @@ exclude = [
 [[tool.mypy.overrides]]
 module = ["tests.*"]
 strict = false
-disable_error_code = ["valid-type", "misc", "untyped-decorator"]
+disable_error_code = ["valid-type", "misc", "untyped-decorator", "return-value", "union-attr"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

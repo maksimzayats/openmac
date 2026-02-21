@@ -58,6 +58,22 @@ class Window(BaseObject):
         return self._ae_object.mode()
 
     @property
+    def resizable(self) -> bool:
+        return self._ae_object.resizable()
+
+    @property
+    def bounds(self) -> list[int]:
+        return self._ae_object.bounds()
+
+    @property
+    def zoomable(self) -> bool:
+        return self._ae_object.zoomable()
+
+    @property
+    def minimized(self) -> bool:
+        return self._ae_object.minimized()
+
+    @property
     def active_tab(self) -> Tab:
         return Tab(
             _ae_application=self._ae_application,
@@ -79,6 +95,10 @@ class Window(BaseObject):
             title=ae_properties[Keyword("title")],
             minimizable=ae_properties[Keyword("minimizable")],
             mode=ae_properties[Keyword("mode")],
+            resizable=ae_properties[Keyword("resizable")],
+            bounds=ae_properties[Keyword("bounds")],
+            zoomable=ae_properties[Keyword("zoomable")],
+            minimized=ae_properties[Keyword("minimized")],
             active_tab=ae_properties[Keyword("active_tab")],
         )
 
@@ -124,6 +144,10 @@ class WindowProperties:
     title: str
     minimizable: bool
     mode: Literal["normal", "incognito"]
+    resizable: bool
+    bounds: list[int]
+    zoomable: bool
+    minimized: bool
     active_tab: int
 
 

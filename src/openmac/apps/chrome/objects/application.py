@@ -5,10 +5,6 @@ from dataclasses import dataclass
 from appscript import Keyword
 
 from openmac.apps._internal.base import BaseApplication
-from openmac.apps.chrome.objects.bookmarks_folders import (
-    BookmarkFolders,
-    BookmarkFoldersManager,
-)
 from openmac.apps.chrome.objects.windows import Window, WindowsManager
 
 
@@ -50,17 +46,6 @@ class Chrome(BaseApplication):
             _objects=[
                 Window(_ae_application=self._ae_object, _ae_object=ae_window)
                 for ae_window in self._ae_object.windows()
-            ],
-        )
-
-    @property
-    def bookmark_folders(self) -> BookmarkFoldersManager:
-        return BookmarkFoldersManager(
-            _ae_application=self._ae_object,
-            _ae_objects=self._ae_object.bookmarks_bar,
-            _objects=[
-                BookmarkFolders(_ae_application=self._ae_object, _ae_object=ae_bookmarks_bar)
-                for ae_bookmarks_bar in self._ae_object.bookmark_folders()
             ],
         )
 
