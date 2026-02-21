@@ -62,7 +62,6 @@ class Window(BaseObject):
     @property
     def properties(self) -> WindowProperties:
         ae_properties = self._ae_object.properties()
-        print(ae_properties)
         return WindowProperties(
             id=ae_properties[Keyword("id")],
             closeable=ae_properties[Keyword("closeable")],
@@ -79,7 +78,10 @@ class Window(BaseObject):
 
     @property
     def tabs(self) -> TabsManager:
-        return TabsManager(_objects=[Tab(_ae_object=ae_tab) for ae_tab in self._ae_object.tabs()])
+        return TabsManager(
+            _ae_objects=self._ae_object.tabs,
+            _objects=[Tab(_ae_object=ae_tab) for ae_tab in self._ae_object.tabs()],
+        )
 
 
 @dataclass(slots=True)

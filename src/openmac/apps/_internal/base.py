@@ -28,6 +28,7 @@ class BaseObject:
 class BaseManager(Generic[BaseObjectT]):
     _FILTERER_CLASS: ClassVar = Filterer[BaseObjectT]
 
+    _ae_objects: GenericReference
     _objects: list[BaseObjectT]
 
     def __iter__(self) -> Iterator[BaseObjectT]:
@@ -47,12 +48,12 @@ class BaseManager(Generic[BaseObjectT]):
     def filter(self, **filters: Any) -> BaseManager[BaseObjectT]:
         filterer = self._FILTERER_CLASS(filters)
         filtered_objects = filterer.filter(self._objects)
-        return self.__class__(_objects=filtered_objects)
+        return self.__class__(_ae_objects=self._ae_objects, _objects=filtered_objects)
 
     def exclude(self, **filters: Any) -> BaseManager[BaseObjectT]:
         filterer = self._FILTERER_CLASS(filters)
         filtered_objects = filterer.exclude(self._objects)
-        return self.__class__(_objects=filtered_objects)
+        return self.__class__(_ae_objects=self._ae_objects, _objects=filtered_objects)
 
     def all(self) -> list[BaseObjectT]:
         return self._objects
