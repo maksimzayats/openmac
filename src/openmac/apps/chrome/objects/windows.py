@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, TypedDict
 
 from appscript import GenericReference, Keyword, k
@@ -14,69 +14,74 @@ if TYPE_CHECKING:
 
     from typing_extensions import Unpack
 
+    from openmac import Chrome
 
+
+@dataclass(slots=True, kw_only=True)
 class ChromeWindow(BaseObject):
+    ae_window: GenericReference = field(repr=False)
+
     # region Properties
 
     @property
     def id(self) -> str:
-        return self._ae_object.id()
+        return self.ae_window.id()
 
     @property
     def closeable(self) -> bool:
-        return self._ae_object.closeable()
+        return self.ae_window.closeable()
 
     @property
     def zoomed(self) -> bool:
-        return self._ae_object.zoomed()
+        return self.ae_window.zoomed()
 
     @property
     def active_tab_index(self) -> int:
-        return self._ae_object.active_tab_index()
+        return self.ae_window.active_tab_index()
 
     @property
     def index(self) -> int:
-        return self._ae_object.index()
+        return self.ae_window.index()
 
     @property
     def visible(self) -> bool:
-        return self._ae_object.visible()
+        return self.ae_window.visible()
 
     @property
     def given_name(self) -> str:
-        return self._ae_object.given_name()
+        return self.ae_window.given_name()
 
     @property
     def title(self) -> str:
-        return self._ae_object.title()
+        return self.ae_window.title()
 
     @property
     def minimizable(self) -> bool:
-        return self._ae_object.minimizable()
+        return self.ae_window.minimizable()
 
     @property
     def mode(self) -> str:
-        return self._ae_object.mode()
+        return self.ae_window.mode()
 
     @property
     def resizable(self) -> bool:
-        return self._ae_object.resizable()
+        return self.ae_window.resizable()
 
     @property
     def bounds(self) -> list[int]:
-        return self._ae_object.bounds()
+        return self.ae_window.bounds()
 
     @property
     def zoomable(self) -> bool:
-        return self._ae_object.zoomable()
+        return self.ae_window.zoomable()
 
     @property
     def minimized(self) -> bool:
-        return self._ae_object.minimized()
+        return self.ae_window.minimized()
 
     @property
     def properties(self) -> ChromeWindowProperties:
-        ae_properties = self._ae_object.properties()
+        ae_properties = self.ae_window.properties()
         return ChromeWindowProperties(
             id=ae_properties[Keyword("id")],
             closeable=ae_properties[Keyword("closeable")],
@@ -102,17 +107,10 @@ class ChromeWindow(BaseObject):
     @property
     def tabs(self) -> ChromeTabsManager:
         return ChromeTabsManager(
-            _from_ae_window=self._ae_object,
-            _ae_application=self._ae_application,
-            _ae_objects=self._ae_object.tabs,
             _objects=[
-                ChromeTab(
-                    _ae_application=self._ae_application,
-                    _ae_object=ae_tab,
-                    _from_ae_window=self._ae_object,
-                )
-                for ae_tab in self._ae_object.tabs()
+                ChromeTab(from_window=self, ae_tab=ae_tab) for ae_tab in self.ae_window.tabs()
             ],
+            from_window=self,
         )
 
     # endregion Managers
@@ -120,12 +118,12 @@ class ChromeWindow(BaseObject):
     # region Actions
 
     def close(self) -> None:
-        self._ae_object.close()
+        self.ae_window.close()
 
     # endregion Actions
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, kw_only=True)
 class ChromeWindowProperties:
     id: str
     closeable: bool
@@ -144,8 +142,10 @@ class ChromeWindowProperties:
     active_tab: int
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, kw_only=True)
 class ChromeWindowsManager(BaseManager[ChromeWindow]):
+    chrome: Chrome
+
     if TYPE_CHECKING:
 
         def get(self, **filters: Unpack[ChromeWindowsFilter]) -> ChromeWindow: ...  # type: ignore[override]
@@ -164,13 +164,10 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
         else:
             ae_window = self._make_ae_window(mode)
 
-        return ChromeWindow(
-            _ae_application=self._ae_application,
-            _ae_object=ae_window,
-        )
+        return ChromeWindow(ae_window=ae_window)
 
     def _make_ae_window(self, mode: Literal["normal", "incognito"]) -> GenericReference:
-        return self._ae_application.make(
+        return self.chrome.ae_chrome.make(
             new=k.window,
             with_properties={
                 Keyword("mode"): mode,

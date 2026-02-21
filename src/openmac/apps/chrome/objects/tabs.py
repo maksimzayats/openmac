@@ -14,32 +14,35 @@ if TYPE_CHECKING:
 
     from typing_extensions import Unpack
 
+    from openmac import ChromeWindow
+
 
 @dataclass(slots=True)
 class ChromeTab(BaseObject):
-    _from_ae_window: GenericReference
+    from_window: ChromeWindow
+    ae_tab: GenericReference
 
     # region Properties
 
     @property
     def url(self) -> str:
-        return self._ae_object.URL()
+        return self.ae_tab.URL()
 
     @property
     def title(self) -> str:
-        return self._ae_object.title()
+        return self.ae_tab.title()
 
     @property
     def loading(self) -> bool:
-        return self._ae_object.loading()
+        return self.ae_tab.loading()
 
     @property
     def id(self) -> str:
-        return self._ae_object.id()
+        return self.ae_tab.id()
 
     @property
     def properties(self) -> ChromeTabProperties:
-        ae_properties = self._ae_object.properties()
+        ae_properties = self.ae_tab.properties()
         return ChromeTabProperties(
             url=ae_properties[Keyword("URL")],
             title=ae_properties[Keyword("title")],
@@ -52,19 +55,19 @@ class ChromeTab(BaseObject):
     # region Actions
 
     def reload(self) -> None:
-        self._ae_object.reload()
+        self.ae_tab.reload()
 
     def close(self) -> None:
-        self._ae_object.close()
+        self.ae_tab.close()
 
     def go_back(self) -> None:
-        self._ae_object.go_back()
+        self.ae_tab.go_back()
 
     def go_forward(self) -> None:
-        self._ae_object.go_forward()
+        self.ae_tab.go_forward()
 
     def duplicate(self) -> ChromeTab:
-        ae_tab = self._from_ae_window.tabs.end.make(
+        ae_tab = self.from_window.ae_window.tabs.end.make(
             new=k.tab,
             with_properties={
                 Keyword("URL"): self.url,
@@ -72,13 +75,12 @@ class ChromeTab(BaseObject):
         )
 
         return ChromeTab(
-            _ae_application=self._ae_application,
-            _ae_object=ae_tab,
-            _from_ae_window=self._from_ae_window,
+            ae_tab=ae_tab,
+            from_window=self.from_window,
         )
 
     def execute(self, javascript: str) -> str:
-        return self._ae_object.execute(javascript=javascript)
+        return self.ae_tab.execute(javascript=javascript)
 
     # endregion Actions
 
@@ -110,8 +112,7 @@ class ChromeTabProperties:
 
 @dataclass(slots=True)
 class ChromeTabsManager(BaseManager[ChromeTab]):
-    _from_ae_window: GenericReference
-    """ChromeWindow object from which this manager was created. Needed to create new tabs with the correct parent window."""
+    from_window: ChromeWindow
 
     if TYPE_CHECKING:
 
@@ -122,9 +123,8 @@ class ChromeTabsManager(BaseManager[ChromeTab]):
     @property
     def active(self) -> ChromeTab:
         return ChromeTab(
-            _ae_application=self._ae_application,
-            _ae_object=self._from_ae_window.active_tab(),
-            _from_ae_window=self._from_ae_window,
+            from_window=self.from_window,
+            ae_tab=self.from_window.ae_window.active_tab(),
         )
 
     def new(
@@ -141,9 +141,8 @@ class ChromeTabsManager(BaseManager[ChromeTab]):
             ae_tab = self._make_ae_tab(url)
 
         tab = ChromeTab(
-            _ae_application=self._ae_application,
-            _ae_object=ae_tab,
-            _from_ae_window=self._from_ae_window,
+            from_window=self.from_window,
+            ae_tab=ae_tab,
         )
 
         if wait_until_loaded:
@@ -152,7 +151,7 @@ class ChromeTabsManager(BaseManager[ChromeTab]):
         return tab
 
     def _make_ae_tab(self, url: str) -> GenericReference:
-        return self._from_ae_window.tabs.end.make(
+        return self.from_window.ae_window.tabs.end.make(
             new=k.tab,
             with_properties={
                 Keyword("URL"): url,

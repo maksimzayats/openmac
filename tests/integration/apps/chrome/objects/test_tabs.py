@@ -30,7 +30,7 @@ def test_tabs_properties_complete(tab: ChromeTab) -> None:
     properties = tab.properties
     properties_keys = set(properties.__dataclass_fields__.keys())
 
-    ae_properties = tab._ae_object.properties()
+    ae_properties = tab.ae_tab.properties()
     ae_properties_keys = {keyword.AS_name for keyword in ae_properties}
 
     ae_properties_keys.remove("URL")

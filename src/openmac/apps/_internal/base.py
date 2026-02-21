@@ -4,33 +4,26 @@ from collections.abc import Iterator
 from dataclasses import dataclass, replace
 from typing import Any, ClassVar, Generic, TypeVar
 
-from appscript.reference import GenericReference, app
-
 from openmac.apps._internal.filterer import Filterer
 from openmac.apps.exceptions import MultipleObjectsReturnedError, ObjectDoesNotExistError
 
 BaseObjectT = TypeVar("BaseObjectT", bound="BaseObject")
 
 
+@dataclass(slots=True, kw_only=True)
 class BaseApplication:
-    _BUNDLE_ID: ClassVar[str]
-
-    def __init__(self) -> None:
-        self._ae_object = app(id=self._BUNDLE_ID)
+    pass
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, kw_only=True)
 class BaseObject:
-    _ae_application: GenericReference
-    _ae_object: GenericReference
+    pass
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, kw_only=True)
 class BaseManager(Generic[BaseObjectT]):
     _FILTERER_CLASS: ClassVar = Filterer[BaseObjectT]
 
-    _ae_application: GenericReference
-    _ae_objects: GenericReference
     _objects: list[BaseObjectT]
 
     def __iter__(self) -> Iterator[BaseObjectT]:

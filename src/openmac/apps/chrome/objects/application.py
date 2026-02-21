@@ -1,33 +1,36 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from appscript import Keyword
+from appscript import GenericReference, Keyword, app
 
 from openmac.apps._internal.base import BaseApplication
 from openmac.apps.chrome.objects.windows import ChromeWindow, ChromeWindowsManager
 
 
+@dataclass(slots=True, kw_only=True)
 class Chrome(BaseApplication):
-    _BUNDLE_ID = "com.google.Chrome"
+    ae_chrome: GenericReference = field(
+        default_factory=lambda: app(id="com.google.Chrome"),
+    )
 
     # region Properties
 
     @property
     def version(self) -> str:
-        return self._ae_object.version()
+        return self.ae_chrome.version()
 
     @property
     def title(self) -> str:
-        return self._ae_object.title()
+        return self.ae_chrome.title()
 
     @property
     def frontmost(self) -> bool:
-        return self._ae_object.frontmost()
+        return self.ae_chrome.frontmost()
 
     @property
     def properties(self) -> ChromeProperties:
-        ae_properties = self._ae_object.properties()
+        ae_properties = self.ae_chrome.properties()
         return ChromeProperties(
             version=ae_properties[Keyword("version")],
             title=ae_properties[Keyword("title")],
@@ -41,12 +44,8 @@ class Chrome(BaseApplication):
     @property
     def windows(self) -> ChromeWindowsManager:
         return ChromeWindowsManager(
-            _ae_application=self._ae_object,
-            _ae_objects=self._ae_object.windows,
-            _objects=[
-                ChromeWindow(_ae_application=self._ae_object, _ae_object=ae_window)
-                for ae_window in self._ae_object.windows()
-            ],
+            _objects=[ChromeWindow(ae_window=ae_window) for ae_window in self.ae_chrome.windows()],
+            chrome=self,
         )
 
     # endregion Managers
@@ -54,7 +53,7 @@ class Chrome(BaseApplication):
     # region Actions
 
     def activate(self) -> None:
-        self._ae_object.activate()
+        self.ae_chrome.activate()
 
     # endregion Actions
 
