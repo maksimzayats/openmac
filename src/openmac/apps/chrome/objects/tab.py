@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, TypedDict
 
 from appscript import Keyword
 
 from openmac.apps._internal.base import BaseManager, BaseObject
+
+if TYPE_CHECKING:
+    from collections.abc import Collection
+
+    from typing_extensions import Unpack
 
 
 class Tab(BaseObject):
@@ -44,4 +50,55 @@ class TabProperties:
 
 
 class TabsManager(BaseManager[Tab]):
-    pass
+    if TYPE_CHECKING:
+
+        def get(self, **filters: Unpack[TabsFilter]) -> Tab: ...  # type: ignore[override]
+        def filter(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
+        def exclude(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
+
+
+class TabsFilter(TypedDict, total=False):
+    url: str
+    url__eq: str
+    url__ne: str
+    url__lt: str
+    url__lte: str
+    url__gt: str
+    url__gte: str
+    url__in: Collection[str]
+    url__contains: str
+    url__startswith: str
+    url__endswith: str
+
+    title: str
+    title__eq: str
+    title__ne: str
+    title__lt: str
+    title__lte: str
+    title__gt: str
+    title__gte: str
+    title__in: Collection[str]
+    title__contains: str
+    title__startswith: str
+    title__endswith: str
+
+    loading: bool
+    loading__eq: bool
+    loading__ne: bool
+    loading__lt: bool
+    loading__lte: bool
+    loading__gt: bool
+    loading__gte: bool
+    loading__in: Collection[bool]
+
+    id: str
+    id__eq: str
+    id__ne: str
+    id__lt: str
+    id__lte: str
+    id__gt: str
+    id__gte: str
+    id__in: Collection[str]
+    id__contains: str
+    id__startswith: str
+    id__endswith: str
