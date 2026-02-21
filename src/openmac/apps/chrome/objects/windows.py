@@ -209,9 +209,9 @@ class WindowsFilter(TypedDict, total=False):
     minimizable__ne: bool
 
     mode: Literal["normal", "incognito"]
-    mode__eq: str
-    mode__ne: str
-    mode__in: Collection[str]
+    mode__eq: Literal["normal", "incognito"]
+    mode__ne: Literal["normal", "incognito"]
+    mode__in: Collection[Literal["normal", "incognito"]]
     mode__contains: str
     mode__startswith: str
     mode__endswith: str

@@ -36,6 +36,8 @@ class Chrome(BaseApplication):
 
     # endregion Properties
 
+    # region Managers
+
     @property
     def windows(self) -> WindowsManager:
         return WindowsManager(
@@ -46,6 +48,8 @@ class Chrome(BaseApplication):
                 for ae_window in self._ae_object.windows()
             ],
         )
+
+    # endregion Managers
 
 
 @dataclass(slots=True)
