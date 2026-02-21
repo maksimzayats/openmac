@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from appscript import Keyword
 
 from openmac.apps._internal.base import BaseApplication
-from openmac.apps.chrome.objects.window import Window, WindowsManager
+from openmac.apps.chrome.objects.windows import Window, WindowsManager
 
 
 class Chrome(BaseApplication):

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal, TypedDict
 from appscript import Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
-from openmac.apps.chrome.objects.tab import Tab, TabsManager
+from openmac.apps.chrome.objects.tabs import Tab, TabsManager
 
 if TYPE_CHECKING:
     from collections.abc import Collection
