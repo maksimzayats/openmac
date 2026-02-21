@@ -77,6 +77,10 @@ class Filterer(Generic[T]):
         if value is None:
             return []
 
+        resolved_value = self._get_attribute_value_or_missing(value, field_name)
+        if resolved_value is not MISSING and not callable(resolved_value):
+            return [resolved_value]
+
         if self._is_iterable_relation(value):
             return [
                 self._get_attribute_value(nested_value, field_name, lookup_key)
@@ -84,15 +88,20 @@ class Filterer(Generic[T]):
                 if nested_value is not None
             ]
 
-        return [self._get_attribute_value(value, field_name, lookup_key)]
+        msg = f"Invalid filter field '{field_name}' in lookup '{lookup_key}'"
+        raise InvalidFilterError(msg)
 
     def _get_attribute_value(self, value: Any, field_name: str, lookup_key: str) -> Any:
-        resolved_value = getattr(value, field_name, MISSING)
+        resolved_value = self._get_attribute_value_or_missing(value, field_name)
         if resolved_value is MISSING:
             msg = f"Invalid filter field '{field_name}' in lookup '{lookup_key}'"
             raise InvalidFilterError(msg)
 
         return resolved_value
+
+    @staticmethod
+    def _get_attribute_value_or_missing(value: Any, field_name: str) -> Any:
+        return getattr(value, field_name, MISSING)
 
     @staticmethod
     def _is_iterable_relation(value: Any) -> bool:

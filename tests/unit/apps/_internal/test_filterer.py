@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 import pytest
@@ -18,6 +19,31 @@ class Tab:
 class Window:
     id: str
     tabs: list[Tab]
+
+
+@dataclass(slots=True)
+class ManagerTab:
+    id: str
+    title: str
+    url: str
+
+
+@dataclass(slots=True)
+class TabsManager:
+    _tabs: list[ManagerTab]
+
+    def __iter__(self) -> Iterator[ManagerTab]:
+        return iter(self._tabs)
+
+    @property
+    def active(self) -> ManagerTab:
+        return self._tabs[0]
+
+
+@dataclass(slots=True)
+class WindowWithTabsManager:
+    id: str
+    tabs: TabsManager
 
 
 def test_filter_supports_nested_in_lookup() -> None:
@@ -41,6 +67,58 @@ def test_filter_supports_nested_exact_lookup() -> None:
     filterer = Filterer[Window]({"tabs__title": "Three"})
 
     assert [window.id for window in filterer.filter(windows)] == ["w2"]
+
+
+def test_filter_supports_nested_lookup_through_manager_property() -> None:
+    windows = [
+        WindowWithTabsManager(
+            id="w1",
+            tabs=TabsManager(
+                [
+                    ManagerTab(id="t1", title="Python", url="https://python.org"),
+                    ManagerTab(id="t2", title="PyPI", url="https://pypi.org"),
+                ],
+            ),
+        ),
+        WindowWithTabsManager(
+            id="w2",
+            tabs=TabsManager(
+                [
+                    ManagerTab(id="t3", title="GitHub", url="https://github.com/openmac"),
+                ],
+            ),
+        ),
+    ]
+
+    filterer = Filterer[WindowWithTabsManager]({"tabs__active__url__contains": "github"})
+
+    assert [window.id for window in filterer.filter(windows)] == ["w2"]
+
+
+def test_filter_keeps_iterable_lookup_behavior_for_manager_values() -> None:
+    windows = [
+        WindowWithTabsManager(
+            id="w1",
+            tabs=TabsManager(
+                [
+                    ManagerTab(id="t1", title="Docs", url="https://docs.example.com"),
+                    ManagerTab(id="t2", title="Blog", url="https://blog.example.com"),
+                ],
+            ),
+        ),
+        WindowWithTabsManager(
+            id="w2",
+            tabs=TabsManager(
+                [
+                    ManagerTab(id="t3", title="Search", url="https://search.example.com"),
+                ],
+            ),
+        ),
+    ]
+
+    filterer = Filterer[WindowWithTabsManager]({"tabs__title": "Docs"})
+
+    assert [window.id for window in filterer.filter(windows)] == ["w1"]
 
 
 def test_exclude_supports_nested_lookup() -> None:

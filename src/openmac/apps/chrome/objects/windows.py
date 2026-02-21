@@ -254,6 +254,34 @@ class ChromeWindowsFilter(TypedDict, total=False):
     active_tab__gte: int
     active_tab__in: Collection[int]
 
+    tabs__active__url: str
+    tabs__active__url__eq: str
+    tabs__active__url__ne: str
+    tabs__active__url__in: Collection[str]
+    tabs__active__url__contains: str
+    tabs__active__url__startswith: str
+    tabs__active__url__endswith: str
+
+    tabs__active__title: str
+    tabs__active__title__eq: str
+    tabs__active__title__ne: str
+    tabs__active__title__in: Collection[str]
+    tabs__active__title__contains: str
+    tabs__active__title__startswith: str
+    tabs__active__title__endswith: str
+
+    tabs__active__loading: bool
+    tabs__active__loading__eq: bool
+    tabs__active__loading__ne: bool
+
+    tabs__active__id: str
+    tabs__active__id__eq: str
+    tabs__active__id__ne: str
+    tabs__active__id__in: Collection[str]
+    tabs__active__id__contains: str
+    tabs__active__id__startswith: str
+    tabs__active__id__endswith: str
+
     tabs__url: str
     tabs__url__eq: str
     tabs__url__ne: str
