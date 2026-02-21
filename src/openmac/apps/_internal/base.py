@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar, Generic, TypeVar
 
 from appscript.reference import GenericReference, app
+from openmac.apps._internal.filterer import Filterer
 from openmac.apps.exceptions import ObjectDoesNotExistError, MultipleObjectsReturnedError
 
 BaseObjectT = TypeVar("BaseObjectT", bound="BaseObject")
@@ -24,6 +25,8 @@ class BaseObject:
 
 @dataclass(slots=True)
 class BaseManager(Generic[BaseObjectT]):
+    _FILTERER_CLASS: ClassVar = Filterer[BaseObjectT]
+
     _objects: list[BaseObjectT]
 
     def __iter__(self) -> Iterator[BaseObjectT]:
@@ -41,7 +44,14 @@ class BaseManager(Generic[BaseObjectT]):
         return objects.first()
 
     def filter(self, **filters: Any) -> BaseManager[BaseObjectT]:
-        pass
+        filterer = self._FILTERER_CLASS(filters)
+        filtered_objects = filterer.filter(self._objects)
+        return self.__class__(_objects=filtered_objects)
+
+    def exclude(self, **filters: Any) -> BaseManager[BaseObjectT]:
+        filterer = self._FILTERER_CLASS(filters)
+        filtered_objects = filterer.exclude(self._objects)
+        return self.__class__(_objects=filtered_objects)
 
     def all(self) -> list[BaseObjectT]:
         return self._objects
