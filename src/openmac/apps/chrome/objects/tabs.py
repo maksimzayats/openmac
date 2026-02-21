@@ -119,6 +119,14 @@ class ChromeTabsManager(BaseManager[ChromeTab]):
         def filter(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
         def exclude(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
 
+    @property
+    def active(self) -> ChromeTab:
+        return ChromeTab(
+            _ae_application=self._ae_application,
+            _ae_object=self._from_ae_window.active_tab(),
+            _from_ae_window=self._from_ae_window,
+        )
+
     def new(
         self,
         url: str,

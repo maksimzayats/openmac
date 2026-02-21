@@ -75,14 +75,6 @@ class ChromeWindow(BaseObject):
         return self._ae_object.minimized()
 
     @property
-    def active_tab(self) -> ChromeTab:
-        return ChromeTab(
-            _ae_application=self._ae_application,
-            _ae_object=self._ae_object.active_tab(),
-            _from_ae_window=self._ae_object,
-        )
-
-    @property
     def properties(self) -> ChromeWindowProperties:
         ae_properties = self._ae_object.properties()
         return ChromeWindowProperties(

@@ -8,7 +8,7 @@ from openmac.apps.chrome.objects.windows import ChromeWindow
 
 @pytest.fixture(scope="function")
 def window(chrome: Chrome) -> ChromeWindow:
-    return chrome.windows.first()
+    return chrome.windows.first
 
 
 def test_window_properties_complete(window: ChromeWindow) -> None:

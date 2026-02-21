@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from dataclasses import dataclass, replace
-from typing import Any, ClassVar, Generic, TypeVar, cast
+from typing import Any, ClassVar, Generic, TypeVar
 
 from appscript.reference import GenericReference, app
 
@@ -45,7 +45,7 @@ class BaseManager(Generic[BaseObjectT]):
             msg = f"{type(self).__name__}.get() found {objects.count()} objects for criteria {filters!r}, expected 1"
             raise MultipleObjectsReturnedError(msg)
 
-        return cast("BaseObjectT", objects.first())
+        return objects.first
 
     def filter(self, **filters: Any) -> BaseManager[BaseObjectT]:
         filterer = self._FILTERER_CLASS(filters)
@@ -57,14 +57,23 @@ class BaseManager(Generic[BaseObjectT]):
         filtered_objects = filterer.exclude(self._objects)
         return replace(self, _objects=filtered_objects)
 
+    @property
     def all(self) -> list[BaseObjectT]:
         return self._objects
 
-    def first(self) -> BaseObjectT | None:
-        return self._objects[0] if self._objects else None
+    @property
+    def first(self) -> BaseObjectT:
+        if not self._objects:
+            raise ObjectDoesNotExistError(f"{type(self).__name__} contains no objects.")
 
-    def last(self) -> BaseObjectT | None:
-        return self._objects[-1] if self._objects else None
+        return self._objects[0]
+
+    @property
+    def last(self) -> BaseObjectT:
+        if not self._objects:
+            raise ObjectDoesNotExistError(f"{type(self).__name__} contains no objects.")
+
+        return self._objects[-1]
 
     def count(self) -> int:
         return len(self._objects)
