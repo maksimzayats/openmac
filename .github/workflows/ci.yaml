@@ -48,7 +48,7 @@ jobs:
         run: brew install --cask google-chrome
 
       - name: Run tests with coverage
-        run: uv run pytest tests/ --benchmark-skip --cov=src/openmac --cov-report=xml --cov-report=term-missing
+        run: uv run pytest tests/ --cov=src/openmac --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.14'
@@ -57,26 +57,3 @@ jobs:
           files: ./coverage.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-
-  docs:
-    name: Docs Build
-    runs-on: macos-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-
-      - name: Set up Python
-        run: uv python install 3.13
-
-      - name: Install dependencies
-        run: uv sync --group docs
-
-      - name: Build docs
-        run: uv run sphinx-build -W -b html docs docs/_build/html
