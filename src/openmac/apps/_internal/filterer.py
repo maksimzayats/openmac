@@ -1,11 +1,18 @@
+from __future__ import annotations
+
 import operator
-from typing import TypeVar, Generic, Any, ClassVar
+from collections.abc import Callable, Iterable
+from typing import Any, ClassVar, Final, Generic, TypeVar
+
+from openmac.apps.exceptions import InvalidFilterError
 
 T = TypeVar("T")
+FilterOperation = Callable[[Any, Any], bool]
+MISSING: Final = object()
 
 
 class Filterer(Generic[T]):
-    _OPERATIONS: ClassVar = {
+    _OPERATIONS: ClassVar[dict[str, FilterOperation]] = {
         "": operator.eq,
         "eq": operator.eq,
         "ne": operator.ne,
@@ -30,18 +37,63 @@ class Filterer(Generic[T]):
 
     def _matches_criteria(self, item: T) -> bool:
         for key, value in self._filters.items():
-            if "__" in key:
-                field_name, operator_name = key.split("__", 1)
-            else:
-                field_name, operator_name = key, "eq"
-
-            item_value = getattr(item, field_name, None)
+            field_path, operator_name = self._parse_lookup(key)
             operation = self._OPERATIONS.get(operator_name)
 
             if operation is None:
-                raise ValueError(f"Unsupported operator: {operator_name}")
+                raise InvalidFilterError(f"Unsupported operator: {operator_name}")
 
-            if not operation(item_value, value):
+            item_values = self._resolve_field_path(item, field_path, key)
+            if not any(operation(item_value, value) for item_value in item_values):
                 return False
 
         return True
+
+    def _parse_lookup(self, key: str) -> tuple[list[str], str]:
+        if "__" not in key:
+            return [key], "eq"
+
+        field_path, operator_name = key.rsplit("__", 1)
+        if operator_name in self._OPERATIONS:
+            return field_path.split("__"), operator_name
+
+        return key.split("__"), "eq"
+
+    def _resolve_field_path(self, item: T, field_path: list[str], lookup_key: str) -> list[Any]:
+        values: list[Any] = [item]
+
+        for field_name in field_path:
+            next_values: list[Any] = []
+            for value in values:
+                next_values.extend(self._resolve_value(value, field_name, lookup_key))
+            values = next_values
+
+            if not values:
+                break
+
+        return values
+
+    def _resolve_value(self, value: Any, field_name: str, lookup_key: str) -> list[Any]:
+        if value is None:
+            return []
+
+        if self._is_iterable_relation(value):
+            return [
+                self._get_attribute_value(nested_value, field_name, lookup_key)
+                for nested_value in value
+                if nested_value is not None
+            ]
+
+        return [self._get_attribute_value(value, field_name, lookup_key)]
+
+    def _get_attribute_value(self, value: Any, field_name: str, lookup_key: str) -> Any:
+        resolved_value = getattr(value, field_name, MISSING)
+        if resolved_value is MISSING:
+            msg = f"Invalid filter field '{field_name}' in lookup '{lookup_key}'"
+            raise InvalidFilterError(msg)
+
+        return resolved_value
+
+    @staticmethod
+    def _is_iterable_relation(value: Any) -> bool:
+        return isinstance(value, Iterable) and not isinstance(value, str | bytes | bytearray | dict)

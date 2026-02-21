@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, ClassVar, Generic, TypeVar
 
 from appscript.reference import GenericReference, app
+
 from openmac.apps._internal.filterer import Filterer
-from openmac.apps.exceptions import ObjectDoesNotExistError, MultipleObjectsReturnedError
+from openmac.apps.exceptions import MultipleObjectsReturnedError, ObjectDoesNotExistError
 
 BaseObjectT = TypeVar("BaseObjectT", bound="BaseObject")
 

@@ -11,3 +11,7 @@ class ObjectDoesNotExistError(OpenMacError):
 
 class MultipleObjectsReturnedError(OpenMacError):
     """Raised when a manager `.get()` query returns multiple objects."""
+
+
+class InvalidFilterError(OpenMacError):
+    """Raised when filter criteria references an unsupported lookup or field."""
