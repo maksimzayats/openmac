@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
 
 class Tab(BaseObject):
+    # region: Properties
+
     @property
     def url(self) -> str:
         return self._ae_object.URL()
@@ -39,6 +41,8 @@ class Tab(BaseObject):
             loading=ae_properties[Keyword("loading")],
             id=ae_properties[Keyword("id")],
         )
+
+    # endregion Properties
 
 
 @dataclass(slots=True)

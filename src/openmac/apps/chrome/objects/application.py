@@ -11,6 +11,8 @@ from openmac.apps.chrome.objects.windows import Window, WindowsManager
 class Chrome(BaseApplication):
     _BUNDLE_ID = "com.google.Chrome"
 
+    # region: Properties
+
     @property
     def version(self) -> str:
         return self._ae_object.version()
@@ -31,6 +33,8 @@ class Chrome(BaseApplication):
             title=ae_properties[Keyword("title")],
             frontmost=ae_properties[Keyword("frontmost")],
         )
+
+    # endregion Properties
 
     @property
     def windows(self) -> WindowsManager:

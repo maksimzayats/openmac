@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class Window(BaseObject):
+    # region: Properties
+
     @property
     def id(self) -> str:
         return self._ae_object.id()
@@ -75,6 +77,8 @@ class Window(BaseObject):
             mode=ae_properties[Keyword("mode")],
             active_tab=ae_properties[Keyword("active_tab")],
         )
+
+    # endregion Properties
 
     @property
     def tabs(self) -> TabsManager:
