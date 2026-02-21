@@ -51,6 +51,13 @@ class Chrome(BaseApplication):
 
     # endregion Managers
 
+    # region Actions
+
+    def activate(self) -> None:
+        self._ae_object.activate()
+
+    # endregion Actions
+
 
 @dataclass(slots=True)
 class ChromeProperties:
