@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from typing_extensions import Unpack
 
     from openmac import ChromeWindow
+    from openmac.apps.chrome.objects.windows import ChromeWindowsManager
 
 
 @dataclass(slots=True)
@@ -111,7 +112,7 @@ class ChromeTabProperties:
 
 
 @dataclass(slots=True)
-class ChromeTabsManager(BaseManager[ChromeTab]):
+class ChromeWindowTabsManager(BaseManager[ChromeTab]):
     from_window: ChromeWindow
 
     if TYPE_CHECKING:
@@ -156,6 +157,26 @@ class ChromeTabsManager(BaseManager[ChromeTab]):
             with_properties={
                 Keyword("URL"): url,
             },
+        )
+
+
+@dataclass(slots=True)
+class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
+    from_windows: ChromeWindowsManager
+
+    if TYPE_CHECKING:
+
+        def get(self, **filters: Unpack[ChromeTabsFilter]) -> ChromeTab: ...  # type: ignore[override]
+        def filter(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
+        def exclude(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
+
+    @property
+    def active(self) -> ChromeWindowsTabsManager:
+        active_tabs = [window.tabs.active for window in self.from_windows]
+
+        return ChromeWindowsTabsManager(
+            from_windows=self.from_windows,
+            _objects=active_tabs,
         )
 
 

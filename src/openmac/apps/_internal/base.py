@@ -68,5 +68,6 @@ class BaseManager(Generic[BaseObjectT]):
 
         return self._objects[-1]
 
+    @property
     def count(self) -> int:
         return len(self._objects)

@@ -6,7 +6,11 @@ from typing import TYPE_CHECKING, Literal, TypedDict
 from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
-from openmac.apps.chrome.objects.tabs import ChromeTab, ChromeTabsManager
+from openmac.apps.chrome.objects.tabs import (
+    ChromeTab,
+    ChromeWindowsTabsManager,
+    ChromeWindowTabsManager,
+)
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
@@ -105,8 +109,8 @@ class ChromeWindow(BaseObject):
     # region Managers
 
     @property
-    def tabs(self) -> ChromeTabsManager:
-        return ChromeTabsManager(
+    def tabs(self) -> ChromeWindowTabsManager:
+        return ChromeWindowTabsManager(
             _objects=[
                 ChromeTab(from_window=self, ae_tab=ae_tab) for ae_tab in self.ae_window.tabs()
             ],
@@ -151,6 +155,17 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
         def get(self, **filters: Unpack[ChromeWindowsFilter]) -> ChromeWindow: ...  # type: ignore[override]
         def filter(self, **filters: Unpack[ChromeWindowsFilter]) -> BaseManager[ChromeWindow]: ...  # type: ignore[override]
         def exclude(self, **filters: Unpack[ChromeWindowsFilter]) -> BaseManager[ChromeWindow]: ...  # type: ignore[override]
+
+    @property
+    def tabs(self) -> ChromeWindowsTabsManager:
+        return ChromeWindowsTabsManager(
+            _objects=[
+                ChromeTab(from_window=ChromeWindow(ae_window=ae_window), ae_tab=ae_tab)
+                for ae_window in self.chrome.ae_chrome.windows()
+                for ae_tab in ae_window.tabs()
+            ],
+            from_windows=self,
+        )
 
     def new(
         self,
