@@ -1,4 +1,4 @@
-# Agent Notes for achrome
+# Agent Notes for openmac
 
 This repository is a Python 3.10+ library. Use strict linting, typing, and
 testing standards. Prefer uv for all tooling.
@@ -35,7 +35,7 @@ testing standards. Prefer uv for all tooling.
 - Run a single test: `uv run pytest tests/test_some.:test_some`
 - Run tests with keyword filter: `uv run pytest -k "dependency" tests/`
 - Coverage (recommended for new work):
-  `uv run pytest tests/ --cov=src/achrome --cov-report=term-missing`
+  `uv run pytest tests/ --cov=src/openmac --cov-report=term-missing`
 
 ## Repo structure
 
@@ -51,7 +51,7 @@ testing standards. Prefer uv for all tooling.
 ## Imports
 
 - No relative imports in library code (Ruff tidy-imports bans them).
-- Prefer explicit imports from `achrome` modules.
+- Prefer explicit imports from `openmac` modules.
 - Combine `as` imports when appropriate (`combine-as-imports = true`).
 - Avoid unused imports; `__init__.py` is allowed to re-export.
 

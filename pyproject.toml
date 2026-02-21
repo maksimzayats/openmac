@@ -25,10 +25,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/maksimzayats/achrome"
-Documentation = "https://docs.achrome.dev"
-Repository = "https://github.com/maksimzayats/achrome"
-Issues = "https://github.com/maksimzayats/achrome/issues"
+Homepage = "https://github.com/maksimzayats/openmac"
+Documentation = "https://docs.openmac.dev"
+Repository = "https://github.com/maksimzayats/openmac"
+Issues = "https://github.com/maksimzayats/openmac/issues"
 
 
 [dependency-groups]
