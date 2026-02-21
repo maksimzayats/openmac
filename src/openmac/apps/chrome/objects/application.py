@@ -24,12 +24,6 @@ class Chrome(BaseApplication):
         return self._ae_object.frontmost()
 
     @property
-    def windows(self) -> WindowsManager:
-        return WindowsManager(
-            _objects=[Window(_ae_object=ae_window) for ae_window in self._ae_object.windows()],
-        )
-
-    @property
     def properties(self) -> ChromeProperties:
         ae_properties = self._ae_object.properties()
         print(ae_properties)
@@ -37,6 +31,12 @@ class Chrome(BaseApplication):
             version=ae_properties[Keyword("version")],
             title=ae_properties[Keyword("title")],
             frontmost=ae_properties[Keyword("frontmost")],
+        )
+
+    @property
+    def windows(self) -> WindowsManager:
+        return WindowsManager(
+            _objects=[Window(_ae_object=ae_window) for ae_window in self._ae_object.windows()],
         )
 
 
@@ -48,7 +48,7 @@ class ChromeProperties:
 
 
 chrome = Chrome()
-for w in chrome.windows.filter(tabs__id__ne="123"):
+for w in chrome.windows.filter(tabs__url__contains="google"):
     print(w.properties)
     for t in w.tabs:
         print("  ", t.properties)
