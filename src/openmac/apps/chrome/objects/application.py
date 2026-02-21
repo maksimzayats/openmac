@@ -48,7 +48,7 @@ class ChromeProperties:
 
 
 chrome = Chrome()
-for w in chrome.windows.filter(abc=123):
+for w in chrome.windows.filter(tabs__id__ne="123"):
     print(w.properties)
     for t in w.tabs:
         print("  ", t.properties)
