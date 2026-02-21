@@ -13,7 +13,10 @@ if TYPE_CHECKING:
     from typing_extensions import Unpack
 
 
+@dataclass(slots=True)
 class Tab(BaseObject):
+    _from_ae_window: GenericReference
+
     # region: Properties
 
     @property
@@ -43,6 +46,47 @@ class Tab(BaseObject):
         )
 
     # endregion Properties
+
+    # region: Actions
+
+    def reload(self) -> None:
+        self._ae_object.reload()
+
+    def close(self) -> None:
+        self._ae_object.close()
+
+    def go_back(self) -> None:
+        self._ae_object.go_back()
+
+    def go_forward(self) -> None:
+        self._ae_object.go_forward()
+
+    def duplicate(self) -> Tab:
+        ae_tab = self._from_ae_window.tabs.end.make(
+            new=k.tab,
+            with_properties={
+                Keyword("URL"): self.url,
+            },
+        )
+
+        return Tab(
+            _ae_application=self._ae_application,
+            _ae_object=ae_tab,
+            _from_ae_window=self._from_ae_window,
+        )
+
+    def execute(self, javascript: str) -> str:
+        return self._ae_object.execute(javascript=javascript)
+
+    # endregion Actions
+
+    # region: Custom Actions
+
+    @property
+    def source(self) -> str:
+        return self.execute("document.documentElement.outerHTML")
+
+    # endregion Custom Actions
 
 
 @dataclass(slots=True)
@@ -75,6 +119,7 @@ class TabsManager(BaseManager[Tab]):
         return Tab(
             _ae_application=self._ae_application,
             _ae_object=ae_tab,
+            _from_ae_window=self._from_ae_window,
         )
 
 

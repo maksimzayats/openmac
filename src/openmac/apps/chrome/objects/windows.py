@@ -58,8 +58,12 @@ class Window(BaseObject):
         return self._ae_object.mode()
 
     @property
-    def active_tab(self) -> int:
-        return self._ae_object.active_tab()
+    def active_tab(self) -> Tab:
+        return Tab(
+            _ae_application=self._ae_application,
+            _ae_object=self._ae_object.active_tab(),
+            _from_ae_window=self._ae_object,
+        )
 
     @property
     def properties(self) -> WindowProperties:
@@ -87,7 +91,11 @@ class Window(BaseObject):
             _ae_application=self._ae_application,
             _ae_objects=self._ae_object.tabs,
             _objects=[
-                Tab(_ae_application=self._ae_application, _ae_object=ae_tab)
+                Tab(
+                    _ae_application=self._ae_application,
+                    _ae_object=ae_tab,
+                    _from_ae_window=self._ae_object,
+                )
                 for ae_tab in self._ae_object.tabs()
             ],
         )
