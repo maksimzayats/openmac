@@ -2,16 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from appscript import GenericReference, Keyword
+from appscript import Keyword
 
 from openmac.apps._internal.base import BaseManager, BaseObject
 from openmac.apps.chrome.objects.tab import Tab, TabsManager
 
 
 class Window(BaseObject):
-    def __init__(self, _ae_object: GenericReference) -> None:
-        self._ae_object = _ae_object
-
     @property
     def properties(self) -> WindowProperties:
         ae_properties = self._ae_object.properties()

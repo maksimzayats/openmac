@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, ClassVar, Generic, TypeVar
+from typing import Any, ClassVar, Generic, TypeVar, cast
 
 from appscript.reference import GenericReference, app
 
@@ -42,7 +42,7 @@ class BaseManager(Generic[BaseObjectT]):
             msg = f"{type(self).__name__}.get() found {objects.count()} objects for criteria {filters!r}, expected 1"
             raise MultipleObjectsReturnedError(msg)
 
-        return objects.first()
+        return cast("BaseObjectT", objects.first())
 
     def filter(self, **filters: Any) -> BaseManager[BaseObjectT]:
         filterer = self._FILTERER_CLASS(filters)
