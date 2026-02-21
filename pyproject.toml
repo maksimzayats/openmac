@@ -21,9 +21,12 @@ classifiers = [
 ]
 dependencies = [
     "acodex>=0.101.0",
+    "appscript>=1.4.0",
     "beautifulsoup4>=4.13.0",
     "diwire>=1.0.0",
     "fastapi>=0.129.0",
+    "py-applescript>=1.0.3",
+    "pyobjc>=12.1",
     "typer>=0.23.1",
     "uvicorn>=0.40.0",
 ]
