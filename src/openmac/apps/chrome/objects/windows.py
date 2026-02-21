@@ -3,10 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, TypedDict
 
-from appscript import Keyword, k
+from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
 from openmac.apps.chrome.objects.tabs import Tab, TabsManager
+from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -159,17 +160,29 @@ class WindowsManager(BaseManager[Window]):
         def filter(self, **filters: Unpack[WindowsFilter]) -> BaseManager[Window]: ...  # type: ignore[override]
         def exclude(self, **filters: Unpack[WindowsFilter]) -> BaseManager[Window]: ...  # type: ignore[override]
 
-    def new(self, *, mode: Literal["normal", "incognito"] = "incognito") -> Window:
-        ae_window = self._ae_application.make(
-            new=k.window,
-            with_properties={
-                Keyword("mode"): mode,
-            },
-        )
+    def new(
+        self,
+        *,
+        mode: Literal["normal", "incognito"] = "incognito",
+        preserve_focus: bool = True,
+    ) -> Window:
+        if preserve_focus:
+            with preserve_focus_context_manager():
+                ae_window = self._make_ae_window(mode)
+        else:
+            ae_window = self._make_ae_window(mode)
 
         return Window(
             _ae_application=self._ae_application,
             _ae_object=ae_window,
+        )
+
+    def _make_ae_window(self, mode: Literal["normal", "incognito"]) -> GenericReference:
+        return self._ae_application.make(
+            new=k.window,
+            with_properties={
+                Keyword("mode"): mode,
+            },
         )
 
 

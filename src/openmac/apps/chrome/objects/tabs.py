@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, TypedDict
 from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
+from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -118,13 +119,18 @@ class TabsManager(BaseManager[Tab]):
         def filter(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
         def exclude(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
 
-    def new(self, url: str, *, wait_until_loaded: bool = True) -> Tab:
-        ae_tab = self._from_ae_window.tabs.end.make(
-            new=k.tab,
-            with_properties={
-                Keyword("URL"): url,
-            },
-        )
+    def new(
+        self,
+        url: str,
+        *,
+        wait_until_loaded: bool = True,
+        preserve_focus: bool = True,
+    ) -> Tab:
+        if preserve_focus:
+            with preserve_focus_context_manager():
+                ae_tab = self._make_ae_tab(url)
+        else:
+            ae_tab = self._make_ae_tab(url)
 
         tab = Tab(
             _ae_application=self._ae_application,
@@ -136,6 +142,14 @@ class TabsManager(BaseManager[Tab]):
             tab.wait_until_loaded()
 
         return tab
+
+    def _make_ae_tab(self, url: str) -> GenericReference:
+        return self._from_ae_window.tabs.end.make(
+            new=k.tab,
+            with_properties={
+                Keyword("URL"): url,
+            },
+        )
 
 
 class TabsFilter(TypedDict, total=False):
