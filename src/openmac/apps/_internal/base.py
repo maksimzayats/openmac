@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, ClassVar, Generic, TypeVar, cast
 
 from appscript.reference import GenericReference, app
@@ -21,6 +21,7 @@ class BaseApplication:
 
 @dataclass(slots=True)
 class BaseObject:
+    _ae_application: GenericReference
     _ae_object: GenericReference
 
 
@@ -28,6 +29,7 @@ class BaseObject:
 class BaseManager(Generic[BaseObjectT]):
     _FILTERER_CLASS: ClassVar = Filterer[BaseObjectT]
 
+    _ae_application: GenericReference
     _ae_objects: GenericReference
     _objects: list[BaseObjectT]
 
@@ -48,12 +50,12 @@ class BaseManager(Generic[BaseObjectT]):
     def filter(self, **filters: Any) -> BaseManager[BaseObjectT]:
         filterer = self._FILTERER_CLASS(filters)
         filtered_objects = filterer.filter(self._objects)
-        return self.__class__(_ae_objects=self._ae_objects, _objects=filtered_objects)
+        return replace(self, _objects=filtered_objects)
 
     def exclude(self, **filters: Any) -> BaseManager[BaseObjectT]:
         filterer = self._FILTERER_CLASS(filters)
         filtered_objects = filterer.exclude(self._objects)
-        return self.__class__(_ae_objects=self._ae_objects, _objects=filtered_objects)
+        return replace(self, _objects=filtered_objects)
 
     def all(self) -> list[BaseObjectT]:
         return self._objects

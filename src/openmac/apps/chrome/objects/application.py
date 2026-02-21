@@ -36,8 +36,12 @@ class Chrome(BaseApplication):
     @property
     def windows(self) -> WindowsManager:
         return WindowsManager(
+            _ae_application=self._ae_object,
             _ae_objects=self._ae_object.windows,
-            _objects=[Window(_ae_object=ae_window) for ae_window in self._ae_object.windows()],
+            _objects=[
+                Window(_ae_application=self._ae_object, _ae_object=ae_window)
+                for ae_window in self._ae_object.windows()
+            ],
         )
 
 
@@ -49,7 +53,8 @@ class ChromeProperties:
 
 
 chrome = Chrome()
+w = chrome.windows.new()
 for w in chrome.windows.filter():
-    print(w.properties)
+    w.tabs.new(url="https://www.google.com")
     for t in w.tabs:
         print("  ", t.properties)

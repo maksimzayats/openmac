@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypedDict
 
-from appscript import Keyword
+from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
 
@@ -49,12 +49,29 @@ class TabProperties:
     id: str
 
 
+@dataclass(slots=True)
 class TabsManager(BaseManager[Tab]):
+    _from_ae_window: GenericReference
+    """Window object from which this manager was created. Needed to create new tabs with the correct parent window."""
+
     if TYPE_CHECKING:
 
         def get(self, **filters: Unpack[TabsFilter]) -> Tab: ...  # type: ignore[override]
         def filter(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
         def exclude(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
+
+    def new(self, *, url: str) -> Tab:
+        ae_tab = self._from_ae_window.tabs.end.make(
+            new=k.tab,
+            with_properties={
+                Keyword("URL"): url,
+            },
+        )
+
+        return Tab(
+            _ae_application=self._ae_application,
+            _ae_object=ae_tab,
+        )
 
 
 class TabsFilter(TypedDict, total=False):

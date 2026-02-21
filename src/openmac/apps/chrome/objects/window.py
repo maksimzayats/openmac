@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
 
-from appscript import Keyword
+from appscript import Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
 from openmac.apps.chrome.objects.tab import Tab, TabsManager
@@ -79,8 +79,13 @@ class Window(BaseObject):
     @property
     def tabs(self) -> TabsManager:
         return TabsManager(
+            _from_ae_window=self._ae_object,
+            _ae_application=self._ae_application,
             _ae_objects=self._ae_object.tabs,
-            _objects=[Tab(_ae_object=ae_tab) for ae_tab in self._ae_object.tabs()],
+            _objects=[
+                Tab(_ae_application=self._ae_application, _ae_object=ae_tab)
+                for ae_tab in self._ae_object.tabs()
+            ],
         )
 
 
@@ -95,16 +100,30 @@ class WindowProperties:
     given_name: str
     title: str
     minimizable: bool
-    mode: str
+    mode: Literal["normal", "incognito"]
     active_tab: int
 
 
+@dataclass(slots=True)
 class WindowsManager(BaseManager[Window]):
     if TYPE_CHECKING:
 
         def get(self, **filters: Unpack[WindowsFilter]) -> Window: ...  # type: ignore[override]
         def filter(self, **filters: Unpack[WindowsFilter]) -> BaseManager[Window]: ...  # type: ignore[override]
         def exclude(self, **filters: Unpack[WindowsFilter]) -> BaseManager[Window]: ...  # type: ignore[override]
+
+    def new(self, *, mode: Literal["normal", "incognito"] = "incognito") -> Window:
+        ae_window = self._ae_application.make(
+            new=k.window,
+            with_properties={
+                Keyword("mode"): mode,
+            },
+        )
+
+        return Window(
+            _ae_application=self._ae_application,
+            _ae_object=ae_window,
+        )
 
 
 class WindowsFilter(TypedDict, total=False):
@@ -198,7 +217,7 @@ class WindowsFilter(TypedDict, total=False):
     minimizable__gte: bool
     minimizable__in: Collection[bool]
 
-    mode: str
+    mode: Literal["normal", "incognito"]
     mode__eq: str
     mode__ne: str
     mode__lt: str
