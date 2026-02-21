@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Generator
+from contextlib import suppress
+
 import pytest
+from appscript import CommandError
 
 from openmac.apps.chrome.objects.application import Chrome
 from openmac.apps.chrome.objects.tabs import Tab
@@ -9,6 +13,17 @@ from openmac.apps.chrome.objects.tabs import Tab
 @pytest.fixture(scope="function")
 def tab(chrome: Chrome) -> Tab:
     return chrome.windows.first().tabs.first()
+
+
+@pytest.fixture(scope="function")
+def new_tab_no_wait(chrome: Chrome) -> Generator[Tab, None, None]:
+    tab = chrome.windows.first().tabs.new(url="https://www.google.com", wait_until_loaded=False)
+
+    try:
+        yield tab
+    finally:
+        with suppress(CommandError):
+            tab.close()
 
 
 def test_tabs_properties_complete(tab: Tab) -> None:
@@ -24,3 +39,22 @@ def test_tabs_properties_complete(tab: Tab) -> None:
     diff = properties_keys.symmetric_difference(ae_properties_keys)
 
     assert diff == {"class_"}
+
+
+def test_tab_wait_until_loaded(new_tab_no_wait: Tab) -> None:
+    assert new_tab_no_wait.url == "https://www.google.com/"
+    assert new_tab_no_wait.loading
+
+    new_tab_no_wait.wait_until_loaded(timeout=10)
+
+    assert new_tab_no_wait.url == "https://www.google.com/"
+    assert not new_tab_no_wait.loading
+
+
+def test_tab_close(new_tab_no_wait: Tab) -> None:
+    assert new_tab_no_wait.url == "https://www.google.com/"
+
+    new_tab_no_wait.close()
+
+    with pytest.raises(CommandError):
+        _ = new_tab_no_wait.url

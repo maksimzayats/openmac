@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypedDict
 
@@ -86,6 +87,15 @@ class Tab(BaseObject):
     def source(self) -> str:
         return self.execute("document.documentElement.outerHTML")
 
+    def wait_until_loaded(self, timeout: float = 10.0) -> None:
+        start_time = time.perf_counter()
+
+        while self.loading:
+            if time.perf_counter() - start_time > timeout:
+                raise TimeoutError(f"Tab did not finish loading within {timeout} seconds.")
+
+            time.sleep(0.1)
+
     # endregion Custom Actions
 
 
@@ -108,7 +118,7 @@ class TabsManager(BaseManager[Tab]):
         def filter(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
         def exclude(self, **filters: Unpack[TabsFilter]) -> BaseManager[Tab]: ...  # type: ignore[override]
 
-    def new(self, *, url: str) -> Tab:
+    def new(self, url: str, *, wait_until_loaded: bool = True) -> Tab:
         ae_tab = self._from_ae_window.tabs.end.make(
             new=k.tab,
             with_properties={
@@ -116,11 +126,16 @@ class TabsManager(BaseManager[Tab]):
             },
         )
 
-        return Tab(
+        tab = Tab(
             _ae_application=self._ae_application,
             _ae_object=ae_tab,
             _from_ae_window=self._from_ae_window,
         )
+
+        if wait_until_loaded:
+            tab.wait_until_loaded()
+
+        return tab
 
 
 class TabsFilter(TypedDict, total=False):
