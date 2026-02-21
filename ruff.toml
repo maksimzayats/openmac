@@ -104,6 +104,10 @@ ignore = [
     # All rules ignored in temporary files
     "ALL",
 ]
+"types/**" = [
+    # All rules ignored in type stubs
+    "ALL",
+]
 
 [lint.isort]
 combine-as-imports = true

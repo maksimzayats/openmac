@@ -92,6 +92,11 @@ disable_error_code = [
     "unused-ignore",
     "no-any-return",
 ]
+exclude = [
+    "tmp",
+    "docs",
+    "types",
+]
 
 [[tool.mypy.overrides]]
 module = ["tests.*"]
