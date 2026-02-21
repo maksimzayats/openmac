@@ -11,7 +11,7 @@ from openmac.apps.chrome.objects.windows import Window, WindowsManager
 class Chrome(BaseApplication):
     _BUNDLE_ID = "com.google.Chrome"
 
-    # region: Properties
+    # region Properties
 
     @property
     def version(self) -> str:

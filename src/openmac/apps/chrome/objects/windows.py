@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class Window(BaseObject):
-    # region: Properties
+    # region Properties
 
     @property
     def id(self) -> str:
@@ -84,6 +84,8 @@ class Window(BaseObject):
 
     # endregion Properties
 
+    # region Managers
+
     @property
     def tabs(self) -> TabsManager:
         return TabsManager(
@@ -99,6 +101,15 @@ class Window(BaseObject):
                 for ae_tab in self._ae_object.tabs()
             ],
         )
+
+    # endregion Managers
+
+    # region Actions
+
+    def close(self) -> None:
+        self._ae_object.close()
+
+    # endregion Actions
 
 
 @dataclass(slots=True)

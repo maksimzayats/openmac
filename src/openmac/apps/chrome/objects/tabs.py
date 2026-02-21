@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class Tab(BaseObject):
     _from_ae_window: GenericReference
 
-    # region: Properties
+    # region Properties
 
     @property
     def url(self) -> str:
@@ -47,7 +47,7 @@ class Tab(BaseObject):
 
     # endregion Properties
 
-    # region: Actions
+    # region Actions
 
     def reload(self) -> None:
         self._ae_object.reload()
@@ -80,7 +80,7 @@ class Tab(BaseObject):
 
     # endregion Actions
 
-    # region: Custom Actions
+    # region Custom Actions
 
     @property
     def source(self) -> str:
