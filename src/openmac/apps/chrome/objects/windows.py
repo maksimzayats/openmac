@@ -157,7 +157,7 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
     def new(
         self,
         *,
-        mode: Literal["normal", "incognito"] = "incognito",
+        mode: Literal["normal", "incognito"] = "normal",
         preserve_focus: bool = True,
     ) -> ChromeWindow:
         if preserve_focus:
