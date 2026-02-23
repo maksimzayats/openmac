@@ -60,9 +60,7 @@ testing standards. Prefer uv for all tooling.
 - Always use __future__ annotations for forward references and to enable postponed evaluation of annotations.
 - Python minimum version is 3.10 with future annotation (use `|` unions, `list[str]`, etc.).
 - All new public APIs must be fully typed.
-- mypy is strict; keep types precise and avoid `Any`.
-- If `Any` is unavoidable, document why and keep scope minimal.
-- Do not use generic `object` annotations when domain types already exist (for example, prefer `CodexConfigObject` / `CodexConfigValue`).
+- mypy is strict; keep types precise and avoid use `Any` if is unavoidable, document why and keep scope minimal.
 - Do not use `| object` unions in new annotations - use Any instead.
 - Use `typing.Protocol` or `collections.abc` for public contracts.
 - Prefer `Final` for constants that should not change.

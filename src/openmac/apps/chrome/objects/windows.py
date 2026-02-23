@@ -63,7 +63,7 @@ class ChromeWindow(BaseObject):
         return self.ae_window.minimizable()
 
     @property
-    def mode(self) -> str:
+    def mode(self) -> Literal["normal", "incognito"]:
         return self.ae_window.mode()
 
     @property
