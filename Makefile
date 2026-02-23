@@ -10,7 +10,7 @@ lint:
 	uv run mypy .
 
 test:
-	uv run pytest tests/ --cov=openmac --cov-report=term-missing
+	uv run pytest tests/ --cov=src/openmac --cov-report=term-missing
 
 docs:
 	rm -rf docs/_build
