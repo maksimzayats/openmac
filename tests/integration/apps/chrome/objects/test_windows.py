@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import fields
+
 import pytest
 
 from openmac.apps.chrome.objects.application import Chrome
@@ -13,7 +15,7 @@ def window(chrome: Chrome) -> ChromeWindow:
 
 def test_window_properties_complete(window: ChromeWindow) -> None:
     properties = window.properties
-    properties_keys = set(properties.__dataclass_fields__.keys())
+    properties_keys = {field.name for field in fields(properties)}
 
     ae_properties = window.ae_window.properties()
     ae_properties_keys = {keyword.AS_name for keyword in ae_properties}
