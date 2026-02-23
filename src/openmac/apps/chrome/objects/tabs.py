@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 
 from appscript import GenericReference, Keyword, k
 
@@ -10,10 +10,6 @@ from openmac.apps._internal.base import BaseManager, BaseObject
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
-
-    from typing_extensions import Unpack
-
     from openmac import ChromeWindow
     from openmac.apps.chrome.objects.windows import ChromeWindowsManager
 
@@ -38,8 +34,8 @@ class ChromeTab(BaseObject):
         return self.ae_tab.loading()
 
     @property
-    def id(self) -> str:
-        return self.ae_tab.id()
+    def id(self) -> int:
+        return int(self.ae_tab.id())
 
     @property
     def properties(self) -> ChromeTabProperties:
@@ -105,21 +101,15 @@ class ChromeTab(BaseObject):
 
 @dataclass(slots=True)
 class ChromeTabProperties:
+    id: int
     url: str
     title: str
     loading: bool
-    id: str
 
 
 @dataclass(slots=True)
 class ChromeWindowTabsManager(BaseManager[ChromeTab]):
     from_window: ChromeWindow
-
-    if TYPE_CHECKING:
-
-        def get(self, **filters: Unpack[ChromeTabsFilter]) -> ChromeTab: ...  # type: ignore[override]
-        def filter(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
-        def exclude(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
 
     @property
     def active(self) -> ChromeTab:
@@ -170,12 +160,6 @@ class ChromeWindowTabsManager(BaseManager[ChromeTab]):
 class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
     from_windows: ChromeWindowsManager
 
-    if TYPE_CHECKING:
-
-        def get(self, **filters: Unpack[ChromeTabsFilter]) -> ChromeTab: ...  # type: ignore[override]
-        def filter(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
-        def exclude(self, **filters: Unpack[ChromeTabsFilter]) -> BaseManager[ChromeTab]: ...  # type: ignore[override]
-
     @property
     def active(self) -> ChromeWindowsTabsManager:
         active_tabs = [window.tabs.active for window in self.from_windows]
@@ -191,33 +175,3 @@ class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
             for window in self.from_windows
             for ae_tab in window.ae_window.tabs()
         ]
-
-
-class ChromeTabsFilter(TypedDict, total=False):
-    url: str
-    url__eq: str
-    url__ne: str
-    url__in: Collection[str]
-    url__contains: str
-    url__startswith: str
-    url__endswith: str
-
-    title: str
-    title__eq: str
-    title__ne: str
-    title__in: Collection[str]
-    title__contains: str
-    title__startswith: str
-    title__endswith: str
-
-    loading: bool
-    loading__eq: bool
-    loading__ne: bool
-
-    id: str
-    id__eq: str
-    id__ne: str
-    id__in: Collection[str]
-    id__contains: str
-    id__startswith: str
-    id__endswith: str

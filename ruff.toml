@@ -101,7 +101,7 @@ ignore = [
     "ALL",
 ]
 "docs/**" = [
-    # All rules ignored in temporary files
+    # All rules ignored in docs files
     "ALL",
 ]
 "types/**" = [
