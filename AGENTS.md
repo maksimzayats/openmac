@@ -32,7 +32,7 @@ testing standards. Prefer uv for all tooling.
 
 - Run all tests (coverage): `make test`
 - Run a single test file: `uv run pytest tests/test_some.py`
-- Run a single test: `uv run pytest tests/test_some.:test_some`
+- Run a single test: `uv run pytest tests/test_some.py::test_some`
 - Run tests with keyword filter: `uv run pytest -k "dependency" tests/`
 - Coverage (recommended for new work):
   `uv run pytest tests/ --cov=src/openmac --cov-report=term-missing`
