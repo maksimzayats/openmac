@@ -7,7 +7,6 @@ from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
 from openmac.apps.chrome.objects.tabs import (
-    ChromeTab,
     ChromeWindowsTabsManager,
     ChromeWindowTabsManager,
 )
@@ -110,12 +109,7 @@ class ChromeWindow(BaseObject):
 
     @property
     def tabs(self) -> ChromeWindowTabsManager:
-        return ChromeWindowTabsManager(
-            _objects=[
-                ChromeTab(from_window=self, ae_tab=ae_tab) for ae_tab in self.ae_window.tabs()
-            ],
-            from_window=self,
-        )
+        return ChromeWindowTabsManager(from_window=self)
 
     # endregion Managers
 
@@ -158,14 +152,7 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
 
     @property
     def tabs(self) -> ChromeWindowsTabsManager:
-        return ChromeWindowsTabsManager(
-            _objects=[
-                ChromeTab(from_window=ChromeWindow(ae_window=ae_window), ae_tab=ae_tab)
-                for ae_window in self.chrome.ae_chrome.windows()
-                for ae_tab in ae_window.tabs()
-            ],
-            from_windows=self,
-        )
+        return ChromeWindowsTabsManager(from_windows=self)
 
     def new(
         self,
@@ -188,6 +175,9 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
                 Keyword("mode"): mode,
             },
         )
+
+    def _load(self) -> list[ChromeWindow]:
+        return [ChromeWindow(ae_window=ae_window) for ae_window in self.chrome.ae_chrome.windows()]
 
 
 class ChromeWindowsFilter(TypedDict, total=False):

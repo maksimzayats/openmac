@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, TypedDict
 
 from appscript import GenericReference, Keyword, k
@@ -159,6 +159,12 @@ class ChromeWindowTabsManager(BaseManager[ChromeTab]):
             },
         )
 
+    def _load(self) -> list[ChromeTab]:
+        return [
+            ChromeTab(from_window=self.from_window, ae_tab=ae_tab)
+            for ae_tab in self.from_window.ae_window.tabs()
+        ]
+
 
 @dataclass(slots=True)
 class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
@@ -174,10 +180,17 @@ class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
     def active(self) -> ChromeWindowsTabsManager:
         active_tabs = [window.tabs.active for window in self.from_windows]
 
-        return ChromeWindowsTabsManager(
-            from_windows=self.from_windows,
-            _objects=active_tabs,
-        )
+        return replace(self, __objects=active_tabs, _loaded=True)
+
+    def _load(self) -> list[ChromeTab]:
+        return [
+            ChromeTab(
+                from_window=window,
+                ae_tab=ae_tab,
+            )
+            for window in self.from_windows
+            for ae_tab in window.ae_window.tabs()
+        ]
 
 
 class ChromeTabsFilter(TypedDict, total=False):

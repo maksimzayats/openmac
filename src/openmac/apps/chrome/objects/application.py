@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from appscript import GenericReference, Keyword, app
 
 from openmac.apps._internal.base import BaseApplication
-from openmac.apps.chrome.objects.windows import ChromeWindow, ChromeWindowsManager
+from openmac.apps.chrome.objects.windows import ChromeWindowsManager
 
 
 @dataclass(slots=True, kw_only=True)
@@ -43,10 +43,7 @@ class Chrome(BaseApplication):
 
     @property
     def windows(self) -> ChromeWindowsManager:
-        return ChromeWindowsManager(
-            _objects=[ChromeWindow(ae_window=ae_window) for ae_window in self.ae_chrome.windows()],
-            chrome=self,
-        )
+        return ChromeWindowsManager(chrome=self)
 
     # endregion Managers
 
