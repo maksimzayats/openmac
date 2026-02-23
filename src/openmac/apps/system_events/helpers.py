@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import time
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 
-from appscript import app, its
+from appscript import CommandError, app, its
 
 
 @contextmanager
@@ -21,4 +21,5 @@ def preserve_focus(delay: float = 0.05) -> Iterator[None]:
         if delay > 0:
             time.sleep(delay)
 
-        app(id=front_bundle).activate()
+        with suppress(CommandError, OSError):
+            app(id=front_bundle).activate()
