@@ -1,6 +1,4 @@
-.PHONY: format lint test test-integration docs generate-suites
-
-SDEF_APP ?= all
+.PHONY: format lint test docs
 
 format:
 	uv run ruff format .
