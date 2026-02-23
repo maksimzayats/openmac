@@ -25,8 +25,8 @@ class BaseObject:
 class BaseManager(ABC, Generic[BaseObjectT]):
     _FILTERER_CLASS: ClassVar = Filterer[BaseObjectT]
 
-    _loaded: bool = field(default=False)
-    __objects: list[BaseObjectT] = field(default_factory=list)
+    _loaded: bool = field(default=False, repr=False)
+    _loaded_objects: list[BaseObjectT] = field(default_factory=list, repr=False)
 
     def __iter__(self) -> Iterator[BaseObjectT]:
         return iter(self._objects)
@@ -45,12 +45,12 @@ class BaseManager(ABC, Generic[BaseObjectT]):
     def filter(self, **filters: Any) -> BaseManager[BaseObjectT]:
         filterer = self._FILTERER_CLASS(filters)
         filtered_objects = filterer.filter(self._objects)
-        return replace(self, __objects=filtered_objects)
+        return replace(self, _loaded_objects=filtered_objects)
 
     def exclude(self, **filters: Any) -> BaseManager[BaseObjectT]:
         filterer = self._FILTERER_CLASS(filters)
         filtered_objects = filterer.exclude(self._objects)
-        return replace(self, __objects=filtered_objects)
+        return replace(self, _loaded_objects=filtered_objects)
 
     @property
     def all(self) -> list[BaseObjectT]:
@@ -82,6 +82,6 @@ class BaseManager(ABC, Generic[BaseObjectT]):
         if not self._loaded:
             objects = self._load()
             self._loaded = True
-            self.__objects = objects
+            self._loaded_objects = objects
 
-        return self.__objects
+        return self._loaded_objects

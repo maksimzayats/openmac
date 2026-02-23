@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from appscript import GenericReference, Keyword, app
 
 from openmac.apps._internal.base import BaseApplication
+from openmac.apps.chrome.objects.tabs import ChromeWindowsTabsManager
 from openmac.apps.chrome.objects.windows import ChromeWindowsManager
 
 
@@ -46,6 +47,14 @@ class Chrome(BaseApplication):
         return ChromeWindowsManager(chrome=self)
 
     # endregion Managers
+
+    # region Custom Managers
+
+    @property
+    def tabs(self) -> ChromeWindowsTabsManager:
+        return self.windows.tabs
+
+    # endregion Custom Managers
 
     # region Actions
 

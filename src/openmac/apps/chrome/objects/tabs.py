@@ -180,7 +180,7 @@ class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
     def active(self) -> ChromeWindowsTabsManager:
         active_tabs = [window.tabs.active for window in self.from_windows]
 
-        return replace(self, __objects=active_tabs, _loaded=True)
+        return replace(self, _loaded_objects=active_tabs, _loaded=True)
 
     def _load(self) -> list[ChromeTab]:
         return [
