@@ -87,14 +87,18 @@ class ChromeTab(BaseObject):
     def source(self) -> str:
         return self.execute("document.documentElement.outerHTML")
 
-    def wait_until_loaded(self, timeout: float = 10.0) -> None:
+    def wait_until_loaded(
+        self,
+        timeout: float = 10.0,
+        delay: float = 0.1,
+    ) -> None:
         start_time = time.perf_counter()
 
         while self.loading:
             if time.perf_counter() - start_time > timeout:
                 raise TimeoutError(f"ChromeTab did not finish loading within {timeout} seconds.")
 
-            time.sleep(0.1)
+            time.sleep(delay)
 
     # endregion Custom Actions
 
