@@ -4,6 +4,7 @@ import typer
 
 from openmac import Chrome
 from openmac.adapters.cli._internal.actions import ActionsParser
+from openmac.adapters.cli._internal.display import display_object
 
 app = typer.Typer()
 
@@ -18,7 +19,7 @@ def chrome_command(raw_actions: list[str]) -> None:
     for action in actions:
         current_object = action(current_object)
 
-    print(current_object)
+    display_object(current_object)
 
 
 @app.command(name="finder")
