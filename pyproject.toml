@@ -30,6 +30,9 @@ Documentation = "https://docs.openmac.dev"
 Repository = "https://github.com/maksimzayats/openmac"
 Issues = "https://github.com/maksimzayats/openmac/issues"
 
+[project.scripts]
+"openmac" = "openmac.adapters.cli.__main__:main"
+
 
 [dependency-groups]
 dev = [
