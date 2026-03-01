@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal
 from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
-from openmac.apps.chrome.objects.tabs import (
+from openmac.apps.browsers.chrome.objects.tabs import (
     ChromeWindowsTabsManager,
     ChromeWindowTabsManager,
 )

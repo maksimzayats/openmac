@@ -4,8 +4,8 @@ from dataclasses import fields
 
 import pytest
 
-from openmac.apps.chrome.objects.application import Chrome
-from openmac.apps.chrome.objects.windows import ChromeWindow
+from openmac.apps.browsers.chrome.objects.application import Chrome
+from openmac.apps.browsers.chrome.objects.windows import ChromeWindow
 
 
 @pytest.fixture(scope="function")

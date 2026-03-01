@@ -6,8 +6,8 @@ from contextlib import suppress
 import pytest
 from appscript import CommandError
 
-from openmac.apps.chrome.objects.application import Chrome
-from openmac.apps.chrome.objects.tabs import ChromeTab
+from openmac.apps.browsers.chrome.objects.application import Chrome
+from openmac.apps.browsers.chrome.objects.tabs import ChromeTab
 
 
 @pytest.fixture(scope="function")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from openmac.apps.chrome.objects.application import Chrome
+from openmac.apps.browsers.chrome.objects.application import Chrome
 
 
 @pytest.fixture(scope="module")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import fields
 
-from openmac.apps.chrome.objects.application import Chrome
+from openmac.apps.browsers.chrome.objects.application import Chrome
 
 
 def test_application_properties_complete(chrome: Chrome) -> None:

@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
-from openmac.apps.chrome.extensions.source import Source
+from openmac.apps.browsers.chrome.extensions.source import Source
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
     from openmac import ChromeWindow
-    from openmac.apps.chrome.objects.windows import ChromeWindowsManager
+    from openmac.apps.browsers.chrome.objects.windows import ChromeWindowsManager
 
 
 @dataclass(slots=True)
@@ -77,8 +77,12 @@ class ChromeTab(BaseObject):
             from_window=self.from_window,
         )
 
-    def execute(self, javascript: str) -> str:
-        return self.ae_tab.execute(javascript=javascript)
+    def execute(self, javascript: str) -> Any | None:
+        result = self.ae_tab.execute(javascript=javascript)
+        if hasattr(result, "AS_name") and result.AS_name == "missing_value":
+            return None
+
+        return result
 
     # endregion Actions
 

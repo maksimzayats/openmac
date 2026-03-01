@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
-    from openmac.apps.chrome.objects.tabs import ChromeTab
+    from openmac.apps.browsers.chrome.objects.tabs import ChromeTab
 
 
 @dataclass(slots=True)
@@ -14,11 +14,11 @@ class Source:
 
     @property
     def html(self) -> str:
-        return self.tab.execute("document.documentElement.outerHTML")
+        return cast("str", self.tab.execute("document.documentElement.outerHTML"))
 
     @property
     def body(self) -> str:
-        return self.tab.execute("document.body.outerHTML")
+        return cast("str", self.tab.execute("document.body.outerHTML"))
 
     @property
     def readable_body(self) -> str:
@@ -90,4 +90,4 @@ class Source:
             """,
         ).strip()
 
-        return self.tab.execute(script)
+        return cast("str", self.tab.execute(script))
