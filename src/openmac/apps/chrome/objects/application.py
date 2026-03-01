@@ -7,13 +7,11 @@ from appscript import GenericReference, Keyword, app
 from openmac.apps._internal.base import BaseApplication
 from openmac.apps.chrome.objects.tabs import ChromeWindowsTabsManager
 from openmac.apps.chrome.objects.windows import ChromeWindowsManager
-from openmac.apps.extensions.ai.base import ILLMProvider
 
 
 @dataclass(slots=True, kw_only=True)
 class Chrome(BaseApplication):
     ae_chrome: GenericReference = field(default_factory=lambda: app(id="com.google.Chrome"))
-    llm_provider: ILLMProvider | None = field(default=None)
 
     # region Properties
 
