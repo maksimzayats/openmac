@@ -10,11 +10,6 @@ app = typer.Typer()
 app.add_typer(chrome_app_cli)
 
 
-@app.command(name="finder")
-def finder_command(args: str) -> None:
-    print(args)
-
-
 def main() -> None:
     container = Container()
     container.add_instance(Console())
