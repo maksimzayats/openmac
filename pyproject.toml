@@ -20,7 +20,9 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
+    "acodex>=0.106.0",
     "appscript>=1.4.0",
+    "pydantic>=2.12.5",
     "typer>=0.23.1",
 ]
 

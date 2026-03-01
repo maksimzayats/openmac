@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
+from openmac.apps.chrome.extensions.source import Source
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
@@ -84,8 +85,8 @@ class ChromeTab(BaseObject):
     # region Custom Actions
 
     @property
-    def source(self) -> str:
-        return self.execute("document.documentElement.outerHTML")
+    def source(self) -> Source:
+        return Source(tab=self)
 
     def wait_until_loaded(
         self,
