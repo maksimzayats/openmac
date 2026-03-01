@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import typer
+import click
 from diwire import Container
 from rich.console import Console
 
@@ -8,11 +8,15 @@ from openmac import Chrome
 from openmac.adapters.cli._internal.actions import ActionsParser
 from openmac.adapters.cli._internal.display import display_object
 
-app = typer.Typer()
+
+@click.group()
+def app() -> None:
+    pass
 
 
 @app.command(name="chrome")
-def chrome_command(raw_actions: list[str]) -> None:
+@click.argument("raw_actions", nargs=-1)
+def chrome_command(raw_actions: tuple[str, ...]) -> None:
     parser = ActionsParser(raw_actions)
     actions = parser.parse()
 
@@ -25,6 +29,7 @@ def chrome_command(raw_actions: list[str]) -> None:
 
 
 @app.command(name="finder")
+@click.argument("args")
 def finder_command(args: str) -> None:
     print(args)
 

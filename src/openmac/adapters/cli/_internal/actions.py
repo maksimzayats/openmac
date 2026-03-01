@@ -6,7 +6,7 @@ from typing import Any, cast
 
 
 class ActionsParser:
-    def __init__(self, args: list[str]) -> None:
+    def __init__(self, args: tuple[str, ...]) -> None:
         self._args = args
 
     def parse(self) -> list[BaseAction]:

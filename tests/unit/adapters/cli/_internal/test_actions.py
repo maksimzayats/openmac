@@ -43,14 +43,14 @@ class RootObject:
 
 
 def test_parse_property_actions() -> None:
-    actions = ActionsParser(["title", "title"]).parse()
+    actions = ActionsParser(("title", "title")).parse()
 
     assert [type(action) for action in actions] == [PropertyAccessAction, PropertyAccessAction]
     assert actions[0](SampleObject()) == "openmac"
 
 
 def test_parse_method_action_without_arguments() -> None:
-    [action] = ActionsParser(["greet()"]).parse()
+    [action] = ActionsParser(("greet()",)).parse()
 
     assert isinstance(action, MethodCallAction)
     assert action(SampleObject()) == "hello"
@@ -58,9 +58,7 @@ def test_parse_method_action_without_arguments() -> None:
 
 def test_parse_method_action_with_arguments() -> None:
     [action] = ActionsParser(
-        [
-            "combine(1, 'two', [3], {'four': 4}, enabled=True, retries=2, optional=None)",
-        ],
+        ("combine(1, 'two', [3], {'four': 4}, enabled=True, retries=2, optional=None)",),
     ).parse()
 
     assert action(SampleObject()) == (
@@ -71,37 +69,37 @@ def test_parse_method_action_with_arguments() -> None:
 
 def test_parse_raises_for_empty_action() -> None:
     with pytest.raises(ValueError, match=r"Action cannot be empty\."):
-        ActionsParser([" "]).parse()
+        ActionsParser((" ",)).parse()
 
 
 def test_parse_raises_for_invalid_property_name() -> None:
     with pytest.raises(ValueError, match="Invalid property name"):
-        ActionsParser(["bad-name"]).parse()
+        ActionsParser(("bad-name",)).parse()
 
 
 def test_parse_raises_for_invalid_method_name() -> None:
     with pytest.raises(ValueError, match="Invalid method name"):
-        ActionsParser(["bad-name()"]).parse()
+        ActionsParser(("bad-name()",)).parse()
 
 
 def test_parse_raises_for_invalid_method_action_syntax() -> None:
     with pytest.raises(ValueError, match="Invalid method action syntax"):
-        ActionsParser(["combine("]).parse()
+        ActionsParser(("combine(",)).parse()
 
 
 def test_parse_raises_for_invalid_method_arguments_syntax() -> None:
     with pytest.raises(ValueError, match="Invalid method arguments in action"):
-        ActionsParser(["combine(,)"]).parse()
+        ActionsParser(("combine(,)",)).parse()
 
 
 def test_parse_raises_for_non_literal_method_argument() -> None:
     with pytest.raises(ValueError, match="Only Python literals are supported"):
-        ActionsParser(["combine(object())"]).parse()
+        ActionsParser(("combine(object())",)).parse()
 
 
 def test_parse_raises_for_kwargs_unpacking() -> None:
     with pytest.raises(ValueError, match="Unsupported kwargs unpacking"):
-        ActionsParser(["combine(**{'x': 1})"]).parse()
+        ActionsParser(("combine(**{'x': 1})",)).parse()
 
 
 def test_method_call_action_passes_arguments() -> None:
@@ -115,7 +113,7 @@ def test_method_call_action_passes_arguments() -> None:
 
 
 def test_parse_supports_keyword_argument_tokens_after_method_name() -> None:
-    [action] = ActionsParser(["filter", "source__contains=google"]).parse()
+    [action] = ActionsParser(("filter", "source__contains=google")).parse()
 
     manager = TabsManagerObject()
     _ = action(manager)
@@ -125,7 +123,7 @@ def test_parse_supports_keyword_argument_tokens_after_method_name() -> None:
 
 def test_parse_supports_keyword_argument_tokens_with_typed_values() -> None:
     [action] = ActionsParser(
-        ["filter", "count=2", "enabled=true", "note='google'", "none_value=null"],
+        ("filter", "count=2", "enabled=true", "note='google'", "none_value=null"),
     ).parse()
 
     manager = TabsManagerObject()
@@ -141,7 +139,7 @@ def test_parse_supports_keyword_argument_tokens_with_typed_values() -> None:
 
 def test_parse_supports_filter_chain_without_filter_parentheses() -> None:
     actions = ActionsParser(
-        ["tabs", "filter", "source__contains=google", "first"],
+        ("tabs", "filter", "source__contains=google", "first"),
     ).parse()
 
     root = RootObject()
@@ -155,4 +153,4 @@ def test_parse_supports_filter_chain_without_filter_parentheses() -> None:
 
 def test_parse_raises_for_orphan_keyword_argument_token() -> None:
     with pytest.raises(ValueError, match="Unexpected argument token without method"):
-        ActionsParser(["source__contains=google"]).parse()
+        ActionsParser(("source__contains=google",)).parse()
