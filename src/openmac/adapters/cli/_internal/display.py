@@ -9,7 +9,8 @@ from rich.console import Console
 @resolver_context.inject
 def display_object(
     obj: Any,
-    console: Injected[Console] = ...,  # type: ignore[assignment]
+    *,
+    console: Injected[Console],
 ) -> None:
     if isinstance(obj, list | tuple):
         for item in obj:

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import ast
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import Any, cast
 
 
 class ActionsParser:
-    def __init__(self, args: tuple[str, ...]) -> None:
+    def __init__(self, args: Sequence[str]) -> None:
         self._args = args
 
     def parse(self) -> list[BaseAction]:
