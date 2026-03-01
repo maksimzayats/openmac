@@ -2,8 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from diwire import Injected, resolver_context
+from rich.console import Console
 
-def display_object(obj: Any) -> None:
+
+@resolver_context.inject
+def display_object(
+    obj: Any,
+    console: Injected[Console] = ...,  # type: ignore[assignment]
+) -> None:
     if isinstance(obj, list | tuple):
         for item in obj:
             display_object(item)
@@ -11,6 +18,6 @@ def display_object(obj: Any) -> None:
         return
 
     if hasattr(obj, "properties"):
-        print(obj.properties)
+        console.print(obj.properties)
     else:
-        print(repr(obj))
+        console.print(obj)
