@@ -150,6 +150,27 @@ class ChromeWindowTabsManager(BaseManager[ChromeTab]):
 
         return tab
 
+    def get_or_open(
+        self,
+        url: str,
+        *,
+        wait_until_loaded: bool = True,
+        preserve_focus: bool = True,
+    ) -> ChromeTab:
+        """Return the first matching tab by URL or open a new tab if no match exists."""
+        for tab in self:
+            if tab.url == url:
+                if wait_until_loaded:
+                    tab.wait_until_loaded()
+
+                return tab
+
+        return self.open(
+            url=url,
+            wait_until_loaded=wait_until_loaded,
+            preserve_focus=preserve_focus,
+        )
+
     def _make_ae_tab(self, url: str) -> GenericReference:
         return self.from_window.ae_window.tabs.end.make(
             new=k.tab,
@@ -183,6 +204,27 @@ class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
         preserve_focus: bool = True,
     ) -> ChromeTab:
         return self.from_windows.first.tabs.open(
+            url=url,
+            wait_until_loaded=wait_until_loaded,
+            preserve_focus=preserve_focus,
+        )
+
+    def get_or_open(
+        self,
+        url: str,
+        *,
+        wait_until_loaded: bool = True,
+        preserve_focus: bool = True,
+    ) -> ChromeTab:
+        """Return the first matching tab across windows or open one in the first window."""
+        for tab in self:
+            if tab.url == url:
+                if wait_until_loaded:
+                    tab.wait_until_loaded()
+
+                return tab
+
+        return self.open(
             url=url,
             wait_until_loaded=wait_until_loaded,
             preserve_focus=preserve_focus,
