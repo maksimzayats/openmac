@@ -17,7 +17,7 @@ def tab(chrome: Chrome) -> ChromeTab:
 
 @pytest.fixture(scope="function")
 def new_tab_no_wait(chrome: Chrome) -> Generator[ChromeTab, None, None]:
-    tab = chrome.windows.first.tabs.new(url="https://www.google.com", wait_until_loaded=False)
+    tab = chrome.windows.first.tabs.open(url="https://www.google.com", wait_until_loaded=False)
 
     try:
         yield tab

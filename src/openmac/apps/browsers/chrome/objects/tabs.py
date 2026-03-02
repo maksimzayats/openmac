@@ -127,7 +127,7 @@ class ChromeWindowTabsManager(BaseManager[ChromeTab]):
             ae_tab=self.from_window.ae_window.active_tab(),
         )
 
-    def new(
+    def open(
         self,
         url: str,
         *,
