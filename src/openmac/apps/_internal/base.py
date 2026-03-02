@@ -8,7 +8,7 @@ from typing import Any, ClassVar, Generic, TypeVar
 from openmac.apps._internal.filterer import Filterer
 from openmac.apps.exceptions import MultipleObjectsReturnedError, ObjectDoesNotExistError
 
-BaseObjectT = TypeVar("BaseObjectT", bound="BaseObject")
+BaseObjectT = TypeVar("BaseObjectT")
 
 
 @dataclass(slots=True, kw_only=True)
