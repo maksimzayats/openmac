@@ -318,6 +318,91 @@ click = tab.execute(
 )
 ```
 
+### Real Click Helper (When It Helps)
+
+Your helper is useful as a baseline because it sends real mouse events instead of only `el.click()`:
+
+```javascript
+function realClick(el) {
+  const rect = el.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+
+  ["pointerdown", "mousedown", "mouseup", "click"].forEach(type => {
+    el.dispatchEvent(new MouseEvent(type, {
+      view: window,
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+      button: 0
+    }));
+  });
+}
+```
+
+For flaky SPAs, prefer a hardened variant:
+1. `scrollIntoView({block: "center"})` before click.
+2. Resolve `top = document.elementFromPoint(x, y) || el`.
+3. Dispatch on `top` (not only `el`), and include `pointerup`.
+
+```javascript
+function realClickRobust(el) {
+  el.scrollIntoView({ block: "center" });
+  const rect = el.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  const top = document.elementFromPoint(x, y) || el;
+  const events = ["pointerdown", "mousedown", "pointerup", "mouseup", "click"];
+
+  for (const type of events) {
+    top.dispatchEvent(new MouseEvent(type, {
+      view: window,
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+      button: 0,
+    }));
+  }
+}
+```
+
+## Telegram/Forum Protocol (Learned From Failures)
+
+Use this when automating Telegram Web forum topics.
+
+1. Prefer clicking UI anchors over forcing URL hash:
+- Open group via sidebar anchor `a[href="#-100..."]`.
+- Open topic via forum topic anchor `a[href="#-100..._<topic_id>"]`.
+- Avoid `location.hash = ...` as a primary action; it can land in partial UI state (`title="Telegram"`, no messages rendered).
+
+2. Scope candidate selection to the correct panel:
+- Sidebar targets: only from `.chat-list a[href]`.
+- Message/thread targets: only from topic list area.
+- Reject header/title duplicates outside the intended panel.
+
+3. Scroll container selection:
+- Prefer explicit container first (`.MessageList` for Telegram).
+- Fallback to largest visible scroll container only if explicit selector is missing.
+- Do not hardcode geometry thresholds like `left >= 250`; layouts vary (right panel, narrow mode, remounts).
+
+4. Bottom-anchor verification (must pass before calling a window “latest”):
+- Same `.MessageList` instance still present after jump.
+- `abs(maxTop - scrollTop) <= 3` on that container.
+- Visible messages exist (`.Message` count in viewport > 0).
+
+5. Capture windows protocol:
+- Capture `step=0` immediately after verified bottom anchor.
+- For each upward step: `scrollBy(-0.8 to -0.9 * clientHeight)` then wait `0.6-1.0s`.
+- Store provenance per capture: `step`, `scrollTop`, `maxTop`, `clientHeight`, `hash`, `title`, message ids.
+- Deduplicate by stable message id across windows.
+
+6. Unanswered-question detection:
+- Start with messages containing `?`.
+- Exclude questions that have an obvious direct reply in next messages (quoted/reply context + answer-like body).
+- Mark uncertain cases as “likely unanswered” rather than definitive.
+
 ## Troubleshooting Playbook
 
 ### Symptom: Click Returns Success But Nothing Changes
@@ -363,6 +448,19 @@ click = tab.execute(
 - URL fragment (`href`)
 - constrained text plus parent role
 2. Avoid deep CSS chains with generated class names.
+
+### Symptom: JS Extraction Returns `None`/Missing Value
+
+1. Ensure the JS snippet returns an explicit object (`return {...}`), not `undefined`.
+2. If building JS with Python `f"""..."""`, escape literal braces (`{{`/`}}`) or avoid f-strings.
+3. Watch for regex quantifiers inside f-strings (for example `{1,2}`) which can be mangled by Python formatting.
+4. Prefer a plain triple-quoted string + placeholder replacement for small params.
+
+### Symptom: JSON Serialization Fails With `Keyword`/Non-JSON Types
+
+1. Normalize `tab.execute(...)` output at the Python boundary.
+2. Convert unknown/non-primitive values via `str(...)` before `json.dumps`.
+3. Persist normalized snapshots only; keep raw objects out of result files.
 
 ## Example Workflow: Open GitHub Pull Requests
 
