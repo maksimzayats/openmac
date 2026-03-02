@@ -19,6 +19,29 @@ chrome = Chrome()
 tab = chrome.tabs.get(url__contains="github.com")
 ```
 
+When automation is multi-step, avoid recreating or reopening the tab in each loop. Resolve once, then re-validate:
+
+```python
+def resolve_target_tab(chrome, *, url_fragment: str, title_contains: str | None = None):
+    exact = [t for t in chrome.tabs.all if url_fragment in t.url]
+    if exact:
+        return exact[0]
+
+    if title_contains:
+        by_title = [t for t in chrome.tabs.all if title_contains in t.title]
+        if by_title:
+            return by_title[0]
+    return None
+
+tab = resolve_target_tab(
+    chrome,
+    url_fragment="web.telegram.org/a/#<chat-topic-fragment-or-url-substring>",
+    title_contains="<exact topic title or stable substring>",
+)
+if not tab:
+    raise RuntimeError("Target tab not found")
+```
+
 2. Capture compact state:
 ```python
 snapshot = tab.execute(
@@ -66,6 +89,25 @@ snapshot = tab.execute(
 
 5. Verify outcome with at least two independent signals (URL/hash, title/header, target content presence).
 
+### 1a. Must-pass state lock before/after every action
+
+Before and after each non-trivial action, verify all three signals:
+
+1. Tab identity is stable:
+- `tab.id` exists and does not unexpectedly change.
+2. Route identity is locked:
+- `location.href` contains the expected URL fragment.
+3. Content container identity is stable:
+- target container (`.MessageList` or app-specific equivalent) exists and remains the same object.
+
+If any signal drops:
+- stop the current loop immediately,
+- re-resolve tab from `tabs.all` using URL fragment + title,
+- re-open target via topic/topic-anchor click if needed,
+- re-run baseline snapshot before continuing.
+
+Avoid `tabs.get_or_open`/`tabs.open` for already-existing tabs; repeated focus switches can induce state churn.
+
 ## Workflow
 
 ### 1. Resolve The Target Context
@@ -74,6 +116,10 @@ snapshot = tab.execute(
 2. Fall back to title contains when URL is unstable.
 3. Record baseline state (`url`, `title`, optional page marker text) before acting.
 4. Confirm manager/object API shape before scripting loops (for example property vs method calls on managers).
+5. If `tabs.get(url__contains=...)` fails or returns unexpected chat:
+- rebuild candidates from `tabs.all`,
+- match by both URL fragment and title text,
+- and only proceed after container verification.
 
 ### 2. Build An LLM-Ready Snapshot
 
@@ -126,6 +172,7 @@ snapshot = tab.execute(
 - visibility and bounding rect
 - top hit-test element at click point
 - resulting URL/title/hash
+5. Use bounded retries (3–6 attempts); on repeated failure, stop with explicit failure evidence and request escalation.
 
 ### 6. Dynamic Timeline/Feed Protocol
 
@@ -141,6 +188,7 @@ Use this when the target is a live list, timeline, or chat-like surface with vir
 - latest visible items/time markers move forward as expected
 4. If verification fails, retry with bounded attempts (3-6), then fallback to `container.scrollTop = container.scrollHeight`.
 5. Re-discover the scroll container after each major jump; virtualized UIs may remount and change dimensions.
+6. Do not treat any step as `latest` if visible message count is 0.
 
 ## Snapshot Contract
 
@@ -403,6 +451,19 @@ Use this when automating Telegram Web forum topics.
 - Exclude questions that have an obvious direct reply in next messages (quoted/reply context + answer-like body).
 - Mark uncertain cases as “likely unanswered” rather than definitive.
 
+## Telegram forum hardening for repeated reliability
+
+1. Always open the topic explicitly by sidebar/topic anchor click when not already on target.
+2. Avoid direct `location.hash = ...` as a primary path.
+3. Validate all three anchors before window capture:
+- URL fragment + topic title,
+- `.MessageList` instance continuity,
+- bottom state (`abs(maxTop - scrollTop) <= 3`) after “Go to bottom”.
+4. Capture provenance on every window:
+- `step`, `scrollTop`, `maxTop`, `clientHeight`, `hash`, `title`, `message_ids`.
+5. Deduplicate by stable message IDs across windows (`data-message-id`, `message-*`).
+6. If any window capture target mismatch is detected, abort and re-lock target before continuing.
+
 ## Troubleshooting Playbook
 
 ### Symptom: Click Returns Success But Nothing Changes
@@ -424,6 +485,22 @@ Use this when automating Telegram Web forum topics.
 1. Check route state (`location.href`, `location.hash`) before and after.
 2. Trigger action from active list context (for example set the right tab/filter first).
 3. Add small wait and poll for transition completion.
+
+### Symptom: Wrong topic/chat selected after re-resolution
+
+1. Rebuild candidates from `chrome.tabs.all` and log `(tab.id, url, title)` to find the expected target.
+2. Match on both URL fragment and title text before continuing.
+3. Re-open target topic via anchor click (not hash rewrite), then re-run state-lock checks.
+4. Continue only when:
+- correct container is active,
+- bottom-anchor verification passes,
+- target window capture has visible messages.
+
+### Symptom: openmac loses tab control after `get_or_open`/open
+
+1. On macOS, these flows can fail with System Events permission errors and change app focus unexpectedly.
+2. Prefer existing tabs (`chrome.tabs.all` + strict matching) over `get_or_open` for stateful automation.
+3. If this occurs, close the attempted operation path, re-acquire with safe scans, and continue with anchor-click navigation.
 
 ### Symptom: Jump-To-Latest Clicked But Position Is Still Wrong
 
