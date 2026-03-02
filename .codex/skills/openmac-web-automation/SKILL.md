@@ -73,6 +73,7 @@ snapshot = tab.execute(
 1. Resolve the target tab by URL fragment first.
 2. Fall back to title contains when URL is unstable.
 3. Record baseline state (`url`, `title`, optional page marker text) before acting.
+4. Confirm manager/object API shape before scripting loops (for example property vs method calls on managers).
 
 ### 2. Build An LLM-Ready Snapshot
 
@@ -125,6 +126,21 @@ snapshot = tab.execute(
 - visibility and bounding rect
 - top hit-test element at click point
 - resulting URL/title/hash
+
+### 6. Dynamic Timeline/Feed Protocol
+
+Use this when the target is a live list, timeline, or chat-like surface with virtualized rendering.
+
+1. Find the active scroll container first (do not assume `window` scroll):
+- select the largest visible element with `overflow-y: auto|scroll` and `scrollHeight > clientHeight`
+- scope this search to the active content column/panel
+2. If there is a jump control (for example unread/latest/bottom), trigger it by accessible label and verify.
+3. Verify anchor-to-latest with at least three signals:
+- same scroll container is still selected after action
+- `scrollTop` is near `maxTop` (`abs(maxTop - scrollTop) <= 3`)
+- latest visible items/time markers move forward as expected
+4. If verification fails, retry with bounded attempts (3-6), then fallback to `container.scrollTop = container.scrollHeight`.
+5. Re-discover the scroll container after each major jump; virtualized UIs may remount and change dimensions.
 
 ## Snapshot Contract
 
@@ -236,6 +252,72 @@ Require expected checks such as:
 2. Title or header contains target entity.
 3. Target panel/list element exists.
 
+### Find Active Scroll Container
+
+```python
+scroll_state = tab.execute(
+    """
+    (() => {
+      const root = document.querySelector("main, #app, body") || document.body;
+      const items = Array.from(root.querySelectorAll("*"))
+        .filter((el) => {
+          const cs = getComputedStyle(el);
+          const oy = cs.overflowY;
+          return (oy === "auto" || oy === "scroll" || oy === "overlay")
+            && el.scrollHeight - el.clientHeight > 20;
+        })
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            class_name: String(el.className || ""),
+            id: String(el.id || ""),
+            area: Math.round(r.width * r.height),
+            top: Number(el.scrollTop || 0),
+            max_top: Number((el.scrollHeight || 0) - (el.clientHeight || 0)),
+            client_height: Number(el.clientHeight || 0),
+          };
+        })
+        .sort((a, b) => b.area - a.area);
+
+      return {containers: items.slice(0, 5)};
+    })();
+    """
+)
+```
+
+### Click By Accessible Label (Not Fragile CSS)
+
+```python
+click = tab.execute(
+    """
+    ((targetLabel) => {
+      const normalize = (s) => (s || "").trim().toLowerCase();
+      const btn = Array.from(document.querySelectorAll('button, [role="button"]'))
+        .find((el) => {
+          const label = normalize(
+            el.getAttribute("aria-label") || el.innerText || el.getAttribute("title") || ""
+          );
+          return label === normalize(targetLabel);
+        });
+      if (!btn) return {ok: false, reason: "not_found", targetLabel};
+
+      const r = btn.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const fire = (type) => btn.dispatchEvent(new MouseEvent(type, {
+        bubbles: true, cancelable: true, view: window, clientX: cx, clientY: cy, button: 0,
+      }));
+      fire("pointerdown");
+      fire("mousedown");
+      fire("pointerup");
+      fire("mouseup");
+      fire("click");
+      return {ok: true, targetLabel};
+    })("Go to bottom");
+    """
+)
+```
+
 ## Troubleshooting Playbook
 
 ### Symptom: Click Returns Success But Nothing Changes
@@ -257,6 +339,21 @@ Require expected checks such as:
 1. Check route state (`location.href`, `location.hash`) before and after.
 2. Trigger action from active list context (for example set the right tab/filter first).
 3. Add small wait and poll for transition completion.
+
+### Symptom: Jump-To-Latest Clicked But Position Is Still Wrong
+
+1. Verify you clicked the exact control by accessible label (not overlapping icon child).
+2. Re-discover the scroll container; virtualized views may swap container instances.
+3. Compare `scrollTop` to `maxTop` on the same element after each attempt.
+4. Retry bounded times, then force `scrollTop = scrollHeight` and verify again.
+5. If metrics changed drastically (`maxTop` shrinks/grows), wait and re-snapshot before extraction.
+
+### Symptom: Extracted “Latest” Items Are Actually Older Context
+
+1. Ensure anchor-to-latest was verified immediately before capture.
+2. Record capture provenance: `step`, `scrollTop`, `maxTop`, and whether jump control remained visible.
+3. Deduplicate by stable message/item id across scroll steps.
+4. Only call items “latest window” when `step=0` was captured from verified bottom state.
 
 ### Symptom: Selector Is Too Fragile
 
@@ -332,48 +429,3 @@ Use this user-facing report structure after multi-step automation:
 3. Never rely only on raw HTML for planning.
 4. Prefer deterministic extraction and explicit result objects from JS.
 5. Persist intermediate evidence when debugging flaky pages (snapshot JSON, body HTML, action logs).
-
-[TODO: Add content here. See examples in existing skills:
-- Code samples for technical skills
-- Decision trees for complex workflows
-- Concrete examples with realistic user requests
-- References to scripts/templates/references as needed]
-
-## Resources (optional)
-
-Create only the resource directories this skill actually needs. Delete this section if no resources are required.
-
-### scripts/
-Executable code (Python/Bash/etc.) that can be run directly to perform specific operations.
-
-**Examples from other skills:**
-- PDF skill: `fill_fillable_fields.py`, `extract_form_field_info.py` - utilities for PDF manipulation
-- DOCX skill: `document.py`, `utilities.py` - Python modules for document processing
-
-**Appropriate for:** Python scripts, shell scripts, or any executable code that performs automation, data processing, or specific operations.
-
-**Note:** Scripts may be executed without loading into context, but can still be read by Codex for patching or environment adjustments.
-
-### references/
-Documentation and reference material intended to be loaded into context to inform Codex's process and thinking.
-
-**Examples from other skills:**
-- Product management: `communication.md`, `context_building.md` - detailed workflow guides
-- BigQuery: API reference documentation and query examples
-- Finance: Schema documentation, company policies
-
-**Appropriate for:** In-depth documentation, API references, database schemas, comprehensive guides, or any detailed information that Codex should reference while working.
-
-### assets/
-Files not intended to be loaded into context, but rather used within the output Codex produces.
-
-**Examples from other skills:**
-- Brand styling: PowerPoint template files (.pptx), logo files
-- Frontend builder: HTML/React boilerplate project directories
-- Typography: Font files (.ttf, .woff2)
-
-**Appropriate for:** Templates, boilerplate code, document templates, images, icons, fonts, or any files meant to be copied or used in the final output.
-
----
-
-**Not every skill requires all three types of resources.**
