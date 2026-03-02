@@ -175,6 +175,19 @@ class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
 
         return replace(self, _loaded_objects=active_tabs, _loaded=True)
 
+    def open(
+        self,
+        url: str,
+        *,
+        wait_until_loaded: bool = True,
+        preserve_focus: bool = True,
+    ) -> ChromeTab:
+        return self.from_windows.first.tabs.open(
+            url=url,
+            wait_until_loaded=wait_until_loaded,
+            preserve_focus=preserve_focus,
+        )
+
     def _load(self) -> list[ChromeTab]:
         return [
             ChromeTab(
