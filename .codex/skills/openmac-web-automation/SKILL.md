@@ -9,6 +9,27 @@ description: Automate browser workflows with openmac (Chrome tabs plus JavaScrip
 
 Use this skill to drive Chrome tabs through `openmac` with deterministic action execution and strict verification. Prefer compact semantic snapshots plus actionable element metadata instead of raw full-page HTML.
 
+## Context Budget And Sub-Agent Delegation
+
+Use sub-agents for heavy exploration so the main thread stays focused and small.
+
+1. Delegate to a sub-agent when any of the following is true:
+- more than 2 inspect/act/retry loops are expected,
+- page text/snapshots are large (multi-window capture, long timelines, or noisy DOM),
+- there are multiple independent targets (for example many PRs/topics/pages).
+2. Keep the main thread as coordinator only:
+- send goal, constraints, and success criteria to the sub-agent,
+- avoid streaming raw HTML/full logs back into main context.
+3. Require compact return artifacts from sub-agents:
+- final status (`success`/`failed`),
+- one concise evidence bundle (baseline -> action -> verification),
+- only minimal structured output requested by the user.
+4. If delegation is not available, simulate the same discipline in-thread:
+- summarize each attempt in 5-10 lines,
+- keep only the latest actionable snapshot and discard stale dumps.
+5. Escalate instead of bloating context:
+- after bounded retries (3-6), stop and report failure evidence rather than appending more raw traces.
+
 ## Quick Start
 
 1. Get the right tab:

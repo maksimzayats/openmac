@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
-from openmac.apps.browsers.chrome.extensions.source import Source
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
@@ -89,8 +88,8 @@ class ChromeTab(BaseObject):
     # region Custom Actions
 
     @property
-    def source(self) -> Source:
-        return Source(tab=self)
+    def html(self) -> str:
+        return cast("str", self.execute("document.documentElement.outerHTML"))
 
     def wait_until_loaded(
         self,
