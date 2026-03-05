@@ -2,16 +2,20 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from appscript import GenericReference, Keyword, k
 
 from openmac.apps._internal.base import BaseManager, BaseObject
+from openmac.apps.browsers.pages.base import BasePage
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
     from openmac import SafariWindow
     from openmac.apps.browsers.safari.objects.windows import SafariWindowsManager
+
+
+PageT = TypeVar("PageT", bound=BasePage)
 
 
 @dataclass(slots=True)
@@ -64,7 +68,7 @@ class SafariTab(BaseObject):
     def close(self) -> None:
         self.ae_tab.close()
 
-    def execute(self, javascript: str) -> Any | None:
+    def execute(self, javascript: str) -> Any:
         result = self.ae_tab.do_JavaScript(javascript)
         if hasattr(result, "AS_name") and result.AS_name == "missing_value":
             return None
@@ -90,12 +94,19 @@ class SafariTab(BaseObject):
 
         while True:
             ready_state = self.execute("document.readyState")
-            if ready_state == "complete":
+            if ready_state == "complete" and self.source:
                 return
             if time.perf_counter() - start_time > timeout:
                 raise TimeoutError(f"SafariTab did not finish loading within {timeout} seconds.")
 
             time.sleep(delay)
+
+    def as_page(
+        self,
+        page_class: type[PageT],
+        **kwargs: Any,
+    ) -> PageT:
+        return page_class.from_tab(tab=self, **kwargs)
 
     # endregion Custom Actions
 
