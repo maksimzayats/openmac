@@ -9,6 +9,9 @@ lint:
 	uv run ruff format --check .
 	uv run mypy .
 
+unsafe-fixes:
+	uv run ruff check --fix-only --unsafe-fixes .
+
 test:
 	uv run pytest tests/ --cov=src/openmac --cov-report=term-missing
 

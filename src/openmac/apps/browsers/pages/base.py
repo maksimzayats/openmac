@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from typing_extensions import Any, Self
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 @dataclass(kw_only=True)
 class BasePage:
-    _tab: SafariTab
+    _tab: SafariTab = field(repr=False)
 
     @classmethod
     def from_tab(cls, tab: SafariTab, **kwargs: Any) -> Self:
@@ -20,4 +20,4 @@ class BasePage:
 
 @dataclass(kw_only=True)
 class BasePageElement:
-    _tab: SafariTab
+    _tab: SafariTab = field(repr=False)
