@@ -1,23 +1,25 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
 
 from appscript import GenericReference, Keyword, k
 
-from openmac.apps._internal.base import BaseManager, BaseObject
+from openmac.apps.browsers.base.objects.windows import IBrowserWindow
 from openmac.apps.browsers.chrome.objects.tabs import (
     ChromeWindowsTabsManager,
     ChromeWindowTabsManager,
 )
+from openmac.apps.shared.base import BaseManager, BaseObject
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
-    from openmac import Chrome
+    from openmac.apps.browsers.chrome.objects.application import Chrome
 
 
 @dataclass(slots=True, kw_only=True)
-class ChromeWindow(BaseObject):
+class ChromeWindow(BaseObject, IBrowserWindow):
     ae_window: GenericReference = field(repr=False)
 
     # region Properties
@@ -105,7 +107,7 @@ class ChromeWindow(BaseObject):
 
     @property
     def tabs(self) -> ChromeWindowTabsManager:
-        return ChromeWindowTabsManager(from_window=self)
+        return ChromeWindowTabsManager(window=self)
 
     # endregion Managers
 
@@ -142,7 +144,7 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
 
     @property
     def tabs(self) -> ChromeWindowsTabsManager:
-        return ChromeWindowsTabsManager(from_windows=self)
+        return ChromeWindowsTabsManager(windows=self)
 
     def new(
         self,
@@ -166,5 +168,6 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
             },
         )
 
-    def _load(self) -> list[ChromeWindow]:
-        return [ChromeWindow(ae_window=ae_window) for ae_window in self.chrome.ae_chrome.windows()]
+    def _iter_objects(self) -> Iterator[ChromeWindow]:
+        for ae_window in self.chrome.ae_chrome.windows():
+            yield ChromeWindow(ae_window=ae_window)

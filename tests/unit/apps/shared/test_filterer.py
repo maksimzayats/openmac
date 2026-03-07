@@ -5,8 +5,8 @@ from dataclasses import dataclass
 
 import pytest
 
-from openmac.apps._internal.filterer import Filterer
 from openmac.apps.exceptions import InvalidFilterError
+from openmac.apps.shared.filterer import Filterer, Q
 
 
 @dataclass(slots=True)
@@ -53,7 +53,7 @@ def test_filter_supports_nested_in_lookup() -> None:
         Window(id="w3", tabs=[]),
     ]
 
-    filterer = Filterer[Window]({"tabs__id__in": {"t2", "t9"}})
+    filterer = Filterer[Window](Q(tabs__id__in={"t2", "t9"}))
 
     assert [window.id for window in filterer.filter(windows)] == ["w1"]
 
@@ -64,7 +64,7 @@ def test_filter_supports_nested_exact_lookup() -> None:
         Window(id="w2", tabs=[Tab(id="t3", title="Three")]),
     ]
 
-    filterer = Filterer[Window]({"tabs__title": "Three"})
+    filterer = Filterer[Window](Q(tabs__title="Three"))
 
     assert [window.id for window in filterer.filter(windows)] == ["w2"]
 
@@ -90,7 +90,7 @@ def test_filter_supports_nested_lookup_through_manager_property() -> None:
         ),
     ]
 
-    filterer = Filterer[WindowWithTabsManager]({"tabs__active__url__contains": "github"})
+    filterer = Filterer[WindowWithTabsManager](Q(tabs__active__url__contains="github"))
 
     assert [window.id for window in filterer.filter(windows)] == ["w2"]
 
@@ -116,7 +116,7 @@ def test_filter_keeps_iterable_lookup_behavior_for_manager_values() -> None:
         ),
     ]
 
-    filterer = Filterer[WindowWithTabsManager]({"tabs__title": "Docs"})
+    filterer = Filterer[WindowWithTabsManager](Q(tabs__title="Docs"))
 
     assert [window.id for window in filterer.filter(windows)] == ["w1"]
 
@@ -128,7 +128,7 @@ def test_exclude_supports_nested_lookup() -> None:
         Window(id="w3", tabs=[]),
     ]
 
-    filterer = Filterer[Window]({"tabs__id__in": {"t1", "t3"}})
+    filterer = Filterer[Window](Q(tabs__id__in={"t1", "t3"}))
 
     assert [window.id for window in filterer.exclude(windows)] == ["w3"]
 
@@ -139,7 +139,7 @@ def test_filter_keeps_existing_operator_behavior() -> None:
         Window(id="w2", tabs=[]),
     ]
 
-    filterer = Filterer[Window]({"id__ne": "w1"})
+    filterer = Filterer[Window](Q(id__ne="w1"))
 
     assert [window.id for window in filterer.filter(windows)] == ["w2"]
 
@@ -147,7 +147,7 @@ def test_filter_keeps_existing_operator_behavior() -> None:
 def test_filter_raises_for_unknown_top_level_field() -> None:
     windows = [Window(id="w1", tabs=[])]
 
-    filterer = Filterer[Window]({"abc": 123})
+    filterer = Filterer[Window](Q(abc=123))
 
     with pytest.raises(InvalidFilterError, match="Invalid filter field 'abc' in lookup 'abc'"):
         filterer.filter(windows)
@@ -156,10 +156,72 @@ def test_filter_raises_for_unknown_top_level_field() -> None:
 def test_filter_raises_for_unknown_nested_field() -> None:
     windows = [Window(id="w1", tabs=[Tab(id="t1", title="One")])]
 
-    filterer = Filterer[Window]({"tabs__abc__in": {"t1"}})
+    filterer = Filterer[Window](Q(tabs__abc__in={"t1"}))
 
     with pytest.raises(
         InvalidFilterError,
         match="Invalid filter field 'abc' in lookup 'tabs__abc__in'",
     ):
         filterer.filter(windows)
+
+
+def test_filterer_stores_initial_query_and_updates_current_query() -> None:
+    windows = [
+        Window(id="w1", tabs=[Tab(id="t1", title="One")]),
+        Window(id="w2", tabs=[Tab(id="t2", title="Two")]),
+        Window(id="w3", tabs=[Tab(id="t3", title="Three")]),
+    ]
+    initial_query = Q(id__startswith="w")
+    filterer = Filterer[Window](initial_query)
+
+    filterer.update_query(Q(tabs__title__contains="hr"))
+
+    assert filterer._initial_query == Q(id__startswith="w")
+    assert filterer.query == Q(id__startswith="w", tabs__title__contains="hr")
+    assert initial_query == Q(id__startswith="w")
+    assert [window.id for window in filterer.filter(windows)] == ["w3"]
+
+
+def test_filterer_update_filters_composes_with_existing_query() -> None:
+    windows = [
+        Window(id="w1", tabs=[Tab(id="t1", title="One")]),
+        Window(id="w2", tabs=[Tab(id="t2", title="Two")]),
+    ]
+    filterer = Filterer[Window](Q(id__startswith="w"))
+
+    filterer.update_filters(id="w2")
+
+    assert [window.id for window in filterer.filter(windows)] == ["w2"]
+
+
+def test_filterer_supports_or_queries() -> None:
+    windows = [
+        Window(id="w1", tabs=[Tab(id="t1", title="One")]),
+        Window(id="w2", tabs=[Tab(id="t2", title="Two")]),
+        Window(id="w3", tabs=[Tab(id="t3", title="Three")]),
+    ]
+    filterer = Filterer[Window](Q(id="w1") | Q(tabs__title="Three"))
+
+    assert [window.id for window in filterer.filter(windows)] == ["w1", "w3"]
+
+
+def test_filterer_supports_negated_queries() -> None:
+    windows = [
+        Window(id="w1", tabs=[Tab(id="t1", title="One")]),
+        Window(id="w2", tabs=[Tab(id="t2", title="Two")]),
+        Window(id="w3", tabs=[Tab(id="t3", title="Three")]),
+    ]
+    filterer = Filterer[Window](~Q(id="w2"))
+
+    assert [window.id for window in filterer.filter(windows)] == ["w1", "w3"]
+
+
+def test_filterer_supports_xor_queries() -> None:
+    windows = [
+        Window(id="w1", tabs=[Tab(id="t1", title="One")]),
+        Window(id="w2", tabs=[Tab(id="t2", title="Two")]),
+        Window(id="w3", tabs=[Tab(id="t3", title="Three")]),
+    ]
+    filterer = Filterer[Window](Q(id="w1") ^ Q(tabs__title="Three"))
+
+    assert [window.id for window in filterer.filter(windows)] == ["w1", "w3"]
