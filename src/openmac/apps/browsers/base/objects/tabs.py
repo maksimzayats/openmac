@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, TypeVar
+
+from openmac.apps.browsers.pages.base import BasePage
+
+PageT = TypeVar("PageT", bound=BasePage)
 
 
 class IBrowserTab(ABC):
@@ -55,5 +59,8 @@ class IBrowserTab(ABC):
         timeout: float = 10.0,
         delay: float = 0.1,
     ) -> None: ...
+
+    @abstractmethod
+    def as_page(self, page_cls: type[PageT]) -> PageT: ...
 
     # endregion Custom Actions

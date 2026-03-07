@@ -22,7 +22,7 @@ class BaseObject:
 
 
 @dataclass(slots=True, kw_only=True)
-class BaseManager(ABC, Generic[BaseObjectT_co]):
+class BaseManager(ABC, Generic[BaseObjectT_co]):  # noqa: UP046
     _filterer: Filterer[BaseObjectT_co] = field(default_factory=Filterer, init=False)
 
     def __iter__(self) -> Iterator[BaseObjectT_co]:

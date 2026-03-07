@@ -12,7 +12,7 @@ FilterOperation = Callable[[Any, Any], bool]
 MISSING: Final = object()
 
 
-class Filterer(Generic[T]):
+class Filterer(Generic[T]):  # noqa: UP046
     _OPERATIONS: ClassVar[dict[str, FilterOperation]] = {
         "": operator.eq,
         "eq": operator.eq,
