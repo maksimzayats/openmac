@@ -29,8 +29,9 @@ class SafariTab(BaseObject, IBrowserTab):
     def title(self) -> str:
         return self.ae_tab.name()
 
-    def set_url(self, url: str) -> None:
+    def set_url(self, url: str) -> SafariTab:
         self.ae_tab.URL.set(url)
+        return self
 
     @property
     def index(self) -> int:

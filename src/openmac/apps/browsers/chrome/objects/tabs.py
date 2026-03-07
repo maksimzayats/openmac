@@ -25,8 +25,9 @@ class ChromeTab(BaseObject, IBrowserTab):
     def url(self) -> str:
         return self.ae_tab.URL()
 
-    def set_url(self, url: str) -> None:
+    def set_url(self, url: str) -> ChromeTab:
         self.ae_tab.URL.set(url)
+        return self
 
     @property
     def title(self) -> str:
