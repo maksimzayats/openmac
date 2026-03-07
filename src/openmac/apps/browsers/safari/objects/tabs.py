@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 @dataclass(slots=True)
 class SafariTab(BaseObject, IBrowserTab):
-    from_window: SafariWindow
+    window: SafariWindow
     ae_tab: GenericReference
 
     # region Properties
@@ -124,13 +124,13 @@ class SafariTabProperties:
 
 @dataclass(slots=True)
 class SafariWindowTabsManager(BaseManager[SafariTab]):
-    from_window: SafariWindow
+    window: SafariWindow
 
     @property
     def active(self) -> SafariTab:
         return SafariTab(
-            from_window=self.from_window,
-            ae_tab=self.from_window.ae_window.current_tab(),
+            window=self.window,
+            ae_tab=self.window.ae_window.current_tab(),
         )
 
     def open(
@@ -147,7 +147,7 @@ class SafariWindowTabsManager(BaseManager[SafariTab]):
             ae_tab = self._make_ae_tab(url)
 
         tab = SafariTab(
-            from_window=self.from_window,
+            window=self.window,
             ae_tab=ae_tab,
         )
 
@@ -178,7 +178,7 @@ class SafariWindowTabsManager(BaseManager[SafariTab]):
         )
 
     def _make_ae_tab(self, url: str) -> GenericReference:
-        return self.from_window.ae_window.tabs.end.make(
+        return self.window.ae_window.tabs.end.make(
             new=k.tab,
             with_properties={
                 Keyword("URL"): url,
@@ -186,18 +186,18 @@ class SafariWindowTabsManager(BaseManager[SafariTab]):
         )
 
     def _iter_objects(self) -> Any:
-        for ae_tab in self.from_window.ae_window.tabs():
-            yield SafariTab(from_window=self.from_window, ae_tab=ae_tab)
+        for ae_tab in self.window.ae_window.tabs():
+            yield SafariTab(window=self.window, ae_tab=ae_tab)
 
 
 @dataclass(slots=True)
 class SafariWindowsTabsManager(BaseManager[SafariTab]):
-    from_windows: SafariWindowsManager
+    windows: SafariWindowsManager
     only_active: bool = False
 
     @property
     def active(self) -> SafariWindowsTabsManager:
-        return SafariWindowsTabsManager(from_windows=self.from_windows, only_active=True)
+        return SafariWindowsTabsManager(windows=self.windows, only_active=True)
 
     def open(
         self,
@@ -206,8 +206,8 @@ class SafariWindowsTabsManager(BaseManager[SafariTab]):
         wait_until_loaded: bool = True,
         preserve_focus: bool = True,
     ) -> SafariTab:
-        if self.from_windows.count == 0:
-            window = self.from_windows.new(
+        if self.windows.count == 0:
+            window = self.windows.new(
                 url=url,
                 preserve_focus=preserve_focus,
             )
@@ -217,7 +217,7 @@ class SafariWindowsTabsManager(BaseManager[SafariTab]):
 
             return tab
 
-        return self.from_windows.first.tabs.open(
+        return self.windows.first.tabs.open(
             url=url,
             wait_until_loaded=wait_until_loaded,
             preserve_focus=preserve_focus,
@@ -245,13 +245,13 @@ class SafariWindowsTabsManager(BaseManager[SafariTab]):
         )
 
     def _iter_objects(self) -> Any:
-        for window in self.from_windows:
+        for window in self.windows:
             if self.only_active:
                 yield window.tabs.active
                 continue
 
             for ae_tab in window.ae_window.tabs():
                 yield SafariTab(
-                    from_window=window,
+                    window=window,
                     ae_tab=ae_tab,
                 )

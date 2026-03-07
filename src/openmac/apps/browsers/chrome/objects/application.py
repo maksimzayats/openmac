@@ -5,6 +5,10 @@ from dataclasses import dataclass, field
 from appscript import GenericReference, Keyword, app
 
 from openmac.apps.browsers.base.objects.application import IBrowser
+from openmac.apps.browsers.chrome.objects.bookmark_folders import (
+    ChromeBookmarkFolder,
+    ChromeBookmarkFoldersManager,
+)
 from openmac.apps.browsers.chrome.objects.tabs import ChromeWindowsTabsManager
 from openmac.apps.browsers.chrome.objects.windows import ChromeWindowsManager
 from openmac.apps.shared.base import BaseApplication
@@ -29,6 +33,14 @@ class Chrome(BaseApplication, IBrowser):
         return self.ae_chrome.frontmost()
 
     @property
+    def bookmarks_bar(self) -> ChromeBookmarkFolder:
+        return ChromeBookmarkFolder(ae_bookmark_folder=self.ae_chrome.bookmarks_bar())
+
+    @property
+    def other_bookmarks(self) -> ChromeBookmarkFolder:
+        return ChromeBookmarkFolder(ae_bookmark_folder=self.ae_chrome.other_bookmarks())
+
+    @property
     def ae_browser(self) -> GenericReference:
         return self.ae_chrome
 
@@ -39,6 +51,12 @@ class Chrome(BaseApplication, IBrowser):
             version=ae_properties[Keyword("version")],
             title=ae_properties[Keyword("title")],
             frontmost=ae_properties[Keyword("frontmost")],
+            bookmarks_bar=ChromeBookmarkFolder(
+                ae_bookmark_folder=ae_properties[Keyword("bookmarks_bar")],
+            ),
+            other_bookmarks=ChromeBookmarkFolder(
+                ae_bookmark_folder=ae_properties[Keyword("other_bookmarks")],
+            ),
         )
 
     # endregion Properties
@@ -52,6 +70,10 @@ class Chrome(BaseApplication, IBrowser):
     # endregion Managers
 
     # region Custom Managers
+
+    @property
+    def bookmark_folders(self) -> ChromeBookmarkFoldersManager:
+        return ChromeBookmarkFoldersManager(chrome=self)
 
     @property
     def tabs(self) -> ChromeWindowsTabsManager:
@@ -72,3 +94,5 @@ class ChromeProperties:
     version: str
     title: str
     frontmost: bool
+    bookmarks_bar: ChromeBookmarkFolder
+    other_bookmarks: ChromeBookmarkFolder

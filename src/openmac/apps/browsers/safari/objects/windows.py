@@ -80,7 +80,7 @@ class SafariWindow(BaseObject, IBrowserWindow):
     @property
     def current_tab(self) -> SafariTab:
         return SafariTab(
-            from_window=self,
+            window=self,
             ae_tab=self.ae_window.current_tab(),
         )
 
@@ -100,7 +100,7 @@ class SafariWindow(BaseObject, IBrowserWindow):
             zoomable=ae_properties[Keyword("zoomable")],
             zoomed=ae_properties[Keyword("zoomed")],
             current_tab=SafariTab(
-                from_window=self,
+                window=self,
                 ae_tab=ae_properties[Keyword("current_tab")],
             ),
         )
@@ -111,7 +111,7 @@ class SafariWindow(BaseObject, IBrowserWindow):
 
     @property
     def tabs(self) -> SafariWindowTabsManager:
-        return SafariWindowTabsManager(from_window=self)
+        return SafariWindowTabsManager(window=self)
 
     # endregion Managers
 
@@ -145,7 +145,7 @@ class SafariWindowsManager(BaseManager[SafariWindow]):
 
     @property
     def tabs(self) -> SafariWindowsTabsManager:
-        return SafariWindowsTabsManager(from_windows=self)
+        return SafariWindowsTabsManager(windows=self)
 
     def new(
         self,

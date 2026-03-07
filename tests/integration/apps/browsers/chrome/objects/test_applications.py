@@ -14,5 +14,4 @@ def test_application_properties_complete(chrome: Chrome) -> None:
 
     diff = properties_keys.symmetric_difference(ae_properties_keys)
 
-    # TODO(Maksim): add "bookmarks_bar", "other_bookmarks"
-    assert diff == {"bookmarks_bar", "other_bookmarks", "class_"}
+    assert diff == {"class_"}

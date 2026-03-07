@@ -107,7 +107,7 @@ class ChromeWindow(BaseObject, IBrowserWindow):
 
     @property
     def tabs(self) -> ChromeWindowTabsManager:
-        return ChromeWindowTabsManager(from_window=self)
+        return ChromeWindowTabsManager(window=self)
 
     # endregion Managers
 
@@ -144,7 +144,7 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
 
     @property
     def tabs(self) -> ChromeWindowsTabsManager:
-        return ChromeWindowsTabsManager(from_windows=self)
+        return ChromeWindowsTabsManager(windows=self)
 
     def new(
         self,

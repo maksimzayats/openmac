@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 @dataclass(slots=True)
 class ChromeTab(BaseObject, IBrowserTab):
-    from_window: ChromeWindow
+    window: ChromeWindow
     ae_tab: GenericReference
 
     # region Properties
@@ -67,7 +67,7 @@ class ChromeTab(BaseObject, IBrowserTab):
         self.ae_tab.go_forward()
 
     def duplicate(self) -> ChromeTab:
-        ae_tab = self.from_window.ae_window.tabs.end.make(
+        ae_tab = self.window.ae_window.tabs.end.make(
             new=k.tab,
             with_properties={
                 Keyword("URL"): self.url,
@@ -76,7 +76,7 @@ class ChromeTab(BaseObject, IBrowserTab):
 
         return ChromeTab(
             ae_tab=ae_tab,
-            from_window=self.from_window,
+            window=self.window,
         )
 
     def execute(self, javascript: str) -> Any | None:
@@ -124,13 +124,13 @@ class ChromeTabProperties:
 
 @dataclass(slots=True)
 class ChromeWindowTabsManager(BaseManager[ChromeTab]):
-    from_window: ChromeWindow
+    window: ChromeWindow
 
     @property
     def active(self) -> ChromeTab:
         return ChromeTab(
-            from_window=self.from_window,
-            ae_tab=self.from_window.ae_window.active_tab(),
+            window=self.window,
+            ae_tab=self.window.ae_window.active_tab(),
         )
 
     def open(
@@ -147,7 +147,7 @@ class ChromeWindowTabsManager(BaseManager[ChromeTab]):
             ae_tab = self._make_ae_tab(url)
 
         tab = ChromeTab(
-            from_window=self.from_window,
+            window=self.window,
             ae_tab=ae_tab,
         )
 
@@ -178,7 +178,7 @@ class ChromeWindowTabsManager(BaseManager[ChromeTab]):
         )
 
     def _make_ae_tab(self, url: str) -> GenericReference:
-        return self.from_window.ae_window.tabs.end.make(
+        return self.window.ae_window.tabs.end.make(
             new=k.tab,
             with_properties={
                 Keyword("URL"): url,
@@ -186,18 +186,18 @@ class ChromeWindowTabsManager(BaseManager[ChromeTab]):
         )
 
     def _iter_objects(self) -> Any:
-        for ae_tab in self.from_window.ae_window.tabs():
-            yield ChromeTab(from_window=self.from_window, ae_tab=ae_tab)
+        for ae_tab in self.window.ae_window.tabs():
+            yield ChromeTab(window=self.window, ae_tab=ae_tab)
 
 
 @dataclass(slots=True)
 class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
-    from_windows: ChromeWindowsManager
+    windows: ChromeWindowsManager
     only_active: bool = False
 
     @property
     def active(self) -> ChromeWindowsTabsManager:
-        return ChromeWindowsTabsManager(from_windows=self.from_windows, only_active=True)
+        return ChromeWindowsTabsManager(windows=self.windows, only_active=True)
 
     def open(
         self,
@@ -206,7 +206,7 @@ class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
         wait_until_loaded: bool = True,
         preserve_focus: bool = True,
     ) -> ChromeTab:
-        return self.from_windows.first.tabs.open(
+        return self.windows.first.tabs.open(
             url=url,
             wait_until_loaded=wait_until_loaded,
             preserve_focus=preserve_focus,
@@ -234,13 +234,13 @@ class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
         )
 
     def _iter_objects(self) -> Any:
-        for window in self.from_windows:
+        for window in self.windows:
             if self.only_active:
                 yield window.tabs.active
                 continue
 
             for ae_tab in window.ae_window.tabs():
                 yield ChromeTab(
-                    from_window=window,
+                    window=window,
                     ae_tab=ae_tab,
                 )
