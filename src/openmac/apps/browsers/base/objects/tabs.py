@@ -2,25 +2,21 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, cast
 
 from appscript import GenericReference, Keyword, k
 
-from openmac.apps.browsers.pages.base import BasePage
 from openmac.apps.shared.base import BaseManager, BaseObject
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
 if TYPE_CHECKING:
-    from openmac import SafariWindow
-    from openmac.apps.browsers.safari.objects.windows import SafariWindowsManager
-
-
-PageT = TypeVar("PageT", bound=BasePage)
+    from openmac import ChromeWindow
+    from openmac.apps.browsers.chrome.objects.windows import ChromeWindowsManager
 
 
 @dataclass(slots=True)
-class SafariTab(BaseObject):
-    from_window: SafariWindow
+class BaseBrowserTab(BaseObject):
+    from_window: ChromeWindow
     ae_tab: GenericReference
 
     # region Properties
@@ -30,60 +26,70 @@ class SafariTab(BaseObject):
         return self.ae_tab.URL()
 
     @property
-    def name(self) -> str:
-        return self.ae_tab.name()
+    def title(self) -> str:
+        return self.ae_tab.title()
 
     @property
-    def index(self) -> int:
-        return int(self.ae_tab.index())
+    def loading(self) -> bool:
+        return self.ae_tab.loading()
 
     @property
-    def text(self) -> str:
-        return self.ae_tab.text()
+    def id(self) -> int:
+        return int(self.ae_tab.id())
 
     @property
-    def source(self) -> str:
-        return self.ae_tab.source()
-
-    @property
-    def visible(self) -> bool:
-        return self.ae_tab.visible()
-
-    @property
-    def properties(self) -> SafariTabProperties:
+    def properties(self) -> ChromeTabProperties:
         ae_properties = self.ae_tab.properties()
-        return SafariTabProperties(
+        return ChromeTabProperties(
             url=ae_properties[Keyword("URL")],
-            name=ae_properties[Keyword("name")],
-            index=ae_properties[Keyword("index")],
-            text=ae_properties[Keyword("text")],
-            source=ae_properties[Keyword("source")],
-            visible=ae_properties[Keyword("visible")],
+            title=ae_properties[Keyword("title")],
+            loading=ae_properties[Keyword("loading")],
+            id=ae_properties[Keyword("id")],
         )
 
     # endregion Properties
 
     # region Actions
 
+    def reload(self) -> None:
+        self.ae_tab.reload()
+
     def close(self) -> None:
         self.ae_tab.close()
 
-    def execute(self, javascript: str) -> Any:
-        result = self.ae_tab.do_JavaScript(javascript)
+    def go_back(self) -> None:
+        self.ae_tab.go_back()
+
+    def go_forward(self) -> None:
+        self.ae_tab.go_forward()
+
+    def duplicate(self) -> ChromeTab:
+        ae_tab = self.from_window.ae_window.tabs.end.make(
+            new=k.tab,
+            with_properties={
+                Keyword("URL"): self.url,
+            },
+        )
+
+        return ChromeTab(
+            ae_tab=ae_tab,
+            from_window=self.from_window,
+        )
+
+    def execute(self, javascript: str) -> Any | None:
+        result = self.ae_tab.execute(javascript=javascript)
         if hasattr(result, "AS_name") and result.AS_name == "missing_value":
             return None
 
         return result
 
-    def email_contents(self) -> None:
-        self.ae_tab.email_contents()
-
-    def search_the_web(self, query: str) -> None:
-        self.ae_tab.search_the_web(for_=query)
-
     # endregion Actions
 
     # region Custom Actions
+
+    @property
+    def html(self) -> str:
+        return cast("str", self.execute("document.documentElement.outerHTML"))
 
     def wait_until_loaded(
         self,
@@ -92,44 +98,32 @@ class SafariTab(BaseObject):
     ) -> None:
         start_time = time.perf_counter()
 
-        while True:
-            ready_state = self.execute("document.readyState")
-            if ready_state == "complete" and self.source:
-                return
+        while self.loading:
             if time.perf_counter() - start_time > timeout:
-                raise TimeoutError(f"SafariTab did not finish loading within {timeout} seconds.")
+                raise TimeoutError(f"ChromeTab did not finish loading within {timeout} seconds.")
 
             time.sleep(delay)
-
-    def as_page(
-        self,
-        page_class: type[PageT],
-        **kwargs: Any,
-    ) -> PageT:
-        return page_class.from_tab(tab=self, **kwargs)
 
     # endregion Custom Actions
 
 
 @dataclass(slots=True)
-class SafariTabProperties:
+class ChromeTabProperties:
+    id: int
     url: str
-    name: str
-    index: int
-    text: str
-    source: str
-    visible: bool
+    title: str
+    loading: bool
 
 
 @dataclass(slots=True)
-class SafariWindowTabsManager(BaseManager[SafariTab]):
-    from_window: SafariWindow
+class ChromeWindowTabsManager(BaseManager[ChromeTab]):
+    from_window: ChromeWindow
 
     @property
-    def active(self) -> SafariTab:
-        return SafariTab(
+    def active(self) -> ChromeTab:
+        return ChromeTab(
             from_window=self.from_window,
-            ae_tab=self.from_window.ae_window.current_tab(),
+            ae_tab=self.from_window.ae_window.active_tab(),
         )
 
     def open(
@@ -138,14 +132,14 @@ class SafariWindowTabsManager(BaseManager[SafariTab]):
         *,
         wait_until_loaded: bool = True,
         preserve_focus: bool = True,
-    ) -> SafariTab:
+    ) -> ChromeTab:
         if preserve_focus:
             with preserve_focus_context_manager():
                 ae_tab = self._make_ae_tab(url)
         else:
             ae_tab = self._make_ae_tab(url)
 
-        tab = SafariTab(
+        tab = ChromeTab(
             from_window=self.from_window,
             ae_tab=ae_tab,
         )
@@ -161,7 +155,7 @@ class SafariWindowTabsManager(BaseManager[SafariTab]):
         *,
         wait_until_loaded: bool = True,
         preserve_focus: bool = True,
-    ) -> SafariTab:
+    ) -> ChromeTab:
         """Return the first matching tab by URL or open a new tab if no match exists."""
         for tab in self:
             if tab.url == url:
@@ -184,19 +178,19 @@ class SafariWindowTabsManager(BaseManager[SafariTab]):
             },
         )
 
-    def _load(self) -> list[SafariTab]:
+    def _load(self) -> list[ChromeTab]:
         return [
-            SafariTab(from_window=self.from_window, ae_tab=ae_tab)
+            ChromeTab(from_window=self.from_window, ae_tab=ae_tab)
             for ae_tab in self.from_window.ae_window.tabs()
         ]
 
 
 @dataclass(slots=True)
-class SafariWindowsTabsManager(BaseManager[SafariTab]):
-    from_windows: SafariWindowsManager
+class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
+    from_windows: ChromeWindowsManager
 
     @property
-    def active(self) -> SafariWindowsTabsManager:
+    def active(self) -> ChromeWindowsTabsManager:
         active_tabs = [window.tabs.active for window in self.from_windows]
 
         return replace(self, _loaded_objects=active_tabs, _loaded=True)
@@ -207,18 +201,7 @@ class SafariWindowsTabsManager(BaseManager[SafariTab]):
         *,
         wait_until_loaded: bool = True,
         preserve_focus: bool = True,
-    ) -> SafariTab:
-        if self.from_windows.count == 0:
-            window = self.from_windows.new(
-                url=url,
-                preserve_focus=preserve_focus,
-            )
-            tab = window.current_tab
-            if wait_until_loaded:
-                tab.wait_until_loaded()
-
-            return tab
-
+    ) -> ChromeTab:
         return self.from_windows.first.tabs.open(
             url=url,
             wait_until_loaded=wait_until_loaded,
@@ -231,8 +214,8 @@ class SafariWindowsTabsManager(BaseManager[SafariTab]):
         *,
         wait_until_loaded: bool = True,
         preserve_focus: bool = True,
-    ) -> SafariTab:
-        """Return the first matching tab across windows or open one if no match exists."""
+    ) -> ChromeTab:
+        """Return the first matching tab across windows or open one in the first window."""
         for tab in self:
             if tab.url == url:
                 if wait_until_loaded:
@@ -246,9 +229,9 @@ class SafariWindowsTabsManager(BaseManager[SafariTab]):
             preserve_focus=preserve_focus,
         )
 
-    def _load(self) -> list[SafariTab]:
+    def _load(self) -> list[ChromeTab]:
         return [
-            SafariTab(
+            ChromeTab(
                 from_window=window,
                 ae_tab=ae_tab,
             )

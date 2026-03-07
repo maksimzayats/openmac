@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from abc import ABC
+from dataclasses import dataclass
 
-from appscript import GenericReference, Keyword, app
+from appscript import GenericReference
 
 from openmac.apps.browsers.chrome.objects.tabs import ChromeWindowsTabsManager
 from openmac.apps.browsers.chrome.objects.windows import ChromeWindowsManager
@@ -10,31 +11,22 @@ from openmac.apps.shared.base import BaseApplication
 
 
 @dataclass(slots=True, kw_only=True)
-class Chrome(BaseApplication):
-    ae_chrome: GenericReference = field(default_factory=lambda: app(id="com.google.Chrome"))
+class BaseBrowser(BaseApplication, ABC):
+    ae_browser: GenericReference
 
     # region Properties
 
     @property
     def version(self) -> str:
-        return self.ae_chrome.version()
+        return self.ae_browser.version()
 
     @property
     def title(self) -> str:
-        return self.ae_chrome.title()
+        return self.ae_browser.title()
 
     @property
     def frontmost(self) -> bool:
-        return self.ae_chrome.frontmost()
-
-    @property
-    def properties(self) -> ChromeProperties:
-        ae_properties = self.ae_chrome.properties()
-        return ChromeProperties(
-            version=ae_properties[Keyword("version")],
-            title=ae_properties[Keyword("title")],
-            frontmost=ae_properties[Keyword("frontmost")],
-        )
+        return self.ae_browser.frontmost()
 
     # endregion Properties
 
@@ -57,13 +49,6 @@ class Chrome(BaseApplication):
     # region Actions
 
     def activate(self) -> None:
-        self.ae_chrome.activate()
+        self.ae_browser.activate()
 
     # endregion Actions
-
-
-@dataclass(slots=True)
-class ChromeProperties:
-    version: str
-    title: str
-    frontmost: bool
