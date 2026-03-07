@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from appscript import GenericReference, Keyword
 
-from openmac.apps._internal.base import BaseManager, BaseObject
+from openmac.apps.shared.base import BaseManager, BaseObject
 
 if TYPE_CHECKING:
     from openmac import Safari

@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 
 from appscript import GenericReference, Keyword, app
 
-from openmac.apps._internal.base import BaseApplication
 from openmac.apps.browsers.chrome.objects.tabs import ChromeWindowsTabsManager
 from openmac.apps.browsers.chrome.objects.windows import ChromeWindowsManager
+from openmac.apps.shared.base import BaseApplication
 
 
 @dataclass(slots=True, kw_only=True)

@@ -7,21 +7,21 @@ from openmac.apps.browsers.pages.base import BasePage, BasePageElement
 class ExampleComPage(BasePage):
     @property
     def heading(self) -> Heading:
-        return Heading(_tab=self._tab)
+        return Heading(tab=self.tab)
 
     @property
     def description(self) -> Description:
-        return Description(_tab=self._tab)
+        return Description(tab=self.tab)
 
     @property
     def learn_more_button(self) -> LearnMoreButton:
-        return LearnMoreButton(_tab=self._tab)
+        return LearnMoreButton(tab=self.tab)
 
 
 class Heading(BasePageElement):
     @property
     def text(self) -> str:
-        return self._tab.execute(
+        return self.tab.execute(
             """
             document.querySelector("body > div > h1").innerText
             """,
@@ -31,7 +31,7 @@ class Heading(BasePageElement):
 class Description(BasePageElement):
     @property
     def text(self) -> str:
-        return self._tab.execute(
+        return self.tab.execute(
             """
             document.querySelector("body > div > p:nth-child(2)").innerText
             """,
@@ -41,7 +41,7 @@ class Description(BasePageElement):
 class LearnMoreButton(BasePageElement):
     @property
     def text(self) -> str:
-        return self._tab.execute(
+        return self.tab.execute(
             """
             document.querySelector("body > div > p:nth-child(3) > a").innerText
             """,
@@ -49,11 +49,11 @@ class LearnMoreButton(BasePageElement):
 
     @property
     def href(self) -> str:
-        return self._tab.execute(
+        return self.tab.execute(
             """
             document.querySelector("body > div > p:nth-child(3) > a").href
             """,
         )
 
     def click(self) -> SafariTab:
-        return self._tab.from_window.tabs.open(self.href)
+        return self.tab.from_window.tabs.open(self.href)

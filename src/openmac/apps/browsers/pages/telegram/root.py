@@ -4,14 +4,14 @@ from dataclasses import dataclass, field
 from time import sleep
 
 from openmac import SafariTab
-from openmac.apps._internal.base import BaseManager
 from openmac.apps.browsers.pages.base import BasePage, BasePageElement
+from openmac.apps.shared.base import BaseManager
 
 
 class RootTelegramPage(BasePage):
     @property
     def is_loaded(self) -> bool:
-        return self._tab.execute(
+        return self.tab.execute(
             """
             Boolean(document.querySelector("#page-chats") && document.querySelector("#column-left"))
             """,
@@ -19,7 +19,7 @@ class RootTelegramPage(BasePage):
 
     @property
     def folders(self) -> FoldersManager:
-        return FoldersManager(_tab=self._tab)
+        return FoldersManager(_tab=self.tab)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -29,7 +29,7 @@ class Folder(BasePageElement):
     selector: str
 
     def click(self) -> None:
-        self._tab.execute(
+        self.tab.execute(
             f"""
             document.querySelector('{self.selector}').click();
             """,
@@ -38,7 +38,7 @@ class Folder(BasePageElement):
 
     @property
     def chats(self) -> ChatsManager:
-        return ChatsManager(_tab=self._tab, _folder=self)
+        return ChatsManager(_tab=self.tab, _folder=self)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -79,7 +79,7 @@ class FoldersManager(BaseManager[Folder]):
                 name=folder["name"],
                 id=folder["filter_id"],
                 selector=folder["selector"],
-                _tab=self._tab,
+                tab=self._tab,
             )
             for folder in folders_data
         ]
@@ -92,7 +92,7 @@ class Chat(BasePageElement):
     selector: str
 
     def click(self) -> None:
-        self._tab.execute(
+        self.tab.execute(
             f"""
             function realClick(el) {{
               const rect = el.getBoundingClientRect();
@@ -161,7 +161,7 @@ class ChatsManager(BaseManager[Chat]):
                 name=chat["name"],
                 peer_id=chat["peer_id"],
                 selector=chat["selector"],
-                _tab=self._tab,
+                tab=self._tab,
             )
             for chat in chats_data
         ]

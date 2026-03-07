@@ -4,10 +4,10 @@ from dataclasses import dataclass, field
 
 from appscript import GenericReference, Keyword, app
 
-from openmac.apps._internal.base import BaseApplication
 from openmac.apps.browsers.safari.objects.documents import SafariDocumentsManager
 from openmac.apps.browsers.safari.objects.tabs import SafariWindowsTabsManager
 from openmac.apps.browsers.safari.objects.windows import SafariWindowsManager
+from openmac.apps.shared.base import BaseApplication
 
 
 @dataclass(slots=True, kw_only=True)

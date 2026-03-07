@@ -5,8 +5,8 @@ from dataclasses import dataclass
 
 import pytest
 
-from openmac.apps._internal.filterer import Filterer
 from openmac.apps.exceptions import InvalidFilterError
+from openmac.apps.shared.filterer import Filterer
 
 
 @dataclass(slots=True)

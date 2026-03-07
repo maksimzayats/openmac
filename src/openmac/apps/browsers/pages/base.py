@@ -11,13 +11,13 @@ if TYPE_CHECKING:
 
 @dataclass(kw_only=True)
 class BasePage:
-    _tab: SafariTab = field(repr=False)
+    tab: SafariTab = field(repr=False)
 
     @classmethod
     def from_tab(cls, tab: SafariTab, **kwargs: Any) -> Self:
-        return cls(_tab=tab, **kwargs)
+        return cls(tab=tab, **kwargs)
 
 
 @dataclass(kw_only=True)
 class BasePageElement:
-    _tab: SafariTab = field(repr=False)
+    tab: SafariTab = field(repr=False)

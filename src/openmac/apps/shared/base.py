@@ -5,8 +5,8 @@ from collections.abc import Iterator
 from dataclasses import dataclass, field, replace
 from typing import Any, ClassVar, Generic, TypeVar
 
-from openmac.apps._internal.filterer import Filterer
 from openmac.apps.exceptions import MultipleObjectsReturnedError, ObjectDoesNotExistError
+from openmac.apps.shared.filterer import Filterer
 
 BaseObjectT = TypeVar("BaseObjectT")
 
