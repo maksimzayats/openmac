@@ -1,54 +1,48 @@
 from __future__ import annotations
 
-from abc import ABC
-from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
-from appscript import GenericReference
-
-from openmac.apps.browsers.chrome.objects.tabs import ChromeWindowsTabsManager
-from openmac.apps.browsers.chrome.objects.windows import ChromeWindowsManager
-from openmac.apps.shared.base import BaseApplication
+from openmac.apps.browsers.base.objects.tabs import IBrowserTab
+from openmac.apps.browsers.base.objects.windows import IBrowserWindow
+from openmac.apps.shared.base import BaseManager
 
 
-@dataclass(slots=True, kw_only=True)
-class BaseBrowser(BaseApplication, ABC):
-    ae_browser: GenericReference
-
+class IBrowser(ABC):
     # region Properties
 
     @property
-    def version(self) -> str:
-        return self.ae_browser.version()
+    @abstractmethod
+    def version(self) -> str: ...
 
     @property
-    def title(self) -> str:
-        return self.ae_browser.title()
+    @abstractmethod
+    def title(self) -> str: ...
 
     @property
-    def frontmost(self) -> bool:
-        return self.ae_browser.frontmost()
+    @abstractmethod
+    def frontmost(self) -> bool: ...
 
     # endregion Properties
 
     # region Managers
 
     @property
-    def windows(self) -> ChromeWindowsManager:
-        return ChromeWindowsManager(chrome=self)
+    @abstractmethod
+    def windows(self) -> BaseManager[IBrowserWindow]: ...
 
     # endregion Managers
 
     # region Custom Managers
 
     @property
-    def tabs(self) -> ChromeWindowsTabsManager:
-        return self.windows.tabs
+    @abstractmethod
+    def tabs(self) -> BaseManager[IBrowserTab]: ...
 
     # endregion Custom Managers
 
     # region Actions
 
-    def activate(self) -> None:
-        self.ae_browser.activate()
+    @abstractmethod
+    def activate(self) -> None: ...
 
     # endregion Actions

@@ -146,7 +146,7 @@ def test_q_internal_combine_requires_a_conditional_operand() -> None:
         conditional = False
 
     with pytest.raises(TypeError):
-        Q(a=1)._combine(NonConditional(), Q.AND)
+        Q(a=1)._combine(NonConditional(), Q.AND)  # type: ignore[arg-type]
 
 
 def test_q_non_q_equality_returns_false() -> None:
@@ -155,7 +155,7 @@ def test_q_non_q_equality_returns_false() -> None:
 
 def test_q_hash_raises_for_unhashable_leaf_values() -> None:
     class UnhashableValue:
-        __hash__ = None
+        __hash__ = None  # type: ignore[assignment]
 
     with pytest.raises(TypeError, match="Unhashable Q value"):
         hash(Q(value=UnhashableValue()))

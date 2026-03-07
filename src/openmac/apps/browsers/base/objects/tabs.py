@@ -1,240 +1,59 @@
 from __future__ import annotations
 
-import time
-from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, Any, cast
-
-from appscript import GenericReference, Keyword, k
-
-from openmac.apps.shared.base import BaseManager, BaseObject
-from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
-
-if TYPE_CHECKING:
-    from openmac import ChromeWindow
-    from openmac.apps.browsers.chrome.objects.windows import ChromeWindowsManager
+from abc import ABC, abstractmethod
+from typing import Any
 
 
-@dataclass(slots=True)
-class BaseBrowserTab(BaseObject):
-    from_window: ChromeWindow
-    ae_tab: GenericReference
-
+class IBrowserTab(ABC):
     # region Properties
 
     @property
-    def url(self) -> str:
-        return self.ae_tab.URL()
+    @abstractmethod
+    def url(self) -> str: ...
+
+    @abstractmethod
+    def set_url(self, url: str) -> None: ...
 
     @property
-    def title(self) -> str:
-        return self.ae_tab.title()
+    @abstractmethod
+    def title(self) -> str: ...
 
     @property
-    def loading(self) -> bool:
-        return self.ae_tab.loading()
-
-    @property
-    def id(self) -> int:
-        return int(self.ae_tab.id())
-
-    @property
-    def properties(self) -> ChromeTabProperties:
-        ae_properties = self.ae_tab.properties()
-        return ChromeTabProperties(
-            url=ae_properties[Keyword("URL")],
-            title=ae_properties[Keyword("title")],
-            loading=ae_properties[Keyword("loading")],
-            id=ae_properties[Keyword("id")],
-        )
+    @abstractmethod
+    def loading(self) -> bool: ...
 
     # endregion Properties
 
     # region Actions
 
-    def reload(self) -> None:
-        self.ae_tab.reload()
+    @abstractmethod
+    def reload(self) -> None: ...
 
-    def close(self) -> None:
-        self.ae_tab.close()
+    @abstractmethod
+    def close(self) -> None: ...
 
-    def go_back(self) -> None:
-        self.ae_tab.go_back()
+    @abstractmethod
+    def go_back(self) -> None: ...
 
-    def go_forward(self) -> None:
-        self.ae_tab.go_forward()
+    @abstractmethod
+    def go_forward(self) -> None: ...
 
-    def duplicate(self) -> ChromeTab:
-        ae_tab = self.from_window.ae_window.tabs.end.make(
-            new=k.tab,
-            with_properties={
-                Keyword("URL"): self.url,
-            },
-        )
-
-        return ChromeTab(
-            ae_tab=ae_tab,
-            from_window=self.from_window,
-        )
-
-    def execute(self, javascript: str) -> Any | None:
-        result = self.ae_tab.execute(javascript=javascript)
-        if hasattr(result, "AS_name") and result.AS_name == "missing_value":
-            return None
-
-        return result
+    @abstractmethod
+    def execute(self, javascript: str) -> Any: ...
 
     # endregion Actions
 
     # region Custom Actions
 
     @property
-    def html(self) -> str:
-        return cast("str", self.execute("document.documentElement.outerHTML"))
+    @abstractmethod
+    def source(self) -> str: ...
 
+    @abstractmethod
     def wait_until_loaded(
         self,
         timeout: float = 10.0,
         delay: float = 0.1,
-    ) -> None:
-        start_time = time.perf_counter()
-
-        while self.loading:
-            if time.perf_counter() - start_time > timeout:
-                raise TimeoutError(f"ChromeTab did not finish loading within {timeout} seconds.")
-
-            time.sleep(delay)
+    ) -> None: ...
 
     # endregion Custom Actions
-
-
-@dataclass(slots=True)
-class ChromeTabProperties:
-    id: int
-    url: str
-    title: str
-    loading: bool
-
-
-@dataclass(slots=True)
-class ChromeWindowTabsManager(BaseManager[ChromeTab]):
-    from_window: ChromeWindow
-
-    @property
-    def active(self) -> ChromeTab:
-        return ChromeTab(
-            from_window=self.from_window,
-            ae_tab=self.from_window.ae_window.active_tab(),
-        )
-
-    def open(
-        self,
-        url: str,
-        *,
-        wait_until_loaded: bool = True,
-        preserve_focus: bool = True,
-    ) -> ChromeTab:
-        if preserve_focus:
-            with preserve_focus_context_manager():
-                ae_tab = self._make_ae_tab(url)
-        else:
-            ae_tab = self._make_ae_tab(url)
-
-        tab = ChromeTab(
-            from_window=self.from_window,
-            ae_tab=ae_tab,
-        )
-
-        if wait_until_loaded:
-            tab.wait_until_loaded()
-
-        return tab
-
-    def get_or_open(
-        self,
-        url: str,
-        *,
-        wait_until_loaded: bool = True,
-        preserve_focus: bool = True,
-    ) -> ChromeTab:
-        """Return the first matching tab by URL or open a new tab if no match exists."""
-        for tab in self:
-            if tab.url == url:
-                if wait_until_loaded:
-                    tab.wait_until_loaded()
-
-                return tab
-
-        return self.open(
-            url=url,
-            wait_until_loaded=wait_until_loaded,
-            preserve_focus=preserve_focus,
-        )
-
-    def _make_ae_tab(self, url: str) -> GenericReference:
-        return self.from_window.ae_window.tabs.end.make(
-            new=k.tab,
-            with_properties={
-                Keyword("URL"): url,
-            },
-        )
-
-    def _load(self) -> list[ChromeTab]:
-        return [
-            ChromeTab(from_window=self.from_window, ae_tab=ae_tab)
-            for ae_tab in self.from_window.ae_window.tabs()
-        ]
-
-
-@dataclass(slots=True)
-class ChromeWindowsTabsManager(BaseManager[ChromeTab]):
-    from_windows: ChromeWindowsManager
-
-    @property
-    def active(self) -> ChromeWindowsTabsManager:
-        active_tabs = [window.tabs.active for window in self.from_windows]
-
-        return replace(self, _loaded_objects=active_tabs, _loaded=True)
-
-    def open(
-        self,
-        url: str,
-        *,
-        wait_until_loaded: bool = True,
-        preserve_focus: bool = True,
-    ) -> ChromeTab:
-        return self.from_windows.first.tabs.open(
-            url=url,
-            wait_until_loaded=wait_until_loaded,
-            preserve_focus=preserve_focus,
-        )
-
-    def get_or_open(
-        self,
-        url: str,
-        *,
-        wait_until_loaded: bool = True,
-        preserve_focus: bool = True,
-    ) -> ChromeTab:
-        """Return the first matching tab across windows or open one in the first window."""
-        for tab in self:
-            if tab.url == url:
-                if wait_until_loaded:
-                    tab.wait_until_loaded()
-
-                return tab
-
-        return self.open(
-            url=url,
-            wait_until_loaded=wait_until_loaded,
-            preserve_focus=preserve_focus,
-        )
-
-    def _load(self) -> list[ChromeTab]:
-        return [
-            ChromeTab(
-                from_window=window,
-                ae_tab=ae_tab,
-            )
-            for window in self.from_windows
-            for ae_tab in window.ae_window.tabs()
-        ]
