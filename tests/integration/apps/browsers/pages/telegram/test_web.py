@@ -37,3 +37,14 @@ def test_chat_folders(telegram_page: TelegramPage) -> None:
     folder_names = [folder.name for folder in telegram_page.folders]
 
     assert "All Chats" in folder_names
+
+
+def test_click_chat_folder(telegram_page: TelegramPage) -> None:
+    active_folder_name_before = telegram_page.folders.active.name
+
+    all_chats_folder = telegram_page.folders.filter(name="All Chats").first
+    all_chats_folder.click()
+
+    active_folder_name_after = telegram_page.folders.active.name
+
+    assert active_folder_name_before != active_folder_name_after

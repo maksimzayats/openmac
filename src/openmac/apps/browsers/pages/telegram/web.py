@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from dataclasses import dataclass
+from time import sleep
 from typing import Any
 
 from typing_extensions import Self  # noqa: UP035
@@ -79,6 +80,9 @@ class TelegramChatsFolder(BasePageElement):
         """
 
         self.page.tab.execute(script)
+
+        # TODO(Maksim): find better to wait
+        sleep(0.1)
 
         return self
 
