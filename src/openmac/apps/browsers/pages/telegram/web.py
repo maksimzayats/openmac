@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from collections.abc import Iterator
 from dataclasses import dataclass
 from time import sleep
@@ -65,7 +66,13 @@ class TelegramChatsFolder(BasePageElement):
 
     # endregion Properties
 
-    def click(self) -> Self:
+    def click(
+        self,
+        *,
+        wait_until_loaded: bool = True,
+        timeout: float = 10.0,
+        delay: float = 0.1,
+    ) -> Self:
         script = f"""
         {REAL_CLICK_FUNCTION}
 
@@ -81,8 +88,14 @@ class TelegramChatsFolder(BasePageElement):
 
         self.page.tab.execute(script)
 
-        # TODO(Maksim): find better to wait
-        sleep(0.1)
+        if wait_until_loaded:
+            start_time = time.perf_counter()
+
+            while time.perf_counter() - start_time < timeout:
+                if self.name == self.page.folders.active.name:
+                    return self
+
+                sleep(delay)
 
         return self
 
