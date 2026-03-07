@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from appscript import GenericReference, Keyword, k
 
@@ -43,7 +43,7 @@ class SafariTab(BaseObject, IBrowserTab):
 
     @property
     def source(self) -> str:
-        return self.ae_tab.source()
+        return cast("str", self.execute("document.documentElement.outerHTML"))
 
     @property
     def loading(self) -> bool:
