@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from bs4 import BeautifulSoup
 from typing_extensions import Self  # noqa: UP035
 
 from openmac.apps.browsers.pages.scripts import REAL_CLICK_FUNCTION
@@ -19,6 +20,11 @@ class BasePage(ABC):
     @classmethod
     @abstractmethod
     def from_tab(cls, tab: IBrowserTab, **kwargs: Any) -> Self: ...
+
+    @property
+    def snapshot(self) -> BeautifulSoup:
+        html = self.tab.execute("document.documentElement.outerHTML")
+        return BeautifulSoup(html, "lxml")
 
     def real_click(self, selector: str) -> None:
         selector = f"document.querySelector('{selector}')"
