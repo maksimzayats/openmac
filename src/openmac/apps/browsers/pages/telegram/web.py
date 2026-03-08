@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import time
 from collections.abc import Iterator
 from dataclasses import dataclass
-from time import sleep
+from datetime import datetime
 from typing import Any
 
 from typing_extensions import Self  # noqa: UP035
@@ -34,130 +33,85 @@ class TelegramPage(BasePage):
 class TelegramChatsFolder(BasePageElement):
     page: TelegramPage
 
-    # region Properties
-
     @property
     def name(self) -> str:
-        folder_data = self.page.get_object(
-            selector=self.selector,
-            values={
-                "name": "element ? element.innerText.split('\\n')[0] : ''",
-            },
-        )
-
-        return folder_data["name"]
+        raise NotImplementedError
 
     @property
     def number_of_unread_messages(self) -> int:
-        data = self.page.get_object(
-            selector=f"{self.selector} > .Tab_inner > .badge",
-            values={
-                "count": "element ? element.innerText : '0'",
-            },
-        )
-
-        try:
-            return int(data["count"])
-        except ValueError:
-            return 0
-
-    # endregion Properties
-
-    def click(
-        self,
-        *,
-        wait_until_loaded: bool = True,
-        timeout: float = 10.0,
-        delay: float = 0.1,
-    ) -> Self:
-        self.page.real_click(self.selector)
-
-        if wait_until_loaded:
-            start_time = time.perf_counter()
-
-            while time.perf_counter() - start_time < timeout:
-                if self.name == self.page.folders.active.name:
-                    return self
-
-                sleep(delay)
-
-        return self
+        raise NotImplementedError
 
     @property
     def chats(self) -> TelegramChatsManager:
-        return TelegramChatsManager(folder=self)
+        return TelegramChatsManager(folder=self, page=self.page)
 
 
 @dataclass(slots=True, kw_only=True)
 class TelegramChat(BasePageElement):
-    id: str
     folder: TelegramChatsFolder
-    is_forum: bool
+
+    @property
+    def id(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def is_forum(self) -> bool:
+        raise NotImplementedError
 
     @property
     def name(self) -> str:
-        chat_data = self.folder.page.get_object(
-            selector=f'a[href="#{self.id}"] .fullName',
-            values={
-                "name": "element ? element.innerText : null",
-            },
-        )
-
-        name = chat_data["name"]
-
-        if not name:
-            raise ValueError("chat is unavailable")
-
-        return name
+        raise NotImplementedError
 
     @property
     def messages(self) -> TelegramChatMessagesManager:
-        return TelegramChatMessagesManager(chat=self)
+        return TelegramChatMessagesManager(chat=self, page=self.folder.page)
 
     @property
     def topics(self) -> TelegramForumTopicsManager:
-        return TelegramForumTopicsManager(chat=self)
-
-    def _click(
-        self,
-        *,
-        wait_until_loaded: bool = True,
-        timeout: float = 10.0,
-        delay: float = 0.1,
-    ) -> Self:
-        self.folder.page.real_click(f"{self.selector} > a")
-
-        if wait_until_loaded:
-            start_time = time.perf_counter()
-
-            while time.perf_counter() - start_time < timeout:
-                if self.name == self.folder.chats.active.name:
-                    return self
-
-                sleep(delay)
-
-        return self
+        return TelegramForumTopicsManager(chat=self, page=self.folder.page)
 
 
 @dataclass(slots=True, kw_only=True)
 class TelegramForumTopic(BasePageElement):
-    id: str
     chat: TelegramChat
 
     @property
+    def id(self) -> str:
+        raise NotImplementedError
+
+    @property
     def name(self) -> str:
-        data = self.chat.folder.page.get_object(
-            selector=f"{self.selector} .fullName",
-            values={
-                "name": "element ? element.innerText : null",
-            },
-        )
-
-        return data["name"] or ""
+        raise NotImplementedError
 
 
+@dataclass(slots=True, kw_only=True)
 class TelegramChatMessage(BasePageElement):
-    pass
+    chat: TelegramChat
+
+    @property
+    def id(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def content(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def sent_at(self) -> datetime:
+        raise NotImplementedError
+
+    @property
+    def sender(self) -> TelegramChatMessageSender:
+        raise NotImplementedError
+
+
+@dataclass(slots=True, kw_only=True)
+class TelegramChatMessageSender(BasePageElement):
+    message: TelegramChatMessage
+
+    @property
+    def name(self) -> str:
+        raise NotImplementedError
 
 
 # region Managers
@@ -169,77 +123,34 @@ class TelegramFoldersManager(BaseManager[TelegramChatsFolder]):
 
     @property
     def active(self) -> TelegramChatsFolder:
-        return TelegramChatsFolder(
-            page=self.page,
-            selector=".Tab--active",
-        )
+        raise NotImplementedError
 
     def _iter_objects(self) -> Iterator[TelegramChatsFolder]:
-        folders_data = self.page.get_objects(
-            selector=".Tab",
-            values={
-                "selector": "`.Tab:nth-of-type(${index + 1})`",
-            },
-        )
-
-        for folder in folders_data:
-            yield TelegramChatsFolder(
-                page=self.page,
-                selector=folder["selector"],
-            )
+        raise NotImplementedError
 
 
 @dataclass(slots=True, kw_only=True)
 class TelegramChatsManager(BaseManager[TelegramChat]):
     folder: TelegramChatsFolder
+    page: TelegramPage
 
     def _iter_objects(self) -> Iterator[TelegramChat]:
-        chats_data = self.folder.page.get_objects(
-            selector=".Transition_slide-active > div > .ListItem.Chat",
-            values={
-                "is_forum": "element.classList.contains('forum')",
-                "href": "element.querySelector('a') ? element.querySelector('a').getAttribute('href') : ''",
-            },
-        )
-
-        for chat in chats_data:
-            yield TelegramChat(
-                id=chat["href"].split("#")[-1],
-                folder=self.folder,
-                selector=f".ListItem.Chat:has(a[href={chat['href']}])",
-                is_forum=chat["is_forum"],
-            )
+        raise NotImplementedError
 
 
 @dataclass(slots=True, kw_only=True)
 class TelegramForumTopicsManager(BaseManager[TelegramForumTopic]):
     chat: TelegramChat
+    page: TelegramPage
 
     def _iter_objects(self) -> Iterator[TelegramForumTopic]:
-        if not self.chat.is_forum:
-            return
-
-        self.chat.folder.page.real_click(f'a[href="#{self.chat.id}"]')
-
-        topics_data = self.chat.folder.page.get_objects(
-            selector=f"a[href^='#{self.chat.id}_']",
-            values={
-                "href": "element.getAttribute('href') || ''",
-                "selector": "`a[href='${element.getAttribute('href') || ''}']`",
-            },
-        )
-
-        for topic in topics_data:
-            yield TelegramForumTopic(
-                id=topic["href"].split("#")[-1],
-                selector=topic["selector"],
-                chat=self.chat,
-            )
+        raise NotImplementedError
 
 
 @dataclass(slots=True, kw_only=True)
 class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
     chat: TelegramChat
+    page: TelegramPage
 
     def _iter_objects(self) -> Iterator[TelegramChatMessage]:
         raise NotImplementedError

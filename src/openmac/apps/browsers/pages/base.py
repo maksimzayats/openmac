@@ -25,39 +25,7 @@ class BasePage(ABC):
         script = REAL_CLICK_FUNCTION + f"\nrealClick({selector});"
         self.tab.execute(script)
 
-    def get_objects(
-        self,
-        selector: str,
-        values: dict[str, str],
-    ) -> list[dict[str, Any]]:
-        escaped_selector = selector.replace("'", "\\'")
-        values_script = "\n".join(f"{key}: {value}," for key, value in values.items())
-
-        script = f"""
-        function getObjects(selector) {{
-            const elements = document.querySelectorAll(selector);
-
-            return [...elements].map((element, index) => {{
-                return {{
-                    {values_script}
-                }};
-            }});
-        }}
-
-        getObjects('{escaped_selector}');
-        """
-
-        return self.tab.execute(script) or []
-
-    def get_object(
-        self,
-        selector: str,
-        values: dict[str, str],
-    ) -> dict[str, Any]:
-        objects = self.get_objects(selector, values)
-        return objects[0]
-
 
 @dataclass(kw_only=True)
 class BasePageElement:
-    selector: str
+    pass
