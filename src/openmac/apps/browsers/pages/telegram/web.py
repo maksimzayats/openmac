@@ -192,7 +192,6 @@ class TelegramChatsManager(BaseManager[TelegramChat]):
         chats_data = self.folder.page.get_objects(
             selector=".Transition_slide-active > div > .ListItem.Chat",
             values={
-                "selector": "`.Transition_slide-active > div > .ListItem.Chat:nth-child(${index + 2})`",
                 "is_forum": "element.classList.contains('forum')",
                 "href": "element.querySelector('a') ? element.querySelector('a').getAttribute('href') : ''",
             },
@@ -202,7 +201,7 @@ class TelegramChatsManager(BaseManager[TelegramChat]):
             yield TelegramChat(
                 id=chat["href"].split("#")[-1],
                 folder=self.folder,
-                selector=chat["selector"],
+                selector=f".ListItem.Chat:has(a[href={chat['href']}])",
                 is_forum=chat["is_forum"],
             )
 
