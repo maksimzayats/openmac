@@ -28,7 +28,6 @@ class BasePage(ABC):
 
     def real_click(self, element_getter: str) -> None:
         script = REAL_CLICK_FUNCTION + f"\nrealClick({element_getter});"
-        print(script)
         self.tab.execute(script)
 
 
