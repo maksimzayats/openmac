@@ -131,8 +131,6 @@ class TelegramChat(BasePageElement):
             start_time = time.perf_counter()
 
             while time.perf_counter() - start_time < timeout:
-                print(f"{self.folder.chats.active.name = }")
-                print(f"{self.name = }")
                 if self.name == self.folder.chats.active.name:
                     return self
 
@@ -148,7 +146,14 @@ class TelegramForumTopic(BasePageElement):
 
     @property
     def name(self) -> str:
-        pass
+        data = self.chat.folder.page.get_object(
+            selector=f"{self.selector} .fullName",
+            values={
+                "name": "element ? element.innerText : null",
+            },
+        )
+
+        return data["name"] or ""
 
 
 class TelegramChatMessage(BasePageElement):
