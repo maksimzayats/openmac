@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from openmac.apps.browsers.pages.base import BasePage
 
 PageT = TypeVar("PageT", bound=BasePage)
 
+if TYPE_CHECKING:
+    from openmac import IBrowserWindow
+
 
 class IBrowserTab(ABC):
+    window: IBrowserWindow
+
     # region Properties
 
     @property

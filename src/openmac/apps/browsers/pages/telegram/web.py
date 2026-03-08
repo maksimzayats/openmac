@@ -153,6 +153,16 @@ class TelegramChat(BasePageElement):
     def topics(self) -> TelegramForumTopicsManager:
         return TelegramForumTopicsManager(chat=self, page=self.folder.page)
 
+    def click(self) -> None:
+        """Click on the chat to open it."""
+
+        chat_getter = f"""
+        document.querySelector('.chat-list.Transition_slide-active a[href="{self.href}"]')
+        """
+
+        self.folder.click()
+        self.folder.page.real_click(chat_getter)
+
     def __repr__(self) -> str:
         return f"TelegramChat(id={self.id!r}, name={self.name!r}, is_forum={self.is_forum})"
 
