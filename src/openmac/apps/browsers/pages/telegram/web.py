@@ -33,18 +33,18 @@ class TelegramPage(BasePage):
 @dataclass(slots=True, kw_only=True)
 class TelegramChatsFolder(BasePageElement):
     page: TelegramPage
-    tag: Annotated[
+    element: Annotated[
         Tag,
         """<div class="Tab Tab--interactive Tab--active"><span class="Tab_inner">All Chats<span class="badge Tab__badge--active">43</span><i class="platform animate" style="transform: none;"></i></span></div>""",
     ]
 
     @property
     def name(self) -> str:
-        return self.tag.find("span", class_="Tab_inner").contents[0].text.strip()
+        return self.element.find("span", class_="Tab_inner").contents[0].text.strip()
 
     @property
     def number_of_unread_messages(self) -> int:
-        badge = self.tag.find("span", class_="badge")
+        badge = self.element.find("span", class_="badge")
         if badge is None:
             return 0
         return int(badge.text.strip())
@@ -52,6 +52,16 @@ class TelegramChatsFolder(BasePageElement):
     @property
     def chats(self) -> TelegramChatsManager:
         return TelegramChatsManager(folder=self, page=self.page)
+
+    def click(self) -> None:
+        """Click on the folder tab to activate it."""
+
+        tab_getter = f"""
+        [...document.querySelectorAll(".Tab--interactive")]
+            .find(el => el.innerText.includes("{self.name}"))
+        """
+
+        self.page.real_click(tab_getter)
 
     def __repr__(self) -> str:
         return f"TelegramChatsFolder(name={self.name!r}, number_of_unread_messages={self.number_of_unread_messages})"
@@ -133,7 +143,7 @@ class TelegramFoldersManager(BaseManager[TelegramChatsFolder]):
     page: TelegramPage
 
     @property
-    def tag(
+    def element(
         self,
     ) -> Annotated[
         Tag,
@@ -187,18 +197,28 @@ class TelegramFoldersManager(BaseManager[TelegramChatsFolder]):
     def active(self) -> TelegramChatsFolder:
         return TelegramChatsFolder(
             page=self.page,
-            tag=self.tag.find("div", class_="Tab--active"),
+            element=self.element.find("div", class_="Tab--active"),
         )
 
     def _iter_objects(self) -> Iterator[TelegramChatsFolder]:
-        for tag in self.tag.find_all("div", class_="Tab"):
-            yield TelegramChatsFolder(page=self.page, tag=tag)
+        for tag in self.element.find_all("div", class_="Tab"):
+            yield TelegramChatsFolder(page=self.page, element=tag)
 
 
 @dataclass(slots=True, kw_only=True)
 class TelegramChatsManager(BaseManager[TelegramChat]):
     folder: TelegramChatsFolder
     page: TelegramPage
+
+    @property
+    def element(
+        self,
+    ) -> Annotated[
+        Tag,
+        """
+        """,
+    ]:
+        raise NotImplementedError
 
     def _iter_objects(self) -> Iterator[TelegramChat]:
         raise NotImplementedError

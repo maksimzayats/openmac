@@ -26,9 +26,9 @@ class BasePage(ABC):
         html = self.tab.execute("document.documentElement.outerHTML")
         return BeautifulSoup(html, "lxml")
 
-    def real_click(self, selector: str) -> None:
-        selector = f"document.querySelector('{selector}')"
-        script = REAL_CLICK_FUNCTION + f"\nrealClick({selector});"
+    def real_click(self, element_getter: str) -> None:
+        script = REAL_CLICK_FUNCTION + f"\nrealClick({element_getter});"
+        print(script)
         self.tab.execute(script)
 
 

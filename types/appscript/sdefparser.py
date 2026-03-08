@@ -174,7 +174,7 @@ class Parser:
             self.parsesynonym(subnode, results, found, code)
 
     def parseclass(self, node):
-        if node.tag != "class-extension":
+        if node.element != "class-extension":
             name = node.get("name")
             plural = toidentifier(
                 node.get("plural") or name + "s"
@@ -192,9 +192,9 @@ class Parser:
                 None  # not quite right, but TBH anyone defining synonyms in class-extension needs a good smack
             )
         for subnode in node:
-            if subnode.tag == "property":
+            if subnode.element == "property":
                 self.parsenamevalue(subnode, self.properties, self._foundproperties)
-            elif subnode.tag == "synonym":
+            elif subnode.element == "synonym":
                 self.parsesynonym(subnode, self.classes, self._foundclasses, code)  # type names
                 self.parsepluralsynonym(
                     subnode, self.elements, self._foundelements, code
@@ -212,9 +212,9 @@ class Parser:
         if name not in self.commands or self.commands[name][1] == code:
             self.commands[name] = (name, code, params)
         for subnode in node:
-            if subnode.tag == "parameter":
+            if subnode.element == "parameter":
                 self.parsenamevalue(subnode, params, found)
-            elif subnode.tag == "synonym":
+            elif subnode.element == "synonym":
                 self.parsecommandsynonym(subnode, code, params)
 
     #######
@@ -228,18 +228,18 @@ class Parser:
         for suite in dictionary.findall("suite"):
             for node in suite:
                 if (
-                    node.tag == "class"
-                    or node.tag == "class-extension"
-                    or node.tag == "record-type"
+                    node.element == "class"
+                    or node.element == "class-extension"
+                    or node.element == "record-type"
                 ):
                     self.parseclass(node)
-                elif node.tag == "command" or node.tag == "event":
+                elif node.element == "command" or node.element == "event":
                     self.parsecommand(node)
-                elif node.tag == "enumeration":
+                elif node.element == "enumeration":
                     for subnode in node:
-                        if subnode.tag == "enumerator":
+                        if subnode.element == "enumerator":
                             self.parsenamevalue(subnode, self.enumerators, self._foundenumerators)
-                elif node.tag == "value-type":
+                elif node.element == "value-type":
                     self.parsenamevalue(node, self.classes, self._foundclasses)
         return (
             self.classes,
