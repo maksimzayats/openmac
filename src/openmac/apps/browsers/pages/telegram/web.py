@@ -4,7 +4,6 @@ import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 from json import dumps
-from time import sleep
 from typing import Any, ClassVar
 
 from bs4 import Tag
@@ -248,8 +247,6 @@ class TelegramChatsManager(BaseManager[TelegramChat]):
             document.querySelector('.chat-list.Transition_slide-active').scrollTop += 1000;
             """,
         )
-
-        sleep(0.5)
 
 
 @dataclass(slots=True, kw_only=True)
