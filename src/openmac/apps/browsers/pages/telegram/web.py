@@ -163,6 +163,19 @@ class TelegramChat(BasePageElement):
         self.folder.click()
         self.folder.page.real_click(chat_getter)
 
+        for _ in range(10):
+            if self.is_forum:
+                element = self.folder.page.snapshot.select_one("#TopicListHeader .fullName")
+            else:
+                element = self.folder.page.snapshot.select_one(
+                    ".MiddleHeader .Transition_slide-active .fullName",
+                )
+
+            if element and element.text.strip() == self.name:
+                return
+
+            sleep(0.1)
+
     def __repr__(self) -> str:
         return f"TelegramChat(id={self.id!r}, name={self.name!r}, is_forum={self.is_forum})"
 
