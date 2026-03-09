@@ -35,5 +35,10 @@ def telegram_page(telegram_tab: IBrowserTab) -> TelegramWebPage:
 
 def test_chat_folders(telegram_page: TelegramWebPage) -> None:
     folder_names = [folder.name for folder in telegram_page.folders]
-
     assert "All Chats" in folder_names
+
+    chats = telegram_page.folders.active.chats.all
+    chat_names = [chat.name for chat in chats]
+
+    assert len(chats) > 0
+    assert "Saved Messages" in chat_names
