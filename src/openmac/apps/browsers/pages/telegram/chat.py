@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup, Tag
 
 from openmac import IBrowserTab
 from openmac.apps.browsers.pages.base import BasePage, BasePageElement, must_get
+from openmac.apps.browsers.pages.exceptions import InvalidDataError
 from openmac.apps.shared.base import BaseManager, UniqueIterationTracker
 
 LOCAL_TIMEZONE: Final = datetime.now().astimezone().tzinfo or UTC
@@ -85,7 +86,7 @@ class TelegramChatMessage(BasePageElement):
                 return parsed_datetime
 
         msg = f"Unsupported Telegram message timestamp format: {time_element.text.strip()!r}"
-        raise RuntimeError(msg)
+        raise InvalidDataError(msg)
 
     @property
     def sender(self) -> TelegramChatMessageSender:

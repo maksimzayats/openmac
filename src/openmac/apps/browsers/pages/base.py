@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Self, overload
 
 from bs4 import BeautifulSoup
 
+from openmac.apps.browsers.pages.exceptions import InvalidDataError
 from openmac.apps.browsers.pages.scripts import IS_ELEMENT_IN_VIEWPORT_FUNCTION, REAL_CLICK_FUNCTION
 
 if TYPE_CHECKING:
@@ -85,7 +86,7 @@ def must_get[T](  # noqa: PLR0913
         sleep(delay)
 
     if raise_error:
-        raise RuntimeError(error_description)
+        raise InvalidDataError(error_description)
 
     logger.warning(error_description)
 

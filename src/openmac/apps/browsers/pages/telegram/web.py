@@ -10,6 +10,7 @@ from typing_extensions import Self  # noqa: UP035
 
 from openmac import IBrowserTab
 from openmac.apps.browsers.pages.base import BasePage, BasePageElement, must_get
+from openmac.apps.browsers.pages.exceptions import InvalidDataError
 from openmac.apps.browsers.pages.telegram.chat import TelegramWebChatPage
 from openmac.apps.shared.base import BaseManager, UniqueIterationTracker
 
@@ -107,7 +108,7 @@ class TelegramChat(BasePageElement):
         if href.startswith("#"):
             return href[1:]
 
-        raise ValueError(f"Unexpected chat href format: {href}")
+        raise InvalidDataError(f"Unexpected chat href format: {href}")
 
     @property
     def is_forum(self) -> bool:
