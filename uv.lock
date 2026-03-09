@@ -16,11 +16,11 @@ wheels = [
 
 [[package]]
 name = "acodex"
-version = "0.106.0"
+version = "0.111.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/03/b8/5d2ca222a863b50765e5c484c0abd5e4debc03f53cf089a5d5c34bd4c4fd/acodex-0.106.0.tar.gz", hash = "sha256:063370bc41d4a9631338e0ba842a301936134d2fdf9af7af58095150b8804159", size = 185035, upload-time = "2026-02-28T14:18:18.559Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7f/86/1cf2f264eadf916aeb52bff47d9520f9cbc61c154d83eef3d411a2132a2a/acodex-0.111.0.tar.gz", hash = "sha256:3254f87042512020e124d16c1001cea1a98f5e3eb37ba1d869d04b4d08800b05", size = 184654, upload-time = "2026-03-06T08:13:14.895Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/27/36/f26026d7c56d28d815558cba7234c710113f9b5e08599bd9f7a2f2239a25/acodex-0.106.0-py3-none-any.whl", hash = "sha256:f7724e0a12e75f9183f8c0496360d94af6859cbf00ecc40247e53365337b52e3", size = 31961, upload-time = "2026-02-28T14:18:19.578Z" },
+    { url = "https://files.pythonhosted.org/packages/26/07/507323a7dbfb6fcbe85af49f66e0cec87edfce9a1444b439fd0f4f3b81c3/acodex-0.111.0-py3-none-any.whl", hash = "sha256:6c48c904303e737f857304f3a0db555d62d4cf99b8415b225a2320a64daf57fa", size = 31875, upload-time = "2026-03-06T08:13:13.739Z" },
 ]
 
 [[package]]
