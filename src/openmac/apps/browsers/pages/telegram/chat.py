@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from copy import copy
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Annotated, Any, ClassVar, Final, Self
+from typing import Any, ClassVar, Final, Self
 
 from bs4 import BeautifulSoup, Tag
 
@@ -36,90 +36,7 @@ class TelegramWebChatPage(BasePage):
 @dataclass(slots=True, kw_only=True)
 class TelegramChatMessage(BasePageElement):
     page: TelegramWebChatPage
-    element: Annotated[
-        Tag,
-        """
-        <div id="message-999999" class="Message message-list-item first-in-group allow-selection last-in-group has-reply shown open" data-message-id="999999">
-
-          <div class="bottom-marker" data-message-id="999999"></div>
-
-          <div class="message-select-control no-selection"></div>
-
-          <div class="message-content-wrapper can-select-text">
-
-            <div class="message-content peer-color-4 text has-subheader has-reactions has-shadow has-solid-background has-appendix has-footer" dir="auto">
-
-              <div class="content-inner with-subheader">
-
-                <!-- SENDER -->
-                <div class="message-title">
-                  <span class="message-title-name-container interactive">
-                    <span class="forward-title-container"></span>
-                    <span class="message-title-name">
-                      <span class="sender-title">John Dev</span>
-                    </span>
-                  </span>
-                  <div class="title-spacer"></div>
-                </div>
-
-                <!-- REPLY PREVIEW -->
-                <div class="message-subheader">
-
-                  <div class="EmbeddedMessage no-selection">
-
-                    <div class="message-text">
-
-                      <p class="embedded-text-wrapper">
-                        Do you know a good coworking near the beach?
-                      </p>
-
-                      <div class="message-title">
-                        <span class="embedded-sender-wrapper">
-                          <span class="embedded-sender">Anna</span>
-                        </span>
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-                <!-- MESSAGE TEXT -->
-                <div class="text-content clearfix with-meta">
-
-                  I heard Phuket has some nice remote-worker cafés ☕
-
-                  <!-- REACTIONS -->
-                  <div class="Reactions">
-
-                    <button class="Button message-reaction tiny primary">
-
-                      <div class="ReactionStaticEmoji">
-
-                        👍
-
-                      </div>
-
-                    </button>
-
-                    <span class="MessageMeta reactions-offset">
-                      <span class="message-time">14:21</span>
-                    </span>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-        """,
-    ]
+    element: Tag
 
     @property
     def id(self) -> str:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from dataclasses import dataclass
 from time import sleep
-from typing import Annotated, Any, ClassVar
+from typing import Any, ClassVar
 
 from bs4 import Tag
 from typing_extensions import Self  # noqa: UP035
@@ -42,10 +42,7 @@ class TelegramWebPage(BasePage):
 @dataclass(slots=True, kw_only=True)
 class TelegramChatsFolder(BasePageElement):
     page: TelegramWebPage
-    element: Annotated[
-        Tag,
-        """<div class="Tab Tab--interactive Tab--active"><span class="Tab_inner">All Chats<span class="badge Tab__badge--active">43</span><i class="platform animate" style="transform: none;"></i></span></div>""",
-    ]
+    element: Tag
 
     @property
     def name(self) -> str:
@@ -92,52 +89,7 @@ class TelegramChatsFolder(BasePageElement):
 @dataclass(slots=True, kw_only=True)
 class TelegramChat(BasePageElement):
     folder: TelegramChatsFolder
-    element: Annotated[
-        Tag,
-        """
-        <div class="ListItem Chat chat-item-clickable private has-ripple" style="top: 0px;">
-              <a class="ListItem-button" href="#111111111" tabindex="0">
-                <div class="ripple-container"></div>
-
-                <div class="status status-clickable">
-                  <div class="Avatar peer-color-2" data-peer-id="111111111" style="--_size: 54px;">
-                    <div class="inner">
-                      <span class="letters">A</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="info">
-                  <div class="info-row">
-                    <div class="title">
-                      <h3 class="fullName">Alice Johnson</h3>
-                    </div>
-
-                    <div class="separator"></div>
-
-                    <div class="LastMessageMeta">
-                      <span class="time">10:42</span>
-                    </div>
-                  </div>
-
-                  <div class="subtitle">
-                    <p class="last-message">
-                      <span class="last-message-summary">
-                        Let's push the release today 🚀
-                      </span>
-                    </p>
-
-                    <div class="chat-badge-transition shown open">
-                      <div>
-                        <span>2</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </div>
-            """,
-    ]
+    element: Tag
 
     @property
     def href(self) -> str:
