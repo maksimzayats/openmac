@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from appscript import GenericReference, Keyword, k
 
-from openmac.apps.browsers.base.objects.tabs import IBrowserTab
+from openmac.apps.browsers.base.objects.tabs import IBrowserTab, IBrowserTabManager, PageT
 from openmac.apps.shared.base import BaseManager, BaseObject
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
@@ -25,8 +25,9 @@ class ChromeTab(BaseObject, IBrowserTab):
     def url(self) -> str:
         return self.ae_tab.URL()
 
-    def set_url(self, url: str) -> None:
+    def set_url(self, url: str) -> ChromeTab:
         self.ae_tab.URL.set(url)
+        return self
 
     @property
     def title(self) -> str:
@@ -111,6 +112,9 @@ class ChromeTab(BaseObject, IBrowserTab):
 
             time.sleep(delay)
 
+    def as_page(self, page_cls: type[PageT]) -> PageT:
+        return page_cls.from_tab(self)
+
     # endregion Custom Actions
 
 
@@ -123,7 +127,7 @@ class ChromeTabProperties:
 
 
 @dataclass(slots=True)
-class ChromeWindowTabsManager(BaseManager[ChromeTab]):
+class ChromeWindowTabsManager(IBrowserTabManager, BaseManager[ChromeTab]):
     window: ChromeWindow
 
     @property
@@ -169,7 +173,7 @@ class ChromeWindowTabsManager(BaseManager[ChromeTab]):
                 if wait_until_loaded:
                     tab.wait_until_loaded()
 
-                return tab
+                return cast("ChromeTab", tab)
 
         return self.open(
             url=url,

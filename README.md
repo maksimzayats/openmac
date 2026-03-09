@@ -8,7 +8,7 @@ through AppleScript.
 ### Prerequisites
 
 - macOS
-- Python 3.10+
+- Python 3.14+
 - Google Chrome installed
 - [UV](https://docs.astral.sh/uv/) (recommended) and Git
 
@@ -48,4 +48,4 @@ package API (`Chrome`, `ChromeWindow`, and `ChromeTab`) in `src/openmac`.
 
 - macOS-only support (AppleScript/appscript integration).
 - Supported macOS versions are not explicitly listed in the repository.
-- Python-level version requirement: Python `>=3.10`.
+- Python-level version requirement: Python `>=3.14`.

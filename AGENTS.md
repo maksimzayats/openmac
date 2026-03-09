@@ -1,6 +1,6 @@
 # Agent Notes for openmac
 
-This repository is a Python 3.10+ library. Use strict linting, typing, and
+This repository is a Python 3.14+ library. Use strict linting, typing, and
 testing standards. Prefer uv for all tooling.
 
 ## Project maturity

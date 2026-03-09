@@ -16,6 +16,7 @@ ignore = [
     "D107", # Missing docstring in __init__
     "D203", # Conflicts with D211 (no blank line before class)
     "D213", # Conflicts with D212 (multi-line summary at first line)
+    "D202",
 
     # Type annotations (flake8-annotations)
     "ANN401", # Dynamically typed expressions (Any) disallowed

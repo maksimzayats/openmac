@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from appscript import GenericReference, Keyword, k
 
-from openmac.apps.browsers.base.objects.tabs import IBrowserTab
+from openmac.apps.browsers.base.objects.tabs import IBrowserTab, IBrowserTabManager, PageT
 from openmac.apps.shared.base import BaseManager, BaseObject
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
@@ -29,8 +29,9 @@ class SafariTab(BaseObject, IBrowserTab):
     def title(self) -> str:
         return self.ae_tab.name()
 
-    def set_url(self, url: str) -> None:
+    def set_url(self, url: str) -> SafariTab:
         self.ae_tab.URL.set(url)
+        return self
 
     @property
     def index(self) -> int:
@@ -42,7 +43,7 @@ class SafariTab(BaseObject, IBrowserTab):
 
     @property
     def source(self) -> str:
-        return self.ae_tab.source()
+        return cast("str", self.execute("document.documentElement.outerHTML"))
 
     @property
     def loading(self) -> bool:
@@ -109,6 +110,9 @@ class SafariTab(BaseObject, IBrowserTab):
 
             time.sleep(delay)
 
+    def as_page(self, page_cls: type[PageT]) -> PageT:
+        return page_cls.from_tab(self)
+
     # endregion Custom Actions
 
 
@@ -123,7 +127,7 @@ class SafariTabProperties:
 
 
 @dataclass(slots=True)
-class SafariWindowTabsManager(BaseManager[SafariTab]):
+class SafariWindowTabsManager(IBrowserTabManager, BaseManager[SafariTab]):
     window: SafariWindow
 
     @property
@@ -169,7 +173,7 @@ class SafariWindowTabsManager(BaseManager[SafariTab]):
                 if wait_until_loaded:
                     tab.wait_until_loaded()
 
-                return tab
+                return cast("SafariTab", tab)
 
         return self.open(
             url=url,
