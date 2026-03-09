@@ -63,7 +63,9 @@ class TelegramChatsFolder(BasePageElement):
         """
 
         self.page.real_click(tab_getter)
+        self._wait_for_click_response()
 
+    def _wait_for_click_response(self) -> None:
         for _ in range(10):
             active = self.page.folders.active
             if active.name == self.name:
@@ -162,7 +164,9 @@ class TelegramChat(BasePageElement):
 
         self.folder.click()
         self.folder.page.real_click(chat_getter)
+        self._wait_for_click_response()
 
+    def _wait_for_click_response(self) -> None:
         for _ in range(10):
             if self.is_forum:
                 element = self.folder.page.snapshot.select_one("#TopicListHeader .fullName")
@@ -489,16 +493,7 @@ class TelegramChatsManager(BaseManager[TelegramChat]):
         """,
     ]:
         self.folder.click()
-        for _ in range(10):
-            element = self.page.snapshot.select_one(".chat-list.Transition_slide-active")
-            if element is not None:
-                return element
-
-            sleep(0.1)
-
-        raise RuntimeError(
-            "Could not find the active chat list element after clicking the folder tab.",
-        )
+        return self.page.snapshot.select_one(".chat-list.Transition_slide-active")
 
     def _iter_objects(self) -> Iterator[TelegramChat]:
         for tag in self.element.select("div.ListItem.Chat"):
