@@ -65,24 +65,6 @@ class TelegramChatsFolder(BasePageElement):
     def chats(self) -> TelegramChatsManager:
         return TelegramChatsManager(folder=self, page=self.page)
 
-    def click(self) -> None:
-        """Click on the folder tab to activate it."""
-
-        tab_getter = f"""
-        [...document.querySelectorAll(".Tab--interactive")]
-            .find(el => el.innerText.includes("{self.name}"))
-        """
-
-        self.page.real_click(tab_getter)
-        self._wait_for_click_response()
-
-    def _wait_for_click_response(self) -> None:
-        _ = must_get(
-            lambda: self.page.folders.active,
-            error_description="No active folder found after clicking on the folder tab",
-            exit_condition=lambda active_tab: active_tab.name == self.name,
-        )
-
     def __repr__(self) -> str:
         return f"TelegramChatsFolder(name={self.name!r}, unread_messages={self.unread_messages})"
 
@@ -206,7 +188,7 @@ class TelegramChatsManager(BaseManager[TelegramChat]):
     def _iter_objects(self) -> Iterator[TelegramChat]:
         tracker = UniqueIterationTracker[str]()
 
-        self.folder.click()
+        self._click_folder()
 
         while True:
             tracker.new_iteration()
@@ -230,6 +212,22 @@ class TelegramChatsManager(BaseManager[TelegramChat]):
                 yield chat
 
             self._scroll_chat_list()
+
+    def _click_folder(self) -> None:
+        """Click on the folder tab to activate it."""
+
+        tab_getter = f"""
+        [...document.querySelectorAll(".Tab--interactive")]
+            .find(el => el.innerText.includes("{self.folder.name}"))
+        """
+
+        self.page.real_click(tab_getter)
+
+        must_get(
+            lambda: self.page.folders.active,
+            error_description="No active folder found after clicking on the folder tab",
+            exit_condition=lambda active_tab: active_tab.name == self.folder.name,
+        )
 
     def _scroll_chat_list(self) -> None:
         self.page.tab.execute(
@@ -269,7 +267,6 @@ class TelegramForumTopicsManager(BaseManager[TelegramForumTopic]):
         document.querySelector('.chat-list.Transition_slide-active a[href="{self.chat.href}"]')
         """
 
-        self.chat.folder.click()
         self.page.real_click(chat_getter)
 
         _ = must_get(
