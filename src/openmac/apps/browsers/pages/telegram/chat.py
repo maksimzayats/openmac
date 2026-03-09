@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from copy import copy
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Annotated, Any, Final, Self
+from typing import Annotated, Any, ClassVar, Final, Self
 
 from bs4 import BeautifulSoup, Tag
 
@@ -278,13 +278,21 @@ class TelegramChatMessagesManagerFactory:
 
 @dataclass(slots=True, kw_only=True)
 class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
+    _MAX_EMPTY_ITERATIONS_IN_A_ROW: ClassVar = 3
+
     page: TelegramWebChatPage
     messages_limit: int
 
     def _iter_objects(self) -> Iterator[TelegramChatMessage]:
         seen_message_ids: set[str] = set()
+        empty_iterations_in_a_row = 0
 
-        while len(seen_message_ids) < self.messages_limit:
+        while (
+            len(seen_message_ids) < self.messages_limit
+            and empty_iterations_in_a_row <= self._MAX_EMPTY_ITERATIONS_IN_A_ROW
+        ):
+            seen_ids_before = seen_message_ids.copy()
+
             try:
                 messages_tags = must_get(
                     lambda: self.page.snapshot.select(".messages-container .message-list-item"),
@@ -310,6 +318,11 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
 
             if message is not None:
                 self._scroll_to_message(message)
+
+            if len(seen_message_ids) == len(seen_ids_before):
+                empty_iterations_in_a_row += 1
+            else:
+                empty_iterations_in_a_row = 0
 
     def _scroll_to_message(self, message: TelegramChatMessage) -> None:
         self.page.tab.execute(
