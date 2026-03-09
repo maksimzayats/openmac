@@ -57,7 +57,7 @@ class TelegramChatsFolder(BasePageElement):
         return tab_inner.contents[0].text.strip()
 
     @property
-    def number_of_unread_messages(self) -> int:
+    def unread_messages(self) -> int:
         badge = self.element.find("span", class_="badge")
         if badge is None:
             return 0
@@ -86,7 +86,7 @@ class TelegramChatsFolder(BasePageElement):
         )
 
     def __repr__(self) -> str:
-        return f"TelegramChatsFolder(name={self.name!r}, number_of_unread_messages={self.number_of_unread_messages})"
+        return f"TelegramChatsFolder(name={self.name!r}, unread_messages={self.unread_messages})"
 
 
 @dataclass(slots=True, kw_only=True)
