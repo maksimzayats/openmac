@@ -26,7 +26,7 @@ class BaseManager(ABC, Generic[BaseObjectT_co]):  # noqa: UP046
     _filterer: Filterer[BaseObjectT_co] = field(default_factory=Filterer, init=False)
 
     def __iter__(self) -> Iterator[BaseObjectT_co]:
-        return iter(self.all)
+        return self._iter_objects()
 
     def get(self, **filters: Any) -> BaseObjectT_co:
         objects = self.filter(**filters).all
@@ -56,9 +56,8 @@ class BaseManager(ABC, Generic[BaseObjectT_co]):  # noqa: UP046
 
     @property
     def first(self) -> BaseObjectT_co:
-        objects = self.all
-        if objects:
-            return objects[0]
+        for obj in self:
+            return obj
 
         raise ObjectDoesNotExistError(f"{type(self).__name__} contains no objects.")
 
