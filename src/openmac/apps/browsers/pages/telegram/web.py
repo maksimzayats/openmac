@@ -20,7 +20,15 @@ class TelegramWebPage(BasePage):
 
     @classmethod
     def from_tab(cls, tab: IBrowserTab, **_kwargs: Any) -> Self:
-        return cls(tab=tab)
+        page = cls(tab=tab)
+
+        _ = must_get(
+            lambda: page.snapshot.select(".Spinner__inner"),
+            exit_condition=lambda spinners: len(spinners) == 0,
+            error_description="Loading spinners still found on the page, Telegram web might still be loading",
+        )
+
+        return page
 
     @property
     def folders(self) -> TelegramFoldersManager:
@@ -164,6 +172,21 @@ class TelegramChat(BasePageElement):
         return h3.text.strip()
 
     @property
+    def unread_messages(self) -> int:
+        badges = self.element.select(".chat-badge-transition span")
+        if not badges:
+            return 0
+
+        badge = badges[
+            -1
+        ].text.strip()  # The last badge is the one with the number of unread messages
+
+        badge = badge.replace(".", "")
+        badge = badge.replace("K", "000")  # Handle "K" suffix for thousands
+
+        return int(badge)
+
+    @property
     def topics(self) -> TelegramForumTopicsManager:
         return TelegramForumTopicsManager(chat=self, page=self.folder.page)
 
@@ -174,7 +197,7 @@ class TelegramChat(BasePageElement):
         ).as_page(TelegramWebChatPage)
 
     def __repr__(self) -> str:
-        return f"TelegramChat(id={self.id!r}, name={self.name!r}, is_forum={self.is_forum})"
+        return f"TelegramChat(id={self.id!r}, name={self.name!r}, unread_messages={self.unread_messages}, is_forum={self.is_forum})"
 
 
 @dataclass(slots=True, kw_only=True)
@@ -209,7 +232,13 @@ class TelegramFoldersManager(BaseManager[TelegramChatsFolder]):
         )
 
     def _iter_objects(self) -> Iterator[TelegramChatsFolder]:
-        for tag in self.page.snapshot.find_all("div", class_="Tab"):
+        folders = must_get(
+            lambda: self.page.snapshot.find_all("div", class_="Tab"),
+            error_description="No folder tabs found on the page",
+            exit_condition=lambda tabs: len(tabs) > 0,
+        )
+
+        for tag in folders:
             yield TelegramChatsFolder(page=self.page, element=tag)
 
 
