@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 
 from appscript import GenericReference, Keyword, app
@@ -12,6 +13,8 @@ from openmac.apps.browsers.chrome.objects.bookmark_folders import (
 from openmac.apps.browsers.chrome.objects.tabs import ChromeWindowsTabsManager
 from openmac.apps.browsers.chrome.objects.windows import ChromeWindowsManager
 from openmac.apps.shared.base import BaseApplication
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -84,6 +87,7 @@ class Chrome(BaseApplication, IBrowser):
     # region Actions
 
     def activate(self) -> None:
+        logger.info("Activating Chrome")
         self.ae_chrome.activate()
 
     # endregion Actions

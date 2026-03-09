@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -15,6 +16,8 @@ from openmac.apps.browsers.pages.exceptions import InvalidDataError
 from openmac.apps.browsers.pages.telegram.chat import TelegramWebChatPage
 from openmac.apps.shared.base import BaseManager, UniqueIterationTracker
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass(slots=True, kw_only=True)
 class TelegramWebPage(BasePage):
@@ -22,6 +25,7 @@ class TelegramWebPage(BasePage):
 
     @classmethod
     def from_tab(cls, tab: IBrowserTab, **_kwargs: Any) -> Self:
+        logger.info("Creating %s from tab url=%s", cls.__name__, tab.url)
         page = cls(tab=tab)
 
         _ = must_get(
@@ -30,6 +34,7 @@ class TelegramWebPage(BasePage):
             error_description="Loading spinners still found on the page, Telegram web might still be loading",
         )
 
+        logger.info("%s initialized successfully for tab url=%s", cls.__name__, tab.url)
         return page
 
     @property
@@ -135,6 +140,7 @@ class TelegramChat(BasePageElement):
         return TelegramForumTopicsManager(chat=self, page=self.folder.page)
 
     def open(self) -> TelegramWebChatPage:
+        logger.info("Opening Telegram chat id=%s name=%r href=%s", self.id, self.name, self.href)
         return self.folder.page.tab.window.tabs.open(
             url=f"https://web.telegram.org/a/{self.href}",
             wait_until_loaded=True,
@@ -165,6 +171,7 @@ class TelegramFoldersManager(BaseManager[TelegramChatsFolder]):
 
     @property
     def active(self) -> TelegramChatsFolder:
+        logger.debug("Resolving active Telegram folder")
         active_tab = must_get(
             lambda: self.page.snapshot.find("div", class_="Tab--active"),
             error_description="No active folder tab found",
@@ -177,12 +184,14 @@ class TelegramFoldersManager(BaseManager[TelegramChatsFolder]):
 
     @property
     def all_chats(self) -> TelegramChatsFolder:
+        logger.debug("Selecting Telegram folder with the largest chat collection")
         return max(
             self.all,
             key=lambda folder: folder.chats.count,
         )
 
     def _iter_objects(self) -> Iterator[TelegramChatsFolder]:
+        logger.debug("Enumerating Telegram folders")
         folders = must_get(
             lambda: self.page.snapshot.find_all("div", class_="Tab"),
             error_description="No folder tabs found on the page",
@@ -202,6 +211,7 @@ class TelegramFolderChatsManager(BaseManager[TelegramChat]):
     page: TelegramWebPage
 
     def _iter_objects(self) -> Iterator[TelegramChat]:
+        logger.info("Enumerating chats for Telegram folder name=%r", self.folder.name)
         tracker = UniqueIterationTracker[str]()
 
         self._click_folder()
@@ -209,6 +219,11 @@ class TelegramFolderChatsManager(BaseManager[TelegramChat]):
         while True:
             tracker.new_iteration()
             if tracker.empty_iterations_in_a_row > self._MAX_EMPTY_ITERATIONS_IN_A_ROW:
+                logger.warning(
+                    "Stopping Telegram chat iteration for folder name=%r after %s empty iterations",
+                    self.folder.name,
+                    tracker.empty_iterations_in_a_row,
+                )
                 return
 
             chat_list = must_get(
@@ -225,6 +240,7 @@ class TelegramFolderChatsManager(BaseManager[TelegramChat]):
                 chat = TelegramChat(folder=self.folder, element=tag)
                 if not tracker.add(chat.id):
                     continue
+                logger.debug("Yielding Telegram chat id=%s name=%r", chat.id, chat.name)
                 yield chat
 
             self._scroll_chat_list()
@@ -232,6 +248,7 @@ class TelegramFolderChatsManager(BaseManager[TelegramChat]):
     def _click_folder(self) -> None:
         """Click on the folder tab to activate it."""
 
+        logger.info("Activating Telegram folder name=%r", self.folder.name)
         folder_name = dumps(self.folder.name)
         tab_getter = f"""
         [...document.querySelectorAll(".Tab--interactive")]
@@ -247,8 +264,10 @@ class TelegramFolderChatsManager(BaseManager[TelegramChat]):
             error_description="No active folder found after clicking on the folder tab",
             exit_condition=lambda active_tab: active_tab.name == self.folder.name,
         )
+        logger.debug("Telegram folder name=%r is active", self.folder.name)
 
     def _scroll_chat_list(self) -> None:
+        logger.debug("Scrolling Telegram chat list for folder name=%r", self.folder.name)
         self.page.tab.execute(
             """
             document.querySelector('.chat-list.Transition_slide-active').scrollTop += 1000;
@@ -263,23 +282,39 @@ class TelegramForumTopicsManager(BaseManager[TelegramForumTopic]):
 
     def _iter_objects(self) -> Iterator[TelegramForumTopic]:
         if not self.chat.is_forum:
+            logger.debug(
+                "Telegram chat id=%s is not a forum; skipping topics iteration",
+                self.chat.id,
+            )
             return
 
+        logger.info(
+            "Enumerating forum topics for Telegram chat id=%s name=%r",
+            self.chat.id,
+            self.chat.name,
+        )
         self._open_forum()
 
         topics = self.page.snapshot.select(f".ListItem:has(a[href^='#{self.chat.id}_'])")
         try:
             for tag in topics:
-                yield TelegramForumTopic(
+                topic = TelegramForumTopic(
                     folder=self.chat.folder,
                     chat=self.chat,
                     element=tag,
                 )
+                logger.debug("Yielding Telegram forum topic id=%s name=%r", topic.id, topic.name)
+                yield topic
         finally:
             # close the forum topics list to restore the original page state
             self._close_forum()
 
     def _open_forum(self) -> None:
+        logger.info(
+            "Opening Telegram forum topics for chat id=%s name=%r",
+            self.chat.id,
+            self.chat.name,
+        )
         chat_getter = f"""
         document.querySelector('.chat-list.Transition_slide-active a[href="{self.chat.href}"]')
         """
@@ -293,8 +328,10 @@ class TelegramForumTopicsManager(BaseManager[TelegramForumTopic]):
                 header is not None and header.text.strip() == self.chat.name
             ),
         )
+        logger.debug("Telegram forum topics opened for chat id=%s", self.chat.id)
 
     def _close_forum(self) -> None:
+        logger.debug("Closing Telegram forum topics for chat id=%s", self.chat.id)
         chat_getter = f"""
         document.querySelector('.chat-list.Transition_slide-active a[href="{self.chat.href}"]')
         """
@@ -306,6 +343,7 @@ class TelegramForumTopicsManager(BaseManager[TelegramForumTopic]):
             error_description="Topic list header still found after clicking on the forum chat to close it",
             exit_condition=lambda header: header is None,
         )
+        logger.debug("Telegram forum topics closed for chat id=%s", self.chat.id)
 
 
 # endregion Managers

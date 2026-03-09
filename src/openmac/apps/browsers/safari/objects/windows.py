@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
@@ -17,6 +18,8 @@ from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_
 
 if TYPE_CHECKING:
     from openmac.apps.browsers.safari.objects.application import Safari
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -118,6 +121,7 @@ class SafariWindow(BaseObject, IBrowserWindow):
     # region Actions
 
     def close(self) -> None:
+        logger.info("Closing Safari window id=%s title=%r", self.id, self.title)
         self.ae_window.close()
 
     # endregion Actions
@@ -153,22 +157,31 @@ class SafariWindowsManager(BaseManager[SafariWindow]):
         url: str | None = None,
         preserve_focus: bool = True,
     ) -> SafariWindow:
+        logger.info(
+            "Creating Safari window url=%s preserve_focus=%s",
+            url,
+            preserve_focus,
+        )
         if preserve_focus:
             with preserve_focus_context_manager():
                 ae_window = self._make_ae_window(url)
         else:
             ae_window = self._make_ae_window(url)
 
-        return SafariWindow(ae_window=ae_window)
+        window = SafariWindow(ae_window=ae_window)
+        logger.debug("Created Safari window id=%s url=%s", window.id, url)
+        return window
 
     def _make_ae_window(self, url: str | None) -> GenericReference:
         command_kwargs: dict[str, dict[Keyword, str]] = {}
         if url is not None:
             command_kwargs["with_properties"] = {Keyword("URL"): url}
 
+        logger.debug("Issuing AppleScript request to create Safari window url=%s", url)
         self.safari.ae_safari.make(new=k.document, **command_kwargs)
         return self.safari.ae_safari.windows.first
 
     def _iter_objects(self) -> Iterator[SafariWindow]:
+        logger.debug("Enumerating Safari windows")
         for ae_window in self.safari.ae_safari.windows():
             yield SafariWindow(ae_window=ae_window)
