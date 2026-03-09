@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
+from json import dumps
 from time import sleep
 from typing import Any, ClassVar
 
@@ -220,9 +221,12 @@ class TelegramChatsManager(BaseManager[TelegramChat]):
     def _click_folder(self) -> None:
         """Click on the folder tab to activate it."""
 
+        folder_name = dumps(self.folder.name)
         tab_getter = f"""
         [...document.querySelectorAll(".Tab--interactive")]
-            .find(el => el.innerText.includes("{self.folder.name}"))
+            .find(
+                el => el.querySelector(".Tab_inner")?.firstChild?.textContent?.trim() === {folder_name}
+            )
         """
 
         self.page.real_click(tab_getter)
