@@ -43,12 +43,12 @@ class Filterer(Generic[T]):  # noqa: UP046
         self._query &= query
 
     def filter(self, items: list[T]) -> list[T]:
-        return [item for item in items if self._matches_criteria(item)]
+        return [item for item in items if self.matches_criteria(item)]
 
     def exclude(self, items: list[T]) -> list[T]:
-        return [item for item in items if not self._matches_criteria(item)]
+        return [item for item in items if not self.matches_criteria(item)]
 
-    def _matches_criteria(self, item: T) -> bool:
+    def matches_criteria(self, item: T) -> bool:
         return self._matches_query(item, self._query)
 
     def _matches_query(self, item: T, query: Q) -> bool:

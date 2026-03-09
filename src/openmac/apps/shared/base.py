@@ -73,7 +73,9 @@ class BaseManager(ABC, Generic[BaseObjectT_co]):  # noqa: UP046
     _filterer: Filterer[BaseObjectT_co] = field(default_factory=Filterer, init=False)
 
     def __iter__(self) -> Iterator[BaseObjectT_co]:
-        return self._iter_objects()
+        for obj in self._iter_objects():
+            if self._filterer.matches_criteria(obj):
+                yield obj
 
     def get(self, **filters: Any) -> BaseObjectT_co:
         objects = self.filter(**filters).all
