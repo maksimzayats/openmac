@@ -4,7 +4,6 @@ from collections.abc import Iterator
 from copy import copy
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from time import sleep
 from typing import Annotated, Any, Final, Self
 
 from bs4 import BeautifulSoup, Tag
@@ -24,7 +23,14 @@ class TelegramWebChatPage(BasePage):
 
     @classmethod
     def from_tab(cls, tab: IBrowserTab, **_kwargs: Any) -> Self:
-        return cls(tab=tab)
+        page = cls(tab=tab)
+
+        _ = must_get(
+            lambda: page.snapshot.select_one(".ChatInfo .fullName"),
+            error_description="Chat title element not found, is this a valid Telegram Web chat page?",
+        )
+
+        return page
 
 
 @dataclass(slots=True, kw_only=True)
@@ -247,11 +253,27 @@ class TelegramChatMessagesManagerFactory:
             error_description="Load more messages button not found at the bottom of the chat",
         )
 
+        _opacity = must_get(
+            lambda: self.page.tab.execute(
+                'window.getComputedStyle(document.querySelector(".middle-column-footer button:has(.icon-arrow-down)").parentElement.parentElement).opacity',
+            ),
+            error_description="Failed to get opacity of the load more messages button container",
+            exit_condition=lambda opacity: opacity == "1",
+            tries=20,
+            raise_error=False,
+        )
+
         self.page.real_click(
             "document.querySelector('.middle-column-footer button:has(.icon-arrow-down)')",
         )
 
-        sleep(1)
+        _opacity = must_get(
+            lambda: self.page.tab.execute(
+                'window.getComputedStyle(document.querySelector(".middle-column-footer button:has(.icon-arrow-down)").parentElement.parentElement).opacity',
+            ),
+            error_description="Failed to get opacity of the load more messages button container after clicking it",
+            exit_condition=lambda opacity: opacity == "0",
+        )
 
 
 @dataclass(slots=True, kw_only=True)
@@ -293,7 +315,15 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
         self.page.tab.execute(
             f'document.querySelector("#message-{message.id}").scrollIntoView()',
         )
-        sleep(0.05)
+
+        must_get(
+            lambda: self.page.is_element_visible(
+                f"document.querySelector('#message-{message.id}')",
+            ),
+            error_description=f"Failed to scroll to message with ID {message.id!r}",
+            exit_condition=lambda visible: visible is True,
+            tries=20,
+        )
 
 
 def _parse_telegram_message_datetime(value: str | None) -> datetime | None:
