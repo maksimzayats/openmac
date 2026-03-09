@@ -215,7 +215,7 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
                     error_description="No messages found in the chat",
                     exit_condition=lambda msgs: len(msgs) > 0,
                 )
-            except RuntimeError:
+            except InvalidDataError:
                 return
 
             message: TelegramChatMessage | None = None
@@ -245,6 +245,7 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
             error_description=f"Failed to scroll to message with ID {message.id!r}",
             exit_condition=lambda visible: visible is True,
             tries=20,
+            raise_error=False,
         )
 
 
