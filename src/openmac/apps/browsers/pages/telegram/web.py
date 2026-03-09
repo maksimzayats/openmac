@@ -37,8 +37,8 @@ class TelegramWebPage(BasePage):
         return TelegramFoldersManager(page=self)
 
     @property
-    def chats(self) -> TelegramChatsManager:
-        return self.folders.last.chats
+    def chats(self) -> TelegramFolderChatsManager:
+        return self.folders.all_chats.chats
 
 
 @dataclass(slots=True, kw_only=True)
@@ -68,8 +68,8 @@ class TelegramChatsFolder(BasePageElement):
         return int(badge.text.strip())
 
     @property
-    def chats(self) -> TelegramChatsManager:
-        return TelegramChatsManager(folder=self, page=self.page)
+    def chats(self) -> TelegramFolderChatsManager:
+        return TelegramFolderChatsManager(folder=self, page=self.page)
 
     def __repr__(self) -> str:
         return f"TelegramChatsFolder(name={self.name!r}, unread_messages={self.unread_messages})"
@@ -175,6 +175,13 @@ class TelegramFoldersManager(BaseManager[TelegramChatsFolder]):
             element=active_tab,
         )
 
+    @property
+    def all_chats(self) -> TelegramChatsFolder:
+        return max(
+            self.all,
+            key=lambda folder: folder.chats.count,
+        )
+
     def _iter_objects(self) -> Iterator[TelegramChatsFolder]:
         folders = must_get(
             lambda: self.page.snapshot.find_all("div", class_="Tab"),
@@ -187,7 +194,7 @@ class TelegramFoldersManager(BaseManager[TelegramChatsFolder]):
 
 
 @dataclass(slots=True, kw_only=True)
-class TelegramChatsManager(BaseManager[TelegramChat]):
+class TelegramFolderChatsManager(BaseManager[TelegramChat]):
     _MAX_EMPTY_ITERATIONS_IN_A_ROW: ClassVar = 3
     """Define a maximum number of consecutive iterations without finding new chats before stopping the iteration. This is needed to avoid infinite loops in case of unexpected page structure changes or loading issues."""
 
