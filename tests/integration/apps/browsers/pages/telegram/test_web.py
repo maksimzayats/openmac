@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from contextlib import suppress
-from time import sleep
 
 import pytest
 from appscript import CommandError
@@ -14,12 +13,6 @@ from openmac.apps.browsers.pages.telegram.web import TelegramWebPage
 @pytest.fixture(scope="function")
 def telegram_tab(safari: Safari) -> Generator[IBrowserTab]:
     tab = safari.tabs.open("https://web.telegram.org/a/", wait_until_loaded=True)
-
-    for _ in range(50):
-        if 'id="LeftColumn"' in tab.source:
-            break
-
-        sleep(0.1)
 
     try:
         yield tab
