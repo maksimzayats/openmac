@@ -8,7 +8,7 @@ import pytest
 from appscript import CommandError
 
 from openmac import IBrowserTab, Safari
-from openmac.apps.browsers.pages.telegram.web import TelegramPage
+from openmac.apps.browsers.pages.telegram.web import TelegramWebPage
 
 
 @pytest.fixture(scope="function")
@@ -29,17 +29,17 @@ def telegram_tab(safari: Safari) -> Generator[IBrowserTab]:
 
 
 @pytest.fixture(scope="function")
-def telegram_page(telegram_tab: IBrowserTab) -> TelegramPage:
-    return telegram_tab.as_page(TelegramPage)
+def telegram_page(telegram_tab: IBrowserTab) -> TelegramWebPage:
+    return telegram_tab.as_page(TelegramWebPage)
 
 
-def test_chat_folders(telegram_page: TelegramPage) -> None:
+def test_chat_folders(telegram_page: TelegramWebPage) -> None:
     folder_names = [folder.name for folder in telegram_page.folders]
 
     assert "All Chats" in folder_names
 
 
-def test_click_chat_folder(telegram_page: TelegramPage) -> None:
+def test_click_chat_folder(telegram_page: TelegramWebPage) -> None:
     active_folder_name_before = telegram_page.folders.active.name
 
     all_chats_folder = telegram_page.folders.filter(name="All Chats").first

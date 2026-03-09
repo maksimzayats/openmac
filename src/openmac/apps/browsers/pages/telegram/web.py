@@ -2,20 +2,20 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import datetime
 from time import sleep
-from typing import Annotated, Any
+from typing import Annotated, Any, ClassVar
 
 from bs4 import Tag
 from typing_extensions import Self  # noqa: UP035
 
 from openmac import IBrowserTab
-from openmac.apps.browsers.pages.base import BasePage, BasePageElement
+from openmac.apps.browsers.pages.base import BasePage, BasePageElement, must_get
+from openmac.apps.browsers.pages.telegram.chat import TelegramWebChatPage
 from openmac.apps.shared.base import BaseManager
 
 
 @dataclass(slots=True, kw_only=True)
-class TelegramPage(BasePage):
+class TelegramWebPage(BasePage):
     tab: IBrowserTab
 
     @classmethod
@@ -33,7 +33,7 @@ class TelegramPage(BasePage):
 
 @dataclass(slots=True, kw_only=True)
 class TelegramChatsFolder(BasePageElement):
-    page: TelegramPage
+    page: TelegramWebPage
     element: Annotated[
         Tag,
         """<div class="Tab Tab--interactive Tab--active"><span class="Tab_inner">All Chats<span class="badge Tab__badge--active">43</span><i class="platform animate" style="transform: none;"></i></span></div>""",
@@ -41,7 +41,12 @@ class TelegramChatsFolder(BasePageElement):
 
     @property
     def name(self) -> str:
-        return self.element.find("span", class_="Tab_inner").contents[0].text.strip()
+        tab_inner = must_get(
+            lambda: self.element.find("span", class_="Tab_inner"),
+            error_description="No Tab_inner element found in the folder tab",
+        )
+
+        return tab_inner.contents[0].text.strip()
 
     @property
     def number_of_unread_messages(self) -> int:
@@ -66,12 +71,11 @@ class TelegramChatsFolder(BasePageElement):
         self._wait_for_click_response()
 
     def _wait_for_click_response(self) -> None:
-        for _ in range(10):
-            active = self.page.folders.active
-            if active.name == self.name:
-                return
-
-            sleep(0.1)
+        _ = must_get(
+            lambda: self.page.folders.active,
+            error_description="No active folder found after clicking on the folder tab",
+            exit_condition=lambda active_tab: active_tab.name == self.name,
+        )
 
     def __repr__(self) -> str:
         return f"TelegramChatsFolder(name={self.name!r}, number_of_unread_messages={self.number_of_unread_messages})"
@@ -129,7 +133,13 @@ class TelegramChat(BasePageElement):
 
     @property
     def href(self) -> str:
-        return self.element.find("a", class_="ListItem-button")["href"]
+        button = must_get(
+            lambda: self.element.find("a", class_="ListItem-button"),
+            error_description="No ListItem-button link found in the chat element",
+            tries=1,
+        )
+
+        return str(button["href"])
 
     @property
     def id(self) -> str:
@@ -145,40 +155,23 @@ class TelegramChat(BasePageElement):
 
     @property
     def name(self) -> str:
-        return self.element.find("h3", class_="fullName").text.strip()
+        h3 = must_get(
+            lambda: self.element.find("h3", class_="fullName"),
+            error_description="No fullName element found in the chat element",
+            tries=1,
+        )
 
-    @property
-    def messages(self) -> TelegramChatMessagesManager:
-        return TelegramChatMessagesManager(chat=self, page=self.folder.page)
+        return h3.text.strip()
 
     @property
     def topics(self) -> TelegramForumTopicsManager:
         return TelegramForumTopicsManager(chat=self, page=self.folder.page)
 
-    def click(self) -> None:
-        """Click on the chat to open it."""
-
-        chat_getter = f"""
-        document.querySelector('.chat-list.Transition_slide-active a[href="{self.href}"]')
-        """
-
-        self.folder.click()
-        self.folder.page.real_click(chat_getter)
-        self._wait_for_click_response()
-
-    def _wait_for_click_response(self) -> None:
-        for _ in range(10):
-            if self.is_forum:
-                element = self.folder.page.snapshot.select_one("#TopicListHeader .fullName")
-            else:
-                element = self.folder.page.snapshot.select_one(
-                    ".MiddleHeader .Transition_slide-active .fullName",
-                )
-
-            if element and element.text.strip() == self.name:
-                return
-
-            sleep(0.1)
+    def open(self) -> TelegramWebChatPage:
+        return self.folder.page.tab.window.tabs.open(
+            url=f"https://web.telegram.org/a/{self.href}",
+            wait_until_loaded=True,
+        ).as_page(TelegramWebChatPage)
 
     def __repr__(self) -> str:
         return f"TelegramChat(id={self.id!r}, name={self.name!r}, is_forum={self.is_forum})"
@@ -196,319 +189,92 @@ class TelegramForumTopic(TelegramChat):
         return f"TelegramForumTopic(id={self.id!r}, name={self.name!r})"
 
 
-@dataclass(slots=True, kw_only=True)
-class TelegramChatMessage(BasePageElement):
-    chat: TelegramChat
-
-    @property
-    def id(self) -> str:
-        raise NotImplementedError
-
-    @property
-    def content(self) -> str:
-        raise NotImplementedError
-
-    @property
-    def sent_at(self) -> datetime:
-        raise NotImplementedError
-
-    @property
-    def sender(self) -> TelegramChatMessageSender:
-        raise NotImplementedError
-
-
-@dataclass(slots=True, kw_only=True)
-class TelegramChatMessageSender(BasePageElement):
-    message: TelegramChatMessage
-
-    @property
-    def name(self) -> str:
-        raise NotImplementedError
-
-
 # region Managers
 
 
 @dataclass(slots=True, kw_only=True)
 class TelegramFoldersManager(BaseManager[TelegramChatsFolder]):
-    page: TelegramPage
-
-    @property
-    def element(
-        self,
-    ) -> Annotated[
-        Tag,
-        """
-        <div class="TabList no-scrollbar">
-          <div class="Tab Tab--interactive">
-            <span class="Tab_inner">
-              Work
-              <span class="badge">3</span>
-              <i class="platform" style="transform: none;"></i>
-            </span>
-          </div>
-
-          <div class="Tab Tab--interactive">
-            <span class="Tab_inner">
-              Friends
-              <span class="badge">12</span>
-              <i class="platform"></i>
-            </span>
-          </div>
-
-          <div class="Tab Tab--interactive">
-            <span class="Tab_inner">
-              Projects
-              <span class="badge">7</span>
-              <i class="platform"></i>
-            </span>
-          </div>
-
-          <div class="Tab Tab--interactive">
-            <span class="Tab_inner">
-              Ideas
-              <span class="badge">2</span>
-              <i class="platform" style="transform: none;"></i>
-            </span>
-          </div>
-
-          <div class="Tab Tab--interactive Tab--active">
-            <span class="Tab_inner">
-              All Messages
-              <span class="badge Tab__badge--active">21</span>
-              <i class="platform animate" style="transform: none;"></i>
-            </span>
-          </div>
-        </div>
-        """,
-    ]:
-        return self.page.snapshot.find("div", class_="TabList no-scrollbar")
+    page: TelegramWebPage
 
     @property
     def active(self) -> TelegramChatsFolder:
+        active_tab = must_get(
+            lambda: self.page.snapshot.find("div", class_="Tab--active"),
+            error_description="No active folder tab found",
+        )
+
         return TelegramChatsFolder(
             page=self.page,
-            element=self.element.find("div", class_="Tab--active"),
+            element=active_tab,
         )
 
     def _iter_objects(self) -> Iterator[TelegramChatsFolder]:
-        for tag in self.element.find_all("div", class_="Tab"):
+        for tag in self.page.snapshot.find_all("div", class_="Tab"):
             yield TelegramChatsFolder(page=self.page, element=tag)
 
 
 @dataclass(slots=True, kw_only=True)
 class TelegramChatsManager(BaseManager[TelegramChat]):
+    _MAX_EMPTY_ITERATIONS_IN_A_ROW: ClassVar = 3
+    """Define a maximum number of consecutive iterations without finding new chats before stopping the iteration. This is needed to avoid infinite loops in case of unexpected page structure changes or loading issues."""
+
     folder: TelegramChatsFolder
-    page: TelegramPage
-
-    @property
-    def element(
-        self,
-    ) -> Annotated[
-        Tag,
-        """
-        <div class="Transition_slide chat-list custom-scroll Transition_slide-active">
-          <div style="position: relative;">
-
-            <!-- CHAT 1 -->
-            <div class="ListItem Chat chat-item-clickable private has-ripple" style="top: 0px;">
-              <a class="ListItem-button" href="#111111111" tabindex="0">
-                <div class="ripple-container"></div>
-
-                <div class="status status-clickable">
-                  <div class="Avatar peer-color-2" data-peer-id="111111111" style="--_size: 54px;">
-                    <div class="inner">
-                      <span class="letters">A</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="info">
-                  <div class="info-row">
-                    <div class="title">
-                      <h3 class="fullName">Alice Johnson</h3>
-                    </div>
-
-                    <div class="separator"></div>
-
-                    <div class="LastMessageMeta">
-                      <span class="time">10:42</span>
-                    </div>
-                  </div>
-
-                  <div class="subtitle">
-                    <p class="last-message">
-                      <span class="last-message-summary">
-                        Let's push the release today 🚀
-                      </span>
-                    </p>
-
-                    <div class="chat-badge-transition shown open">
-                      <div>
-                        <span>2</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </div>
-
-
-            <!-- CHAT 2 -->
-            <div class="ListItem Chat chat-item-clickable group has-ripple" style="top: 72px;">
-              <a class="ListItem-button" href="#-100222222222" tabindex="0">
-                <div class="ripple-container"></div>
-
-                <div class="status status-clickable">
-                  <div class="Avatar peer-color-5" data-peer-id="-100222222222" style="--_size: 54px;">
-                    <div class="inner">
-                      <span class="letters">D</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="info">
-                  <div class="info-row">
-                    <div class="title">
-                      <h3 class="fullName">Dev Team</h3>
-                    </div>
-
-                    <i class="icon icon-muted"></i>
-
-                    <div class="separator"></div>
-
-                    <div class="LastMessageMeta">
-                      <span class="time">09:17</span>
-                    </div>
-                  </div>
-
-                  <div class="subtitle">
-                    <p class="last-message">
-                      <span class="sender-name">Mike</span>
-                      <span class="colon">:</span>
-                      <span class="last-message-summary">
-                        CI pipeline finished successfully
-                      </span>
-                    </p>
-
-                    <div class="chat-badge-transition shown open">
-                      <div>
-                        <span>18</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </div>
-
-
-            <!-- CHAT 3 -->
-            <div class="ListItem Chat chat-item-clickable private has-ripple" style="top: 144px;">
-              <a class="ListItem-button" href="#333333333" tabindex="0">
-                <div class="ripple-container"></div>
-
-                <div class="status status-clickable">
-                  <div class="Avatar peer-color-8" data-peer-id="333333333" style="--_size: 54px;">
-                    <div class="inner">
-                      <span class="letters">S</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="info">
-                  <div class="info-row">
-                    <div class="title">
-                      <h3 class="fullName">Sarah Lee</h3>
-                    </div>
-
-                    <div class="separator"></div>
-
-                    <div class="LastMessageMeta">
-                      <span class="time">Yesterday</span>
-                    </div>
-                  </div>
-
-                  <div class="subtitle">
-                    <p class="last-message">
-                      <span class="last-message-summary">
-                        Are we still meeting tomorrow?
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </a>
-            </div>
-
-
-            <!-- CHAT 4 -->
-            <div class="ListItem Chat chat-item-clickable group has-ripple" style="top: 216px;">
-              <a class="ListItem-button" href="#-100444444444" tabindex="0">
-
-                <div class="ripple-container"></div>
-
-                <div class="status status-clickable">
-                  <div class="Avatar peer-color-3" data-peer-id="-100444444444" style="--_size: 54px;">
-                    <div class="inner">
-                      <span class="letters">P</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="info">
-                  <div class="info-row">
-                    <div class="title">
-                      <h3 class="fullName">Product Discussions</h3>
-                    </div>
-
-                    <div class="separator"></div>
-
-                    <div class="LastMessageMeta">
-                      <span class="time">Sun</span>
-                    </div>
-                  </div>
-
-                  <div class="subtitle">
-                    <p class="last-message">
-                      <span class="sender-name">Anna</span>
-                      <span class="colon">:</span>
-                      <span class="last-message-summary">
-                        Let's validate the idea with users first
-                      </span>
-                    </p>
-
-                    <div class="chat-badge-transition shown open">
-                      <div>
-                        <span>5</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </a>
-            </div>
-
-          </div>
-        </div>
-        """,
-    ]:
-        self.folder.click()
-        return self.page.snapshot.select_one(".chat-list.Transition_slide-active")
+    page: TelegramWebPage
 
     def _iter_objects(self) -> Iterator[TelegramChat]:
-        for tag in self.element.select("div.ListItem.Chat"):
-            yield TelegramChat(folder=self.folder, element=tag)
+        seen_ids: set[str] = set()
+        empty_iterations_in_a_row = 0
+
+        self.folder.click()
+
+        while empty_iterations_in_a_row <= self._MAX_EMPTY_ITERATIONS_IN_A_ROW:
+            seen_ids_before = seen_ids.copy()
+
+            chat_list = must_get(
+                lambda: self.page.snapshot.select_one(".chat-list.Transition_slide-active"),
+                error_description="No chat list found after clicking on the folder",
+            )
+
+            chats = must_get(
+                lambda: chat_list.select("div.ListItem.Chat"),  # noqa: B023
+                error_description="No chats found in the active folder",
+            )
+
+            for tag in chats:
+                chat = TelegramChat(folder=self.folder, element=tag)
+                if chat.id in seen_ids:
+                    continue
+                seen_ids.add(chat.id)
+                yield chat
+
+            if len(seen_ids) == len(seen_ids_before):
+                empty_iterations_in_a_row += 1
+            else:
+                empty_iterations_in_a_row = 0
+
+            self._scroll_chat_list()
+
+    def _scroll_chat_list(self) -> None:
+        self.page.tab.execute(
+            """
+            document.querySelector('.chat-list.Transition_slide-active').scrollTop += 1000;
+            """,
+        )
+
+        sleep(0.5)
 
 
 @dataclass(slots=True, kw_only=True)
 class TelegramForumTopicsManager(BaseManager[TelegramForumTopic]):
     chat: TelegramChat
-    page: TelegramPage
+    page: TelegramWebPage
 
     def _iter_objects(self) -> Iterator[TelegramForumTopic]:
         if not self.chat.is_forum:
             return
 
-        self.chat.click()
+        self._open_forum()
+
         topics = self.page.snapshot.select(f".ListItem:has(a[href^='#{self.chat.id}_'])")
         try:
             for tag in topics:
@@ -519,16 +285,36 @@ class TelegramForumTopicsManager(BaseManager[TelegramForumTopic]):
                 )
         finally:
             # close the forum topics list to restore the original page state
-            self.chat.click()
+            self._close_forum()
 
+    def _open_forum(self) -> None:
+        chat_getter = f"""
+        document.querySelector('.chat-list.Transition_slide-active a[href="{self.chat.href}"]')
+        """
 
-@dataclass(slots=True, kw_only=True)
-class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
-    chat: TelegramChat
-    page: TelegramPage
+        self.chat.folder.click()
+        self.page.real_click(chat_getter)
 
-    def _iter_objects(self) -> Iterator[TelegramChatMessage]:
-        raise NotImplementedError
+        _ = must_get(
+            lambda: self.page.snapshot.select_one("#TopicListHeader .fullName"),
+            error_description="No topic list header found after clicking on the forum chat",
+            exit_condition=lambda header: (
+                header is not None and header.text.strip() == self.chat.name
+            ),
+        )
+
+    def _close_forum(self) -> None:
+        chat_getter = f"""
+        document.querySelector('.chat-list.Transition_slide-active a[href="{self.chat.href}"]')
+        """
+
+        self.page.real_click(chat_getter)
+
+        _ = must_get(
+            lambda: self.page.snapshot.select_one("#TopicListHeader .fullName"),
+            error_description="Topic list header still found after clicking on the forum chat to close it",
+            exit_condition=lambda header: header is None,
+        )
 
 
 # endregion Managers

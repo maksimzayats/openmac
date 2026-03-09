@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from openmac.apps.browsers.pages.base import BasePage
+from openmac.apps.shared.base import BaseManager
 
 PageT = TypeVar("PageT", bound=BasePage)
 
@@ -69,3 +70,20 @@ class IBrowserTab(ABC):
     def as_page(self, page_cls: type[PageT]) -> PageT: ...
 
     # endregion Custom Actions
+
+
+class IBrowserTabManager(BaseManager[IBrowserTab], ABC):
+    window: IBrowserWindow
+
+    # region Actions
+
+    @abstractmethod
+    def open(
+        self,
+        url: str,
+        *,
+        wait_until_loaded: bool = True,
+        preserve_focus: bool = True,
+    ) -> IBrowserTab: ...
+
+    # endregion Actions

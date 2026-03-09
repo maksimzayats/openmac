@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from time import sleep
+from typing import TYPE_CHECKING, Any, Self, overload
 
 from bs4 import BeautifulSoup
-from typing_extensions import Self  # noqa: UP035
 
 from openmac.apps.browsers.pages.scripts import REAL_CLICK_FUNCTION
 
@@ -34,3 +35,43 @@ class BasePage(ABC):
 @dataclass(kw_only=True)
 class BasePageElement:
     pass
+
+
+@overload
+def must_get[T](
+    getter: Callable[[], T | None],
+    error_description: str,
+    *,
+    exit_condition: Callable[[T], bool] = lambda result: result is not None,
+    tries: int = 100,
+    delay: float = 0.1,
+) -> T: ...
+
+
+@overload
+def must_get[T](
+    getter: Callable[[], T],
+    error_description: str,
+    *,
+    exit_condition: Callable[[T], bool] = lambda result: result is not None,
+    tries: int = 100,
+    delay: float = 0.1,
+) -> T: ...
+
+
+def must_get[T](
+    getter: Callable[[], T | None],
+    error_description: str,
+    *,
+    exit_condition: Callable[[Any], bool] = lambda result: result is not None,
+    tries: int = 100,
+    delay: float = 0.1,
+) -> T | None:
+    for _ in range(tries):
+        result = getter()
+        if exit_condition(result):
+            return result
+
+        sleep(delay)
+
+    raise RuntimeError(error_description)

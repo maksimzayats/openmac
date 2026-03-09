@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from appscript import GenericReference, Keyword, k
 
-from openmac.apps.browsers.base.objects.tabs import IBrowserTab, PageT
+from openmac.apps.browsers.base.objects.tabs import IBrowserTab, IBrowserTabManager, PageT
 from openmac.apps.shared.base import BaseManager, BaseObject
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
@@ -127,7 +127,7 @@ class SafariTabProperties:
 
 
 @dataclass(slots=True)
-class SafariWindowTabsManager(BaseManager[SafariTab]):
+class SafariWindowTabsManager(IBrowserTabManager, BaseManager[SafariTab]):
     window: SafariWindow
 
     @property
@@ -173,7 +173,7 @@ class SafariWindowTabsManager(BaseManager[SafariTab]):
                 if wait_until_loaded:
                     tab.wait_until_loaded()
 
-                return tab
+                return cast("SafariTab", tab)
 
         return self.open(
             url=url,
