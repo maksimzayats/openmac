@@ -11,7 +11,7 @@ from typing_extensions import Self  # noqa: UP035
 from openmac import IBrowserTab
 from openmac.apps.browsers.pages.base import BasePage, BasePageElement, must_get
 from openmac.apps.browsers.pages.telegram.chat import TelegramWebChatPage
-from openmac.apps.shared.base import BaseManager
+from openmac.apps.shared.base import BaseManager, UniqueIterationTracker
 
 
 @dataclass(slots=True, kw_only=True)
@@ -251,13 +251,14 @@ class TelegramChatsManager(BaseManager[TelegramChat]):
     page: TelegramWebPage
 
     def _iter_objects(self) -> Iterator[TelegramChat]:
-        seen_ids: set[str] = set()
-        empty_iterations_in_a_row = 0
+        tracker = UniqueIterationTracker[str]()
 
         self.folder.click()
 
-        while empty_iterations_in_a_row <= self._MAX_EMPTY_ITERATIONS_IN_A_ROW:
-            seen_ids_before = seen_ids.copy()
+        while True:
+            tracker.new_iteration()
+            if tracker.empty_iterations_in_a_row > self._MAX_EMPTY_ITERATIONS_IN_A_ROW:
+                return
 
             chat_list = must_get(
                 lambda: self.page.snapshot.select_one(".chat-list.Transition_slide-active"),
@@ -271,15 +272,9 @@ class TelegramChatsManager(BaseManager[TelegramChat]):
 
             for tag in chats:
                 chat = TelegramChat(folder=self.folder, element=tag)
-                if chat.id in seen_ids:
+                if not tracker.add(chat.id):
                     continue
-                seen_ids.add(chat.id)
                 yield chat
-
-            if len(seen_ids) == len(seen_ids_before):
-                empty_iterations_in_a_row += 1
-            else:
-                empty_iterations_in_a_row = 0
 
             self._scroll_chat_list()
 

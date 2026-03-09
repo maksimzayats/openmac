@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup, Tag
 
 from openmac import IBrowserTab
 from openmac.apps.browsers.pages.base import BasePage, BasePageElement, must_get
-from openmac.apps.shared.base import BaseManager
+from openmac.apps.shared.base import BaseManager, UniqueIterationTracker
 
 LOCAL_TIMEZONE: Final = datetime.now().astimezone().tzinfo or UTC
 
@@ -284,14 +284,12 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
     messages_limit: int
 
     def _iter_objects(self) -> Iterator[TelegramChatMessage]:
-        seen_message_ids: set[str] = set()
-        empty_iterations_in_a_row = 0
+        tracker = UniqueIterationTracker[str]()
 
-        while (
-            len(seen_message_ids) < self.messages_limit
-            and empty_iterations_in_a_row <= self._MAX_EMPTY_ITERATIONS_IN_A_ROW
-        ):
-            seen_ids_before = seen_message_ids.copy()
+        while len(tracker) < self.messages_limit:
+            tracker.new_iteration()
+            if tracker.empty_iterations_in_a_row > self._MAX_EMPTY_ITERATIONS_IN_A_ROW:
+                return
 
             try:
                 messages_tags = must_get(
@@ -309,20 +307,13 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
                     page=self.page,
                 )
 
-                if message.id in seen_message_ids:
+                if not tracker.add(message.id):
                     continue
-
-                seen_message_ids.add(message.id)
 
                 yield message
 
             if message is not None:
                 self._scroll_to_message(message)
-
-            if len(seen_message_ids) == len(seen_ids_before):
-                empty_iterations_in_a_row += 1
-            else:
-                empty_iterations_in_a_row = 0
 
     def _scroll_to_message(self, message: TelegramChatMessage) -> None:
         self.page.tab.execute(

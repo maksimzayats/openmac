@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterator
+from collections.abc import Hashable, Iterator
 from dataclasses import dataclass, field
 from typing import Any, Generic, TypeVar
 
@@ -19,6 +19,53 @@ class BaseApplication:
 @dataclass(slots=True, kw_only=True)
 class BaseObject:
     pass
+
+
+@dataclass(slots=True)
+class UniqueIterationTracker[TrackedObjectT: Hashable]:
+    """Track unique objects discovered across iterations.
+
+    The caller owns any stop condition logic, such as a limit on consecutive
+    iterations without new objects.
+    """
+
+    _seen_objects: set[TrackedObjectT] = field(default_factory=set, init=False)
+    _empty_iterations_in_a_row: int = field(default=0, init=False)
+    _has_started: bool = field(default=False, init=False)
+    _new_objects_in_current_iteration: int = field(default=0, init=False)
+
+    def new_iteration(self) -> None:
+        """Start a new iteration and finalize the previous one."""
+
+        if self._has_started:
+            if self._new_objects_in_current_iteration == 0:
+                self._empty_iterations_in_a_row += 1
+            else:
+                self._empty_iterations_in_a_row = 0
+
+        self._has_started = True
+        self._new_objects_in_current_iteration = 0
+
+    def add(self, obj: TrackedObjectT) -> bool:
+        """Record a discovered object and report whether it is new."""
+
+        if obj in self._seen_objects:
+            return False
+
+        self._seen_objects.add(obj)
+        self._new_objects_in_current_iteration += 1
+        return True
+
+    @property
+    def empty_iterations_in_a_row(self) -> int:
+        """Return the number of consecutive iterations without new objects."""
+
+        return self._empty_iterations_in_a_row
+
+    def __len__(self) -> int:
+        """Return the number of unique objects seen so far."""
+
+        return len(self._seen_objects)
 
 
 @dataclass(slots=True, kw_only=True)
