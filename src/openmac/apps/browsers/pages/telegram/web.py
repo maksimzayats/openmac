@@ -54,7 +54,12 @@ class TelegramChatsFolder(BasePageElement):
             error_description="No Tab_inner element found in the folder tab",
         )
 
-        return tab_inner.contents[0].text.strip()
+        try:
+            return tab_inner.contents[0].text.strip()
+        except IndexError as e:
+            raise InvalidDataError(
+                "No text content found in the Tab_inner element of the folder tab",
+            ) from e
 
     @property
     def unread_messages(self) -> int:
