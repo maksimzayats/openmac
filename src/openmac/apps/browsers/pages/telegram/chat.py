@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from copy import copy
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from time import sleep
 from typing import Annotated, Any, Final, Self
 
 from bs4 import BeautifulSoup, Tag
@@ -18,8 +19,8 @@ LOCAL_TIMEZONE: Final = datetime.now().astimezone().tzinfo or UTC
 @dataclass(slots=True, kw_only=True)
 class TelegramWebChatPage(BasePage):
     @property
-    def messages(self) -> TelegramChatMessagesManager:
-        return TelegramChatMessagesManager(page=self)
+    def messages(self) -> TelegramChatMessagesManagerFactory:
+        return TelegramChatMessagesManagerFactory(page=self)
 
     @classmethod
     def from_tab(cls, tab: IBrowserTab, **_kwargs: Any) -> Self:
@@ -230,24 +231,69 @@ class TelegramChatMessageReplyPreview(BasePageElement):
 
 
 @dataclass(slots=True, kw_only=True)
-class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
+class TelegramChatMessagesManagerFactory:
     page: TelegramWebChatPage
 
-    def _iter_objects(self) -> Iterator[TelegramChatMessage]:
-        try:
-            messages = must_get(
-                lambda: self.page.snapshot.select(".messages-container .message-list-item"),
-                error_description="No messages found in the chat",
-                exit_condition=lambda msgs: len(msgs) > 0,
-            )
-        except RuntimeError:
-            return
+    def last(self, messages_limit: int) -> TelegramChatMessagesManager:
+        self._go_to_bottom()
 
-        for message in messages:
-            yield TelegramChatMessage(
-                element=message,
-                page=self.page,
-            )
+        return TelegramChatMessagesManager(page=self.page, messages_limit=messages_limit)
+
+    def _go_to_bottom(self) -> None:
+        _button = must_get(
+            lambda: self.page.snapshot.select_one(
+                ".middle-column-footer button:has(.icon-arrow-down)",
+            ),
+            error_description="Load more messages button not found at the bottom of the chat",
+        )
+
+        self.page.real_click(
+            "document.querySelector('.middle-column-footer button:has(.icon-arrow-down)')",
+        )
+
+        sleep(1)
+
+
+@dataclass(slots=True, kw_only=True)
+class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
+    page: TelegramWebChatPage
+    messages_limit: int
+
+    def _iter_objects(self) -> Iterator[TelegramChatMessage]:
+        seen_message_ids: set[str] = set()
+
+        while len(seen_message_ids) < self.messages_limit:
+            try:
+                messages_tags = must_get(
+                    lambda: self.page.snapshot.select(".messages-container .message-list-item"),
+                    error_description="No messages found in the chat",
+                    exit_condition=lambda msgs: len(msgs) > 0,
+                )
+            except RuntimeError:
+                return
+
+            message: TelegramChatMessage | None = None
+            for message_tag in messages_tags[::-1]:
+                message = TelegramChatMessage(
+                    element=message_tag,
+                    page=self.page,
+                )
+
+                if message.id in seen_message_ids:
+                    continue
+
+                seen_message_ids.add(message.id)
+
+                yield message
+
+            if message is not None:
+                self._scroll_to_message(message)
+
+    def _scroll_to_message(self, message: TelegramChatMessage) -> None:
+        self.page.tab.execute(
+            f'document.querySelector("#message-{message.id}").scrollIntoView()',
+        )
+        sleep(0.05)
 
 
 def _parse_telegram_message_datetime(value: str | None) -> datetime | None:
