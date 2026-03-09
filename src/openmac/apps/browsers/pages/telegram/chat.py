@@ -14,6 +14,7 @@ from openmac.apps.browsers.pages.exceptions import InvalidDataError
 from openmac.apps.shared.base import BaseManager, UniqueIterationTracker
 
 LOCAL_TIMEZONE: Final = datetime.now().astimezone().tzinfo or UTC
+TIME_ONLY_YEAR: Final = 1900
 
 
 @dataclass(slots=True, kw_only=True)
@@ -229,6 +230,8 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
                     continue
 
                 yield message
+                if len(tracker) >= self.messages_limit:
+                    return
 
             if message is not None:
                 self._scroll_to_message(message)
@@ -271,6 +274,13 @@ def _parse_telegram_message_datetime(value: str | None) -> datetime | None:
             normalized_value,
             ("%H:%M", "%I:%M %p"),
         )
+        if parsed_datetime is not None and parsed_datetime.year == TIME_ONLY_YEAR:
+            today = datetime.now(parsed_datetime.tzinfo)
+            parsed_datetime = parsed_datetime.replace(
+                year=today.year,
+                month=today.month,
+                day=today.day,
+            )
 
     if parsed_datetime is None:
         parsed_datetime = _parse_telegram_absolute_datetime(normalized_value)
