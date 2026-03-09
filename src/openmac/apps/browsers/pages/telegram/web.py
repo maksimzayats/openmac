@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 from time import sleep
@@ -116,8 +117,11 @@ class TelegramChat(BasePageElement):
             -1
         ].text.strip()  # The last badge is the one with the number of unread messages
 
-        badge = badge.replace(".", "")
-        badge = badge.replace("K", "000")  # Handle "K" suffix for thousands
+        if badge.endswith("K"):
+            numeric_badge = re.sub(r"[^\d.]", "", badge[:-1])
+            badge = float(numeric_badge) * 1000
+        else:
+            badge = re.sub(r"\D", "", badge)
 
         return int(badge)
 
