@@ -185,16 +185,15 @@ class TelegramChat(BasePageElement):
 
 
 @dataclass(slots=True, kw_only=True)
-class TelegramForumTopic(BasePageElement):
+class TelegramForumTopic(TelegramChat):
     chat: TelegramChat
 
     @property
-    def id(self) -> str:
-        raise NotImplementedError
+    def is_forum(self) -> bool:
+        return False
 
-    @property
-    def name(self) -> str:
-        raise NotImplementedError
+    def __repr__(self) -> str:
+        return f"TelegramForumTopic(id={self.id!r}, name={self.name!r})"
 
 
 @dataclass(slots=True, kw_only=True)
@@ -506,7 +505,21 @@ class TelegramForumTopicsManager(BaseManager[TelegramForumTopic]):
     page: TelegramPage
 
     def _iter_objects(self) -> Iterator[TelegramForumTopic]:
-        raise NotImplementedError
+        if not self.chat.is_forum:
+            return
+
+        self.chat.click()
+        topics = self.page.snapshot.select(f".ListItem:has(a[href^='#{self.chat.id}_'])")
+        try:
+            for tag in topics:
+                yield TelegramForumTopic(
+                    folder=self.chat.folder,
+                    chat=self.chat,
+                    element=tag,
+                )
+        finally:
+            # close the forum topics list to restore the original page state
+            self.chat.click()
 
 
 @dataclass(slots=True, kw_only=True)
