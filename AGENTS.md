@@ -1,7 +1,9 @@
 # Agent Notes for openmac
 
-This repository is a Python 3.14+ library. Use strict linting, typing, and
-testing standards. Prefer uv for all tooling.
+This repository is a Python 3.14+ typed macOS automation library built around
+AppleScript and `appscript`. The current codebase focuses on browser automation
+for Chrome and Safari, plus higher-level page objects for real web apps. Use
+strict linting, typing, and testing standards. Prefer uv for all tooling.
 
 ## Project maturity
 
@@ -14,10 +16,12 @@ testing standards. Prefer uv for all tooling.
 - Format: `make format`
 - Lint (all): `make lint`
 - Test (all): `make test`
+- Build docs: `make docs`
 
 ## Build
 
 - Build wheel/sdist: `uv build`
+- Versioning is derived from Git via `uv-dynamic-versioning`.
 - Clean build artifacts manually if needed (no scripted clean target)
 
 ## Lint and type checks
@@ -38,6 +42,16 @@ testing standards. Prefer uv for all tooling.
   `uv run pytest tests/ --cov=src/openmac --cov-report=term-missing`
 
 ## Repo structure
+
+- Library code lives under `src/openmac`.
+- Public exports are centered in `src/openmac/__init__.py`.
+- Browser integrations currently include Chrome and Safari under
+  `src/openmac/apps/browsers`.
+- Real-page abstractions live under `src/openmac/apps/browsers/pages`.
+- Shared helpers live under `src/openmac/apps/shared` and
+  `src/openmac/apps/system_events`.
+- Tests are split into `tests/unit` and `tests/integration`.
+- Sphinx docs live under `docs/`.
 
 ## Style and formatting
 
@@ -87,8 +101,26 @@ testing standards. Prefer uv for all tooling.
 - Maintain 100% coverage overall; every change must keep coverage at 100%.
 - Tests live in `tests/` and mirror module naming when possible.
 - Use pytest fixtures from `tests/conftest.py` for shared setup.
-- Prefer small, focused tests over large integration tests.
+- Prefer small, focused tests for pure logic, but for browser apps/page objects
+  favor integration tests against real browser pages and real app behavior.
+- When building apps/pages, treat real-page integration coverage as the primary
+  confidence signal; mocks should only support isolated logic that cannot be
+  exercised cleanly end-to-end.
+- Prevent data leaks in integration tests: use dedicated test accounts, safe
+  fixtures, and non-sensitive pages whenever possible.
+- Never encode personal data, secrets, tokens, private URLs, or production-only
+  content in tests, fixtures, logs, assertions, screenshots, or snapshots.
+- Prefer local, synthetic, staging, or explicitly disposable test data, and
+  keep assertions focused on structure/behavior rather than sensitive content.
 - Keep tests deterministic; avoid time-based assertions unless necessary.
+
+## Docs and README
+
+- Keep `README.md` aligned with the actual public surface and repository
+  workflow.
+- When adding or changing browser/page capabilities, update docs/examples so
+  they reflect the current supported apps and testing approach.
+- Do not document stale APIs or unsupported workflows.
 
 ## Quality gates
 
