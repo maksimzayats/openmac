@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
@@ -16,6 +17,8 @@ from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_
 
 if TYPE_CHECKING:
     from openmac.apps.browsers.chrome.objects.application import Chrome
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -114,6 +117,7 @@ class ChromeWindow(BaseObject, IBrowserWindow):
     # region Actions
 
     def close(self) -> None:
+        logger.info("Closing Chrome window id=%s title=%r", self.id, self.title)
         self.ae_window.close()
 
     # endregion Actions
@@ -152,15 +156,23 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
         mode: Literal["normal", "incognito"] = "normal",
         preserve_focus: bool = True,
     ) -> ChromeWindow:
+        logger.info(
+            "Creating Chrome window mode=%s preserve_focus=%s",
+            mode,
+            preserve_focus,
+        )
         if preserve_focus:
             with preserve_focus_context_manager():
                 ae_window = self._make_ae_window(mode)
         else:
             ae_window = self._make_ae_window(mode)
 
-        return ChromeWindow(ae_window=ae_window)
+        window = ChromeWindow(ae_window=ae_window)
+        logger.debug("Created Chrome window id=%s mode=%s", window.id, mode)
+        return window
 
     def _make_ae_window(self, mode: Literal["normal", "incognito"]) -> GenericReference:
+        logger.debug("Issuing AppleScript request to create Chrome window mode=%s", mode)
         return self.chrome.ae_chrome.make(
             new=k.window,
             with_properties={
@@ -169,5 +181,6 @@ class ChromeWindowsManager(BaseManager[ChromeWindow]):
         )
 
     def _iter_objects(self) -> Iterator[ChromeWindow]:
+        logger.debug("Enumerating Chrome windows")
         for ae_window in self.chrome.ae_chrome.windows():
             yield ChromeWindow(ae_window=ae_window)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import operator
 from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
 from functools import reduce
@@ -10,6 +11,7 @@ from openmac.apps.exceptions import InvalidFilterError
 T = TypeVar("T")
 FilterOperation = Callable[[Any, Any], bool]
 MISSING: Final = object()
+logger = logging.getLogger(__name__)
 
 
 class Filterer(Generic[T]):  # noqa: UP046
@@ -31,25 +33,36 @@ class Filterer(Generic[T]):  # noqa: UP046
         normalized_query = self._normalize_query(query)
         self._initial_query = normalized_query
         self._query = normalized_query.copy()
+        logger.debug("Initialized %s with query=%r", type(self).__name__, self._query)
 
     @property
     def query(self) -> Q:
         return self._query
 
     def update_filters(self, **filters: Any) -> None:
+        logger.debug("Updating filters with kwargs=%r", filters)
         self.update_query(Q(**filters))
 
     def update_query(self, query: Q) -> None:
+        logger.debug("Combining existing query=%r with query=%r", self._query, query)
         self._query &= query
 
     def filter(self, items: list[T]) -> list[T]:
+        logger.debug("Filtering %s items with query=%r", len(items), self._query)
         return [item for item in items if self.matches_criteria(item)]
 
     def exclude(self, items: list[T]) -> list[T]:
+        logger.debug(
+            "Excluding items from %s-item collection with query=%r",
+            len(items),
+            self._query,
+        )
         return [item for item in items if not self.matches_criteria(item)]
 
     def matches_criteria(self, item: T) -> bool:
-        return self._matches_query(item, self._query)
+        result = self._matches_query(item, self._query)
+        logger.debug("Evaluated item=%r against query=%r result=%s", item, self._query, result)
+        return result
 
     def _matches_query(self, item: T, query: Q) -> bool:
         if not query.children:
@@ -64,6 +77,7 @@ class Filterer(Generic[T]):  # noqa: UP046
                 result = reduce(operator.xor, child_results)
             else:
                 msg = f"Unsupported Q connector: {query.connector}"
+                logger.warning(msg)
                 raise InvalidFilterError(msg)
 
         return not result if query.negated else result
@@ -80,6 +94,7 @@ class Filterer(Generic[T]):  # noqa: UP046
         operation = self._OPERATIONS.get(operator_name)
 
         if operation is None:
+            logger.warning("Unsupported filter operator=%s in key=%s", operator_name, key)
             raise InvalidFilterError(f"Unsupported operator: {operator_name}")
 
         item_values = self._resolve_field_path(item, field_path, key)
@@ -125,12 +140,14 @@ class Filterer(Generic[T]):  # noqa: UP046
             ]
 
         msg = f"Invalid filter field '{field_name}' in lookup '{lookup_key}'"
+        logger.warning(msg)
         raise InvalidFilterError(msg)
 
     def _get_attribute_value(self, value: Any, field_name: str, lookup_key: str) -> Any:
         resolved_value = self._get_attribute_value_or_missing(value, field_name)
         if resolved_value is MISSING:
             msg = f"Invalid filter field '{field_name}' in lookup '{lookup_key}'"
+            logger.warning(msg)
             raise InvalidFilterError(msg)
 
         return resolved_value

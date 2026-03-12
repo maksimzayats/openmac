@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterator
 from copy import copy
 from dataclasses import dataclass
@@ -15,6 +16,7 @@ from openmac.apps.shared.base import BaseManager, UniqueIterationTracker
 
 LOCAL_TIMEZONE: Final = datetime.now().astimezone().tzinfo or UTC
 TIME_ONLY_YEAR: Final = 1900
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -25,6 +27,7 @@ class TelegramWebChatPage(BasePage):
 
     @classmethod
     def from_tab(cls, tab: IBrowserTab, **_kwargs: Any) -> Self:
+        logger.info("Creating %s from tab url=%s", cls.__name__, tab.url)
         page = cls(tab=tab)
 
         _ = must_get(
@@ -32,6 +35,7 @@ class TelegramWebChatPage(BasePage):
             error_description="Chat title element not found, is this a valid Telegram Web chat page?",
         )
 
+        logger.info("%s initialized successfully for tab url=%s", cls.__name__, tab.url)
         return page
 
 
@@ -160,11 +164,13 @@ class TelegramChatMessagesManagerFactory:
     page: TelegramWebChatPage
 
     def last(self, messages_limit: int) -> TelegramChatMessagesManager:
+        logger.info("Preparing to load last %s Telegram messages", messages_limit)
         self._go_to_bottom()
 
         return TelegramChatMessagesManager(page=self.page, messages_limit=messages_limit)
 
     def _go_to_bottom(self) -> None:
+        logger.info("Scrolling Telegram chat to the bottom before reading recent messages")
         _button = must_get(
             lambda: self.page.snapshot.select_one(
                 ".middle-column-footer button:has(.icon-arrow-down)",
@@ -193,6 +199,7 @@ class TelegramChatMessagesManagerFactory:
             error_description="Failed to get opacity of the load more messages button container after clicking it",
             exit_condition=lambda opacity: opacity == "0",
         )
+        logger.debug("Telegram chat bottom jump completed")
 
 
 @dataclass(slots=True, kw_only=True)
@@ -203,11 +210,16 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
     messages_limit: int
 
     def _iter_objects(self) -> Iterator[TelegramChatMessage]:
+        logger.info("Enumerating up to %s Telegram messages", self.messages_limit)
         tracker = UniqueIterationTracker[str]()
 
         while len(tracker) < self.messages_limit:
             tracker.new_iteration()
             if tracker.empty_iterations_in_a_row > self._MAX_EMPTY_ITERATIONS_IN_A_ROW:
+                logger.warning(
+                    "Stopping Telegram message iteration after %s empty iterations",
+                    tracker.empty_iterations_in_a_row,
+                )
                 return
 
             try:
@@ -217,6 +229,7 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
                     exit_condition=lambda msgs: len(msgs) > 0,
                 )
             except InvalidDataError:
+                logger.warning("No Telegram messages available to iterate")
                 return
 
             message: TelegramChatMessage | None = None
@@ -229,6 +242,7 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
                 if not tracker.add(message.id):
                     continue
 
+                logger.debug("Yielding Telegram message id=%s", message.id)
                 yield message
                 if len(tracker) >= self.messages_limit:
                     return
@@ -237,6 +251,7 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
                 self._scroll_to_message(message)
 
     def _scroll_to_message(self, message: TelegramChatMessage) -> None:
+        logger.debug("Scrolling Telegram chat to message id=%s", message.id)
         self.page.tab.execute(
             f'document.querySelector("#message-{message.id}").scrollIntoView()',
         )
@@ -250,48 +265,88 @@ class TelegramChatMessagesManager(BaseManager[TelegramChatMessage]):
             tries=20,
             raise_error=False,
         )
+        logger.debug("Finished scroll attempt to Telegram message id=%s", message.id)
 
 
 def _parse_telegram_message_datetime(value: str | None) -> datetime | None:
     if value is None:
+        logger.debug("Telegram message datetime parsing skipped for None value")
         return None
 
     normalized_value = value.strip()
     if not normalized_value:
+        logger.debug("Telegram message datetime parsing skipped for empty value")
         return None
 
-    parsed_datetime: datetime | None = None
-
-    try:
-        parsed_datetime = datetime.fromisoformat(normalized_value)
-        if parsed_datetime.tzinfo is None:
-            parsed_datetime = parsed_datetime.replace(tzinfo=LOCAL_TIMEZONE)
-    except ValueError:
-        pass
-
+    logger.debug("Attempting to parse Telegram message datetime value=%r", normalized_value)
+    parsed_datetime = _parse_telegram_message_datetime_value(normalized_value)
     if parsed_datetime is None:
-        parsed_datetime = _parse_telegram_datetime_with_formats(
+        parsed_datetime = _parse_telegram_message_datetime_html_fallback(normalized_value)
+
+    if parsed_datetime is not None:
+        logger.debug(
+            "Parsed Telegram message datetime value=%r into %s",
             normalized_value,
-            ("%H:%M", "%I:%M %p"),
+            parsed_datetime.isoformat(),
         )
-        if parsed_datetime is not None and parsed_datetime.year == TIME_ONLY_YEAR:
-            today = datetime.now(parsed_datetime.tzinfo)
-            parsed_datetime = parsed_datetime.replace(
-                year=today.year,
-                month=today.month,
-                day=today.day,
-            )
-
-    if parsed_datetime is None:
-        parsed_datetime = _parse_telegram_absolute_datetime(normalized_value)
-
-    if parsed_datetime is None:
-        soup = BeautifulSoup(normalized_value, "lxml")
-        plain_text_value = soup.get_text(" ", strip=True)
-        if plain_text_value != normalized_value:
-            parsed_datetime = _parse_telegram_message_datetime(plain_text_value)
+    else:
+        logger.warning("Failed to parse Telegram message datetime value=%r", normalized_value)
 
     return parsed_datetime
+
+
+def _parse_telegram_message_datetime_value(value: str) -> datetime | None:
+    parsed_datetime = _parse_telegram_iso_datetime(value)
+    if parsed_datetime is not None:
+        return parsed_datetime
+
+    parsed_datetime = _parse_telegram_time_only_datetime(value)
+    if parsed_datetime is not None:
+        return parsed_datetime
+
+    return _parse_telegram_absolute_datetime(value)
+
+
+def _parse_telegram_message_datetime_html_fallback(value: str) -> datetime | None:
+    soup = BeautifulSoup(value, "lxml")
+    plain_text_value = soup.get_text(" ", strip=True)
+    if plain_text_value == value:
+        return None
+
+    logger.debug(
+        "Retrying Telegram datetime parsing with stripped HTML text value=%r",
+        plain_text_value,
+    )
+    return _parse_telegram_message_datetime(plain_text_value)
+
+
+def _parse_telegram_iso_datetime(value: str) -> datetime | None:
+    try:
+        parsed_datetime = datetime.fromisoformat(value)
+    except ValueError:
+        logger.debug("Telegram datetime value=%r is not ISO format", value)
+        return None
+
+    if parsed_datetime.tzinfo is None:
+        return parsed_datetime.replace(tzinfo=LOCAL_TIMEZONE)
+
+    return parsed_datetime
+
+
+def _parse_telegram_time_only_datetime(value: str) -> datetime | None:
+    parsed_datetime = _parse_telegram_datetime_with_formats(
+        value,
+        ("%H:%M", "%I:%M %p"),
+    )
+    if parsed_datetime is None or parsed_datetime.year != TIME_ONLY_YEAR:
+        return parsed_datetime
+
+    today = datetime.now(parsed_datetime.tzinfo)
+    return parsed_datetime.replace(
+        year=today.year,
+        month=today.month,
+        day=today.day,
+    )
 
 
 def _get_tag_attribute_string(tag: Tag, attribute: str) -> str | None:
@@ -327,6 +382,11 @@ def _parse_telegram_datetime_with_formats(
 ) -> datetime | None:
     for date_format in formats:
         try:
+            logger.debug(
+                "Trying Telegram datetime format %r for value=%r",
+                date_format,
+                value,
+            )
             return datetime.strptime(value, date_format).replace(tzinfo=LOCAL_TIMEZONE)
         except ValueError:
             continue

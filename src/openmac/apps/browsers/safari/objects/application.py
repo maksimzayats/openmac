@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 
 from appscript import GenericReference, Keyword, app
@@ -9,6 +10,8 @@ from openmac.apps.browsers.safari.objects.documents import SafariDocumentsManage
 from openmac.apps.browsers.safari.objects.tabs import SafariWindowsTabsManager
 from openmac.apps.browsers.safari.objects.windows import SafariWindowsManager
 from openmac.apps.shared.base import BaseApplication
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -67,12 +70,15 @@ class Safari(BaseApplication, IBrowser):
     # region Actions
 
     def activate(self) -> None:
+        logger.info("Activating Safari")
         self.ae_safari.activate()
 
     def quit(self) -> None:
+        logger.info("Quitting Safari")
         self.ae_safari.quit()
 
     def show_bookmarks(self) -> None:
+        logger.info("Showing Safari bookmarks")
         self.ae_safari.show_bookmarks()
 
     def add_reading_list_item(
@@ -88,6 +94,12 @@ class Safari(BaseApplication, IBrowser):
         if and_preview_text is not None:
             command_kwargs["and_preview_text"] = and_preview_text
 
+        logger.info(
+            "Adding Safari reading list item url=%s with_title=%r and_preview_text=%r",
+            url,
+            with_title,
+            and_preview_text,
+        )
         self.ae_safari.add_reading_list_item(url, **command_kwargs)
 
     # endregion Actions

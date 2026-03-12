@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -9,6 +10,8 @@ from openmac.apps.shared.base import BaseObject
 
 if TYPE_CHECKING:
     from openmac.apps.browsers.chrome.objects.bookmark_folders import ChromeBookmarkFolder
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -25,6 +28,7 @@ class ChromeBookmarkItem(BaseObject):
         return self.ae_bookmark_item.title()
 
     def set_title(self, title: str) -> None:
+        logger.info("Renaming Chrome bookmark item id=%s from %r to %r", self.id, self.title, title)
         self.ae_bookmark_item.title.set(title)
 
     @property
@@ -32,6 +36,7 @@ class ChromeBookmarkItem(BaseObject):
         return self.ae_bookmark_item.URL()
 
     def set_url(self, url: str) -> None:
+        logger.info("Updating Chrome bookmark item id=%s URL to %s", self.id, url)
         self.ae_bookmark_item.URL.set(url)
 
     @property
