@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal
 
 from appscript import GenericReference, Keyword, k
 
-from openmac.apps.browsers.base.objects.windows import IBrowserWindow
+from openmac.apps.browsers.base.objects.windows import IBrowserWindow, IBrowserWindowsManager
 from openmac.apps.browsers.chrome.objects.tabs import (
     ChromeWindowsTabsManager,
     ChromeWindowTabsManager,
@@ -139,7 +139,7 @@ class ChromeWindowProperties:
 
 
 @dataclass(slots=True, kw_only=True)
-class ChromeWindowsManager(BaseManager[ChromeWindow]):
+class ChromeWindowsManager(BaseManager[ChromeWindow], IBrowserWindowsManager):
     chrome: Chrome
 
     @property

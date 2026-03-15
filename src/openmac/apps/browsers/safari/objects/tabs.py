@@ -6,7 +6,11 @@ from typing import TYPE_CHECKING, Any, cast
 
 from appscript import GenericReference, Keyword, k
 
-from openmac.apps.browsers.base.objects.tabs import IBrowserTab, IBrowserTabManager
+from openmac.apps.browsers.base.objects.tabs import (
+    IBrowserTab,
+    IBrowserTabManager,
+    IBrowserTabsManager,
+)
 from openmac.apps.shared.base import BaseManager, BaseObject
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
@@ -192,7 +196,7 @@ class SafariWindowTabsManager(IBrowserTabManager, BaseManager[SafariTab]):
 
 
 @dataclass(slots=True)
-class SafariWindowsTabsManager(BaseManager[SafariTab]):
+class SafariWindowsTabsManager(BaseManager[SafariTab], IBrowserTabsManager):
     windows: SafariWindowsManager
     only_active: bool = False
 

@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from openmac.apps.browsers.base.objects.tabs import IBrowserTab
-from openmac.apps.browsers.base.objects.windows import IBrowserWindow
-from openmac.apps.shared.base import BaseManager
+from openmac.apps.browsers.base.objects.tabs import IBrowserTabsManager
+from openmac.apps.browsers.base.objects.windows import IBrowserWindowsManager
 
 
-class IBrowser(ABC):
+class IBrowser[
+    BrowserWindowsManagerT: IBrowserWindowsManager,
+    BrowserTabsManagerT: IBrowserTabsManager,
+](ABC):
     # region Properties
 
     @property
@@ -28,7 +30,7 @@ class IBrowser(ABC):
 
     @property
     @abstractmethod
-    def windows(self) -> BaseManager[IBrowserWindow]: ...
+    def windows(self) -> BrowserWindowsManagerT: ...
 
     # endregion Managers
 
@@ -36,7 +38,7 @@ class IBrowser(ABC):
 
     @property
     @abstractmethod
-    def tabs(self) -> BaseManager[IBrowserTab]: ...
+    def tabs(self) -> BrowserTabsManagerT: ...
 
     # endregion Custom Managers
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Literal
 
-from openmac.apps.browsers.base.objects.tabs import IBrowserTabManager
+from openmac.apps.browsers.base.objects.tabs import IBrowserTabManager, IBrowserTabsManager
 
 
 class IBrowserWindow(ABC):
@@ -37,3 +37,9 @@ class IBrowserWindow(ABC):
     def close(self) -> None: ...
 
     # endregion Actions
+
+
+class IBrowserWindowsManager(ABC):
+    @property
+    @abstractmethod
+    def tabs(self) -> IBrowserTabsManager: ...

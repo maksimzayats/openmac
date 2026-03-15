@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal
 
 from appscript import GenericReference, Keyword, k
 
-from openmac.apps.browsers.base.objects.windows import IBrowserWindow
+from openmac.apps.browsers.base.objects.windows import IBrowserWindow, IBrowserWindowsManager
 from openmac.apps.browsers.safari.objects.tabs import (
     SafariTab,
     SafariWindowsTabsManager,
@@ -140,7 +140,7 @@ class SafariWindowProperties:
 
 
 @dataclass(slots=True, kw_only=True)
-class SafariWindowsManager(BaseManager[SafariWindow]):
+class SafariWindowsManager(BaseManager[SafariWindow], IBrowserWindowsManager):
     safari: Safari
 
     @property

@@ -12,7 +12,7 @@ from openmac.apps.shared.base import BaseApplication
 
 
 @dataclass(slots=True, kw_only=True)
-class Safari(BaseApplication, IBrowser):
+class Safari(BaseApplication, IBrowser[SafariWindowsManager, SafariWindowsTabsManager]):
     ae_safari: GenericReference = field(default_factory=lambda: app(id="com.apple.Safari"))
 
     # region Properties

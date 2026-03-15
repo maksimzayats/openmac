@@ -15,7 +15,7 @@ from openmac.apps.shared.base import BaseApplication
 
 
 @dataclass(slots=True, kw_only=True)
-class Chrome(BaseApplication, IBrowser):
+class Chrome(BaseApplication, IBrowser[ChromeWindowsManager, ChromeWindowsTabsManager]):
     ae_chrome: GenericReference = field(default_factory=lambda: app(id="com.google.Chrome"))
 
     # region Properties

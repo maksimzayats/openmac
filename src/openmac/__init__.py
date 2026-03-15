@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from openmac.apps.browsers.base.objects.application import IBrowser
-from openmac.apps.browsers.base.objects.tabs import IBrowserTab
-from openmac.apps.browsers.base.objects.windows import IBrowserWindow
+from openmac.apps.browsers.base.objects.tabs import (
+    IBrowserTab,
+    IBrowserTabManager,
+    IBrowserTabsManager,
+)
+from openmac.apps.browsers.base.objects.windows import IBrowserWindow, IBrowserWindowsManager
 from openmac.apps.browsers.chrome.objects.application import Chrome
 from openmac.apps.browsers.chrome.objects.bookmark_folders import (
     ChromeBookmarkFolder,
@@ -23,7 +27,10 @@ __all__: list[str] = [
     "ChromeWindow",
     "IBrowser",
     "IBrowserTab",
+    "IBrowserTabManager",
+    "IBrowserTabsManager",
     "IBrowserWindow",
+    "IBrowserWindowsManager",
     "Safari",
     "SafariDocument",
     "SafariTab",

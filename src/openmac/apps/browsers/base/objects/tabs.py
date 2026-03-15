@@ -66,10 +66,10 @@ class IBrowserTab(ABC):
     # endregion Custom Actions
 
 
-class IBrowserTabManager(BaseManager[IBrowserTab], ABC):
-    window: IBrowserWindow
-
-    # region Actions
+class IBrowserTabsManager(ABC):
+    @property
+    @abstractmethod
+    def active(self) -> IBrowserTabsManager: ...
 
     @abstractmethod
     def open(
@@ -80,4 +80,37 @@ class IBrowserTabManager(BaseManager[IBrowserTab], ABC):
         preserve_focus: bool = True,
     ) -> IBrowserTab: ...
 
-    # endregion Actions
+    @abstractmethod
+    def get_or_open(
+        self,
+        url: str,
+        *,
+        wait_until_loaded: bool = True,
+        preserve_focus: bool = True,
+    ) -> IBrowserTab: ...
+
+
+class IBrowserTabManager(BaseManager[IBrowserTab], ABC):
+    window: IBrowserWindow
+
+    @property
+    @abstractmethod
+    def active(self) -> IBrowserTab: ...
+
+    @abstractmethod
+    def open(
+        self,
+        url: str,
+        *,
+        wait_until_loaded: bool = True,
+        preserve_focus: bool = True,
+    ) -> IBrowserTab: ...
+
+    @abstractmethod
+    def get_or_open(
+        self,
+        url: str,
+        *,
+        wait_until_loaded: bool = True,
+        preserve_focus: bool = True,
+    ) -> IBrowserTab: ...
