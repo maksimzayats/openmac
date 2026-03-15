@@ -84,27 +84,6 @@ class SafariWindow(BaseObject, IBrowserWindow):
             ae_tab=self.ae_window.current_tab(),
         )
 
-    @property
-    def properties(self) -> SafariWindowProperties:
-        ae_properties = self.ae_window.properties()
-        return SafariWindowProperties(
-            id=ae_properties[Keyword("id")],
-            name=ae_properties[Keyword("name")],
-            index=ae_properties[Keyword("index")],
-            bounds=list(ae_properties[Keyword("bounds")]),
-            closeable=ae_properties[Keyword("closeable")],
-            miniaturizable=ae_properties[Keyword("miniaturizable")],
-            miniaturized=ae_properties[Keyword("miniaturized")],
-            resizable=ae_properties[Keyword("resizable")],
-            visible=ae_properties[Keyword("visible")],
-            zoomable=ae_properties[Keyword("zoomable")],
-            zoomed=ae_properties[Keyword("zoomed")],
-            current_tab=SafariTab(
-                window=self,
-                ae_tab=ae_properties[Keyword("current_tab")],
-            ),
-        )
-
     # endregion Properties
 
     # region Managers
@@ -121,22 +100,6 @@ class SafariWindow(BaseObject, IBrowserWindow):
         self.ae_window.close()
 
     # endregion Actions
-
-
-@dataclass(slots=True, kw_only=True)
-class SafariWindowProperties:
-    id: int
-    name: str
-    index: int
-    bounds: list[int]
-    closeable: bool
-    miniaturizable: bool
-    miniaturized: bool
-    resizable: bool
-    visible: bool
-    zoomable: bool
-    zoomed: bool
-    current_tab: SafariTab
 
 
 @dataclass(slots=True, kw_only=True)

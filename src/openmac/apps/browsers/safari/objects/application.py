@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from appscript import GenericReference, Keyword, app
+from appscript import GenericReference, app
 
 from openmac.apps.browsers.base.objects.application import IBrowser
 from openmac.apps.browsers.safari.objects.documents import SafariDocumentsManager
@@ -32,15 +32,6 @@ class Safari(BaseApplication, IBrowser[SafariWindowsManager, SafariWindowsTabsMa
     @property
     def frontmost(self) -> bool:
         return self.ae_safari.frontmost()
-
-    @property
-    def properties(self) -> SafariProperties:
-        ae_properties = self.ae_safari.properties()
-        return SafariProperties(
-            name=ae_properties[Keyword("name")],
-            version=ae_properties[Keyword("version")],
-            frontmost=ae_properties[Keyword("frontmost")],
-        )
 
     # endregion Properties
 
@@ -91,10 +82,3 @@ class Safari(BaseApplication, IBrowser[SafariWindowsManager, SafariWindowsTabsMa
         self.ae_safari.add_reading_list_item(url, **command_kwargs)
 
     # endregion Actions
-
-
-@dataclass(slots=True)
-class SafariProperties:
-    name: str
-    version: str
-    frontmost: bool

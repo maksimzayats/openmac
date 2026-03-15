@@ -5,7 +5,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from appscript import GenericReference, Keyword
+from appscript import GenericReference
 
 from openmac.apps.shared.base import BaseManager, BaseObject
 
@@ -46,22 +46,6 @@ class SafariDocument(BaseObject):
     @property
     def source(self) -> str:
         return self.ae_document.source()
-
-    @property
-    def properties(self) -> SafariDocumentProperties:
-        ae_properties = self.ae_document.properties()
-        file_value = ae_properties[Keyword("file")]
-        if hasattr(file_value, "AS_name") and file_value.AS_name == "missing_value":
-            file_value = None
-
-        return SafariDocumentProperties(
-            name=ae_properties[Keyword("name")],
-            modified=ae_properties[Keyword("modified")],
-            file=file_value,
-            url=ae_properties[Keyword("URL")],
-            text=ae_properties[Keyword("text")],
-            source=ae_properties[Keyword("source")],
-        )
 
     # endregion Properties
 
@@ -106,16 +90,6 @@ class SafariDocument(BaseObject):
             time.sleep(delay)
 
     # endregion Custom Actions
-
-
-@dataclass(slots=True)
-class SafariDocumentProperties:
-    name: str
-    modified: bool
-    file: Any | None
-    url: str
-    text: str
-    source: str
 
 
 @dataclass(slots=True, kw_only=True)

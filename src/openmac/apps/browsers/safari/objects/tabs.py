@@ -53,18 +53,6 @@ class SafariTab(BaseObject, IBrowserTab):
     def loading(self) -> bool:
         return self.execute("document.readyState") != "complete"
 
-    @property
-    def properties(self) -> SafariTabProperties:
-        ae_properties = self.ae_tab.properties()
-        return SafariTabProperties(
-            url=ae_properties[Keyword("URL")],
-            title=ae_properties[Keyword("name")],
-            index=ae_properties[Keyword("index")],
-            text=ae_properties[Keyword("text")],
-            source=ae_properties[Keyword("source")],
-            loading=self.loading,
-        )
-
     # endregion Properties
 
     # region Actions
@@ -115,16 +103,6 @@ class SafariTab(BaseObject, IBrowserTab):
             time.sleep(delay)
 
     # endregion Custom Actions
-
-
-@dataclass(slots=True)
-class SafariTabProperties:
-    url: str
-    title: str
-    index: int
-    text: str
-    source: str
-    loading: bool
 
 
 @dataclass(slots=True)
