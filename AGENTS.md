@@ -2,8 +2,8 @@
 
 This repository is a Python 3.14+ typed macOS automation library built around
 AppleScript and `appscript`. The current codebase focuses on browser automation
-for Chrome and Safari, plus higher-level page objects for real web apps. Use
-strict linting, typing, and testing standards. Prefer uv for all tooling.
+for Chrome and Safari. Use strict linting, typing, and testing standards.
+Prefer uv for all tooling.
 
 ## Project maturity
 
@@ -47,7 +47,6 @@ strict linting, typing, and testing standards. Prefer uv for all tooling.
 - Public exports are centered in `src/openmac/__init__.py`.
 - Browser integrations currently include Chrome and Safari under
   `src/openmac/apps/browsers`.
-- Real-page abstractions live under `src/openmac/apps/browsers/pages`.
 - Shared helpers live under `src/openmac/apps/shared` and
   `src/openmac/apps/system_events`.
 - Tests are split into `tests/unit` and `tests/integration`.
@@ -101,13 +100,10 @@ strict linting, typing, and testing standards. Prefer uv for all tooling.
 - Maintain 100% coverage overall; every change must keep coverage at 100%.
 - Tests live in `tests/` and mirror module naming when possible.
 - Use pytest fixtures from `tests/conftest.py` for shared setup.
-- Prefer small, focused tests for pure logic, but for browser apps/page objects
-  favor integration tests against real browser pages and real app behavior.
-- When building apps/pages, treat real-page integration coverage as the primary
-  confidence signal; mocks should only support isolated logic that cannot be
-  exercised cleanly end-to-end.
+- Prefer small, focused tests for pure logic, but for browser integrations
+  favor integration tests against real browsers and real app behavior.
 - Prevent data leaks in integration tests: use dedicated test accounts, safe
-  fixtures, and non-sensitive pages whenever possible.
+  fixtures, and non-sensitive sites whenever possible.
 - Never encode personal data, secrets, tokens, private URLs, or production-only
   content in tests, fixtures, logs, assertions, screenshots, or snapshots.
 - Prefer local, synthetic, staging, or explicitly disposable test data, and
@@ -118,8 +114,8 @@ strict linting, typing, and testing standards. Prefer uv for all tooling.
 
 - Keep `README.md` aligned with the actual public surface and repository
   workflow.
-- When adding or changing browser/page capabilities, update docs/examples so
-  they reflect the current supported apps and testing approach.
+- When adding or changing browser capabilities, update docs/examples so they
+  reflect the current supported apps and testing approach.
 - Do not document stale APIs or unsupported workflows.
 
 ## Quality gates

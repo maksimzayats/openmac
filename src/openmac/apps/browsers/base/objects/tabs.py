@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
-from openmac.apps.browsers.pages.base import BasePage
 from openmac.apps.shared.base import BaseManager
-
-PageT = TypeVar("PageT", bound=BasePage)
 
 if TYPE_CHECKING:
     from openmac import IBrowserWindow
@@ -65,9 +62,6 @@ class IBrowserTab(ABC):
         timeout: float = 10.0,
         delay: float = 0.1,
     ) -> None: ...
-
-    @abstractmethod
-    def as_page(self, page_cls: type[PageT]) -> PageT: ...
 
     # endregion Custom Actions
 

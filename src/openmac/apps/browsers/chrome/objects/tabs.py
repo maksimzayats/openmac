@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from appscript import GenericReference, Keyword, k
 
-from openmac.apps.browsers.base.objects.tabs import IBrowserTab, IBrowserTabManager, PageT
+from openmac.apps.browsers.base.objects.tabs import IBrowserTab, IBrowserTabManager
 from openmac.apps.shared.base import BaseManager, BaseObject
 from openmac.apps.system_events.helpers import preserve_focus as preserve_focus_context_manager
 
@@ -111,9 +111,6 @@ class ChromeTab(BaseObject, IBrowserTab):
                 raise TimeoutError(f"ChromeTab did not finish loading within {timeout} seconds.")
 
             time.sleep(delay)
-
-    def as_page(self, page_cls: type[PageT]) -> PageT:
-        return page_cls.from_tab(self)
 
     # endregion Custom Actions
 
