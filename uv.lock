@@ -20,7 +20,7 @@ wheels = [
 
 [[package]]
 name = "acodex"
-version = "1.0.0"
+version = "1.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "diwire" },
@@ -32,9 +32,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/26/17/ef7a9efcf28d4c90de51c4d368d40e50d805ca171f2c4b8bfffbccbe0bb6/acodex-1.0.0.tar.gz", hash = "sha256:9b289a8bcef3880b10fcdb61501494c1d3488402a7708098cf56142694ca72b1", size = 227952, upload-time = "2026-06-21T18:08:09.793Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/97/2600298dd7915ce394872d9ab604dab77bd8430ce273b2273de4e2cace67/acodex-1.0.1.tar.gz", hash = "sha256:89dbf80903660fe9e08edbe957b99ab716b0709ddd35c3b546ac411655783a4f", size = 230808, upload-time = "2026-06-26T13:07:20.416Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f8/7d/7399fe41eac354a425a2e7d982e27f9990da2024591c6c59c1e8afc968c9/acodex-1.0.0-py3-none-any.whl", hash = "sha256:30ab6826cd164dc206785e6bbab750543dcd811cc7f1de796bbcb28b6f8d7dbd", size = 70133, upload-time = "2026-06-21T18:08:08.532Z" },
+    { url = "https://files.pythonhosted.org/packages/76/9c/1057a91ef67378c8d060ac37e00d17ad3f5ce6630005dbb8575c632ee664/acodex-1.0.1-py3-none-any.whl", hash = "sha256:5342abb7678aae296726af5f5e80afff0ed8975f4e3fbf74b51d4a9cf4d307eb", size = 71054, upload-time = "2026-06-26T13:07:19.092Z" },
 ]
 
 [[package]]
